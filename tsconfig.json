@@ -1,0 +1,6 @@
+{
+	"extends": "@z-labs/tsconfig/bundler/dom/library",
+
+	"exclude": ["dist", "node_modules"],
+	"include": ["src/**/*.ts"]
+}

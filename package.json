@@ -1,0 +1,12 @@
+{
+	"name": "@zayne/call-api",
+	"version": "0.0.1",
+	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
+	"scripts": {},
+	"author": "Ryan-Zayne",
+	"license": "MIT",
+	"devDependencies": {
+		"@z-labs/tsconfig": "^0.0.5",
+		"typescript": "5.4.5"
+	}
+}
