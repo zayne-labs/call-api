@@ -126,7 +126,7 @@ const eslintConfigArray = [
 					exceptMethods: [],
 				},
 			],
-			complexity: ["warn", 25],
+			complexity: ["warn", 32],
 			// specify curly brace conventions for all control statements
 			// https://eslint.org/docs/rules/curly
 			curly: ["error", "multi-line"], // multiline

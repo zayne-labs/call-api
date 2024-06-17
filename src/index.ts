@@ -1,3 +1,5 @@
-export { default as callApi } from "./create-fetch-client";
+export { default as callApi } from "./createFetchClient";
 
-export * from "./types";
+export type { FetchConfig, BaseConfig } from "./types";
+
+export { isHTTPErrorInfo, HTTPError, isHTTPErrorInstance } from "./lib/fetch-utils";

@@ -1,8 +1,9 @@
-import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils/fetch-utils";
-import type { AnyNumber, AnyString } from "./utils/type-helpers";
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
+import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./lib/fetch-utils";
+import type { AnyNumber, AnyString } from "./lib/type-helpers/global";
 
-export type $BaseRequestConfig = Pick<FetchConfig, Exclude<(typeof fetchSpecificKeys)[number], "body">>;
 export type $RequestConfig = Pick<FetchConfig, (typeof fetchSpecificKeys)[number]>;
+export type $BaseRequestConfig = Omit<$RequestConfig, "body">;
 
 export type ExtraOptions<
 	TBaseData = unknown,
@@ -69,17 +70,19 @@ export type ExtraOptions<
 	}) => void | Promise<void>;
 };
 
-export type BaseConfig<
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultStyleUnion = undefined,
-> = Omit<FetchConfig<TBaseData, TBaseErrorData, TBaseResultMode>, "body">;
-
-export type FetchConfig<
+// prettier-ignore
+export interface FetchConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultStyleUnion = undefined,
-> = Omit<RequestInit, "method" | "body"> & ExtraOptions<TData, TErrorData, TResultMode>;
+> extends Omit<RequestInit, "method" | "body">, ExtraOptions<TData, TErrorData, TResultMode> {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface BaseConfig<
+	TBaseData = unknown,
+	TBaseErrorData = unknown,
+	TBaseResultMode extends ResultStyleUnion = undefined,
+> extends Omit<FetchConfig<TBaseData, TBaseErrorData, TBaseResultMode>, "body"> {}
 
 type ApiSuccessVariant<TData> = {
 	dataInfo: TData;

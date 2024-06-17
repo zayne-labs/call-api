@@ -1,5 +1,5 @@
 import { omitKeys, pickKeys } from "./regular-utils";
-import { isArray, isFunction, isObject } from "./type-helpers";
+import { isArray, isFunction, isObject } from "./type-helpers/typeof";
 
 import type {
 	$BaseRequestConfig,
@@ -17,15 +17,15 @@ export const mergeUrlWithParams = (url: string, params: ExtraOptions["query"]): 
 
 	const paramsString = new URLSearchParams(params as Record<string, string>).toString();
 
-	if (!url.includes("?")) {
-		return `${url}?${paramsString}`;
+	if (url.includes("?") && !url.endsWith("?")) {
+		return `${url}&${paramsString}`;
 	}
 
-	if (url.at(-1) === "?") {
+	if (url.endsWith("?")) {
 		return `${url}${paramsString}`;
 	}
 
-	return `${url}&${paramsString}`;
+	return `${url}?${paramsString}`;
 };
 
 export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {
@@ -69,11 +69,11 @@ export const fetchSpecificKeys = [
 	"referrerPolicy",
 ] satisfies Array<keyof FetchConfig>;
 
-export const splitConfig = <TObject extends Record<string, unknown>>(
+export const splitConfig = <TObject extends object>(
 	config: TObject
 ): ["body" extends keyof TObject ? $RequestConfig : $BaseRequestConfig, ExtraOptions] => [
-	pickKeys(config, fetchSpecificKeys) as never,
-	omitKeys(config, fetchSpecificKeys) as never,
+	pickKeys(config as Record<string, unknown>, fetchSpecificKeys) as never,
+	omitKeys(config as Record<string, unknown>, fetchSpecificKeys) as never,
 ];
 
 export const handleResponseType = <TResponse>(

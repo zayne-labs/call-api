@@ -1,13 +1,3 @@
-import type {
-	$RequestConfig,
-	AbortSignalWithAny,
-	BaseConfig,
-	ExtraOptions,
-	FetchConfig,
-	GetCallApiResult,
-	PossibleErrorObject,
-	ResultStyleUnion,
-} from "./types";
 import {
 	$resolveErrorResult,
 	HTTPError,
@@ -20,9 +10,19 @@ import {
 	objectifyHeaders,
 	resolveSuccessResult,
 	splitConfig,
-} from "./utils/fetch-utils";
-import { wait } from "./utils/regular-utils";
-import { isFormData, isObject } from "./utils/type-helpers";
+} from "./lib/fetch-utils";
+import { wait } from "./lib/regular-utils";
+import { isFormData, isObject } from "./lib/type-helpers/typeof";
+import type {
+	$RequestConfig,
+	AbortSignalWithAny,
+	BaseConfig,
+	ExtraOptions,
+	FetchConfig,
+	GetCallApiResult,
+	PossibleErrorObject,
+	ResultStyleUnion,
+} from "./types";
 
 const createFetchClient = <
 	TBaseData,
