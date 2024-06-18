@@ -4,10 +4,10 @@ Type .take as a comment under an issue to automatically assign it to yourself
 
 ## Issue Type
 
-- [ ] Bug Report
-- [ ] Feature Request
-- [ ] Enhancement
-- [ ] Other (Please specify)
+-  [ ] Bug Report
+-  [ ] Feature Request
+-  [ ] Enhancement
+-  [ ] Other (Please specify)
 
 ## Description
 
@@ -37,8 +37,8 @@ Type .take as a comment under an issue to automatically assign it to yourself
 
 ## Would you like to contribute to fixing this issue?
 
-- [ ] Yes
-- [ ] No
+-  [ ] Yes
+-  [ ] No
 
 ## Related Pull Requests (if any)
 
