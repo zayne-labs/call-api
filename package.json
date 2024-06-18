@@ -1,7 +1,15 @@
 {
 	"name": "@zayne-labs/call-api",
 	"version": "0.0.2",
+	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ryan-zayne/callApi.git"
+	},
+	"homepage": "https://github.com/ryan-zayne/callApi#readme",
+	"license": "MIT",
+	"author": "Ryan Zayne",
 	"scripts": {
 		"prepare": "husky",
 		"check-types": "tsc --pretty",
@@ -11,9 +19,6 @@
 		"build": "tsup",
 		"dev": "tsup --watch"
 	},
-	"author": "Ryan-Zayne",
-	"license": "MIT",
-	"type": "module",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
