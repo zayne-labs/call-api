@@ -15,19 +15,17 @@
 		"check-types": "tsc --pretty",
 		"format": "prettier --write .",
 		"lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
-		"changelog": "changelogen",
+		"dev": "tsup --watch",
 		"build": "tsup",
-		"dev": "tsup --watch"
+		"release": "pnpm build && changelogen && changeset publish"
 	},
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/index.js",
-			"default": "./dist/index.js",
-			"require": "./dist/index.js",
-			"types": "./dist/index.d.ts"
+			"import": "./index.js",
+			"require": "./index.cjs"
 		}
 	},
 	"files": [
@@ -35,6 +33,7 @@
 	],
 	"sideEffects": false,
 	"devDependencies": {
+		"@changesets/cli": "^2.27.5",
 		"@commitlint/cli": "^19.3.0",
 		"@commitlint/config-conventional": "^19.2.2",
 		"@zayne-labs/tsconfig": "^0.0.7",
