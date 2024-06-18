@@ -1,6 +1,6 @@
+import type { AnyNumber, AnyString } from "./type-helpers";
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./lib/fetch-utils";
-import type { AnyNumber, AnyString } from "./lib/type-helpers/global";
+import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils";
 
 export type $RequestConfig = Pick<FetchConfig, (typeof fetchSpecificKeys)[number]>;
 export type $BaseRequestConfig = Omit<$RequestConfig, "body">;

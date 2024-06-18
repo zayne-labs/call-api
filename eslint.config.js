@@ -126,7 +126,7 @@ const eslintConfigArray = [
 					exceptMethods: [],
 				},
 			],
-			complexity: ["warn", 32],
+			complexity: ["warn", 30],
 			// specify curly brace conventions for all control statements
 			// https://eslint.org/docs/rules/curly
 			curly: ["error", "multi-line"], // multiline
@@ -235,7 +235,7 @@ const eslintConfigArray = [
 	{
 		languageOptions: {
 			parserOptions: {
-				project: "config/tsconfig.eslint.json",
+				project: "tsconfig.eslint.json",
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},

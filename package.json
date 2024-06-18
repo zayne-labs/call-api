@@ -1,30 +1,44 @@
 {
 	"name": "@zayne-labs/call-api",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"scripts": {
 		"prepare": "husky",
-		"check-types": "tsc --noEmit --pretty",
+		"check-types": "tsc --pretty",
 		"format": "prettier --write .",
-		"lint": "eslint src/**/*.ts --report-unused-disable-directives"
+		"lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
+		"changelog": "changelogen",
+		"build": "tsup",
+		"dev": "tsup --watch"
 	},
 	"author": "Ryan-Zayne",
 	"license": "MIT",
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"default": "./dist/index.js",
+			"require": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"sideEffects": false,
 	"devDependencies": {
 		"@commitlint/cli": "^19.3.0",
 		"@commitlint/config-conventional": "^19.2.2",
-		"@eslint/js": "^9.5.0",
 		"@zayne-labs/tsconfig": "^0.0.7",
+		"changelogen": "^0.5.5",
 		"eslint": "^9.5.0",
-		"eslint-plugin-import-x": "^0.5.1",
-		"eslint-plugin-jsdoc": "^48.2.12",
-		"eslint-plugin-sonarjs": "^1.0.3",
-		"eslint-plugin-unicorn": "^54.0.0",
-		"globals": "^15.6.0",
 		"husky": "^9.0.11",
 		"lint-staged": "^15.2.7",
 		"prettier": "^3.3.2",
-		"typescript": "5.4.5",
-		"typescript-eslint": "^7.13.0"
+		"tsup": "^8.1.0",
+		"typescript": "5.4.5"
 	}
 }

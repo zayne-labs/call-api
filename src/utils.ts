@@ -1,5 +1,4 @@
-import { omitKeys, pickKeys } from "./regular-utils";
-import { isArray, isFunction, isObject } from "./type-helpers/typeof";
+import { isArray, isFunction, isObject } from "./type-helpers";
 
 import type {
 	$BaseRequestConfig,
@@ -8,7 +7,7 @@ import type {
 	ExtraOptions,
 	FetchConfig,
 	PossibleErrorObject,
-} from "../types";
+} from "./types";
 
 export const mergeUrlWithParams = (url: string, params: ExtraOptions["query"]): string => {
 	if (!params) {
@@ -68,6 +67,34 @@ export const fetchSpecificKeys = [
 	"mode",
 	"referrerPolicy",
 ] satisfies Array<keyof FetchConfig>;
+
+const omitKeys = <TObject extends Record<string, unknown>, const TOmitArray extends Array<keyof TObject>>(
+	initialObject: TObject,
+	keysToOmit: TOmitArray
+) => {
+	const arrayFromFilteredObject = Object.entries(initialObject).filter(
+		([key]) => !keysToOmit.includes(key)
+	);
+
+	const updatedObject = Object.fromEntries(arrayFromFilteredObject);
+
+	return updatedObject as Omit<TObject, keyof TOmitArray>;
+};
+
+const pickKeys = <TObject extends Record<string, unknown>, const TPickArray extends Array<keyof TObject>>(
+	initialObject: TObject,
+	keysToPick: TPickArray
+) => {
+	const keysToPickSet = new Set(keysToPick);
+
+	const arrayFromInitObject = Object.entries(initialObject);
+
+	const filteredArray = arrayFromInitObject.filter(([objectKey]) => keysToPickSet.has(objectKey));
+
+	const updatedObject = Object.fromEntries(filteredArray);
+
+	return updatedObject as Pick<TObject, TPickArray[number]>;
+};
 
 export const splitConfig = <TObject extends object>(
 	config: TObject
@@ -172,6 +199,10 @@ type ErrorDetails<TErrorResponse> = {
 	defaultErrorMessage: string;
 };
 
+type ErrorOptions = {
+	cause?: unknown;
+};
+
 export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
 	response: ErrorDetails<TErrorResponse>["response"];
 
@@ -195,4 +226,14 @@ export const isHTTPErrorInstance = <TErrorResponse>(
 		error instanceof HTTPError ||
 		(isObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
 	);
+};
+
+export const wait = (delay: number) => {
+	if (delay === 0) return;
+
+	const { promise, resolve } = Promise.withResolvers();
+
+	setTimeout(resolve, delay);
+
+	return promise;
 };
