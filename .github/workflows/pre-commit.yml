@@ -1,12 +1,12 @@
-name: CI
+name: ci
 
 on:
    push:
       branches:
          - "**"
-   pull_request:
-      branches:
-         - main
+   #  pull_request:
+   #     branches:
+   #        - main
 
 jobs:
    build:
