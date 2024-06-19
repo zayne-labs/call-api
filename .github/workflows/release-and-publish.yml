@@ -16,7 +16,7 @@ permissions:
 
 jobs:
    release:
-      if: ${{ github.event.workflow_run.conclusion == 'success' }}
+      # if: ${{ github.event.workflow_run.conclusion == 'success' }}
       runs-on: ubuntu-latest
       strategy:
          matrix:
@@ -30,7 +30,7 @@ jobs:
               fetch-depth: 0
 
          - name: Setup pnpm
-           uses: pnpm/action-setup@v2
+           uses: pnpm/action-setup@v4
            with:
               version: 9
 
