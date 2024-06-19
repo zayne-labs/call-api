@@ -29,12 +29,12 @@
 		"version-package": "changeset version",
 		"release": "changeset publish"
 	},
-	"main": "./index.js",
-	"types": "./index.d.ts",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
-			"import": "./index.js",
-			"require": "./index.cjs"
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
 		}
 	},
 	"files": [
