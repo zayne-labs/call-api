@@ -32,7 +32,8 @@
 		"test:lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
 		"build": "tsup",
 		"build:dev": "tsup --watch",
-		"release": "pnpm build && changelogen && changeset publish"
+		"version-package": "changeset version",
+		"release": "changeset publish"
 	},
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",

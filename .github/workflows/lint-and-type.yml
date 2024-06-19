@@ -1,10 +1,12 @@
 name: Lint and Type
 
 on:
+   pull_request:
    push:
       branches: [main]
-   pull_request:
-      types: [opened, synchronize]
+
+permissions:
+   contents: read
 
 jobs:
    build:

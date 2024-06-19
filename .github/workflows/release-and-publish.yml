@@ -1,9 +1,12 @@
-name: Publish
+name: Release and Publish
 on:
-   workflow_run:
-      workflows: [Lint and Type]
-      branches: [main]
-      types: [completed]
+   push:
+      branches:
+         - main
+   #  workflow_run:
+   #     workflows: [Lint and Type]
+   #     branches: [main]
+   #     types: [completed]
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -12,26 +15,29 @@ permissions:
    pull-requests: write
 
 jobs:
-   publish:
+   release:
       if: ${{ github.event.workflow_run.conclusion == 'success' }}
       runs-on: ubuntu-latest
       strategy:
          matrix:
-            node-version: [20]
+            node-version: [20.x]
       steps:
-         - name: Checkout code
-           uses: actions/checkout@v3
+         - name: Checkout repo
+           uses: actions/checkout@v4
+           with:
+              # This makes Actions fetch all Git history so that Changesets
+              # can generate changelogs with the correct commits.
+              fetch-depth: 0
 
          - name: Setup pnpm
            uses: pnpm/action-setup@v2
            with:
               version: 9
 
-         - name: Setup Node.js
+         - name: Setup Node.js 20.x
            uses: actions/setup-node@v3
            with:
               node-version: ${{ matrix.node-version }}
-              registry-url: "https://registry.npmjs.org"
               cache: "pnpm"
               cache-dependency-path: "**/pnpm-lock.yaml"
 
@@ -40,8 +46,7 @@ jobs:
               pnpm install --frozen-lockfile
               pnpm build
 
-         - name: Create Release Pull Request or Publish
-           id: changesets
+         - name: Create Release Pull Request or Publish to npm
            uses: changesets/action@v1
            with:
               publish: pnpm release
