@@ -1,5 +1,11 @@
 # @zayne-labs/call-api
 
+## 0.1.4
+
+### Patch Changes
+
+-  e37a554: fix issue of package not showing up on jsdelivr
+
 ## 0.1.3
 
 ### Patch Changes
