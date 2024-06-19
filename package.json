@@ -1,6 +1,6 @@
 {
 	"name": "@zayne-labs/call-api",
-	"version": "0.0.2",
+	"version": "0.1.1",
 	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"repository": {
@@ -32,6 +32,10 @@
 		"dist"
 	],
 	"sideEffects": false,
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.5",
 		"@commitlint/cli": "^19.3.0",
