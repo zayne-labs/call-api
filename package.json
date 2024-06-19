@@ -3,10 +3,7 @@
 	"version": "0.1.5",
 	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/ryan-zayne/callApi.git"
-	},
+	"repository": "ryan-zayne/callApi",
 	"homepage": "https://github.com/ryan-zayne/callApi#readme",
 	"license": "MIT",
 	"author": "Ryan Zayne",
@@ -29,7 +26,8 @@
 		"version-package": "changeset version",
 		"release": "changeset publish"
 	},
-	"main": "./dist/index.js",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
@@ -42,13 +40,8 @@
 	],
 	"sideEffects": false,
 	"packageManager": "pnpm@9.4.0",
-	"publishConfig": {
-		"access": "public"
-	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.5",
-		"@commitlint/cli": "^19.3.0",
-		"@commitlint/config-conventional": "^19.2.2",
 		"@eslint/js": "^9.5.0",
 		"@zayne-labs/tsconfig": "^0.0.7",
 		"changelogen": "^0.5.5",
