@@ -155,12 +155,12 @@ const createFetchClient = <
 			);
 
 			await options.onResponse?.({
-				response: { ...response.clone(), data: successData },
+				response: { ...response, data: successData },
 				request: requestInit,
 				options,
 			});
 
-			return resolveSuccessResult<CallApiResult>({ successData, response: response.clone(), options });
+			return resolveSuccessResult<CallApiResult>({ successData, response, options });
 
 			// == Exhaustive Error handling
 		} catch (error) {
@@ -188,14 +188,14 @@ const createFetchClient = <
 				const { errorData, ...response } = error.response;
 
 				await options.onResponseError?.({
-					response: { ...response.clone(), errorData },
+					response: { ...response, errorData },
 					request: requestInit,
 					options,
 				});
 
 				return resolveErrorResult({
 					errorData,
-					response: response.clone(),
+					response,
 					message: (errorData as PossibleErrorObject)?.message,
 				});
 			}
