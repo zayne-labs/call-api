@@ -1,5 +1,12 @@
 # @zayne-labs/call-api
 
+## 0.1.3
+
+### Patch Changes
+
+-  2f18f3b: refactor: attempt at reducing bundle size
+-  e8133a4: chore: update workflows
+
 ## 0.1.2
 
 ### Patch Changes
