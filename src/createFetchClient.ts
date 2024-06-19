@@ -1,4 +1,3 @@
-import { isFormData, isObject } from "./type-helpers";
 import type {
 	$RequestConfig,
 	AbortSignalWithAny,
@@ -15,8 +14,10 @@ import {
 	defaultRetryCodes,
 	defaultRetryMethods,
 	getResponseData,
+	isFormData,
 	isHTTPErrorInfo,
 	isHTTPErrorInstance,
+	isObject,
 	mergeUrlWithParams,
 	objectifyHeaders,
 	resolveSuccessResult,
@@ -45,8 +46,6 @@ const createFetchClient = <
 		url: string,
 		config?: FetchConfig<TData, TErrorData, TResultMode>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
-		// == This type is used to cast all return statements due to a design limitation in ts.
-		// LINK - See https://www.zhenghao.io/posts/type-functions for more info
 		type CallApiResult = GetCallApiResult<TData, TErrorData, TResultMode>;
 
 		const [fetchConfig, extraOptions] = splitConfig(config ?? {});

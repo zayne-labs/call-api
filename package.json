@@ -8,19 +8,33 @@
 		"url": "https://github.com/ryan-zayne/callApi.git"
 	},
 	"homepage": "https://github.com/ryan-zayne/callApi#readme",
+	"bugs": {
+		"url": "https://github.com/ryan-zayne/callApi/issues"
+	},
 	"license": "MIT",
-	"author": "Ryan Zayne",
+	"author": "Ikedigwe Ebube",
+	"engines": {
+		"node": ">=12.20.0"
+	},
+	"keywords": [
+		"fetch",
+		"api",
+		"wrapper",
+		"request cancellation",
+		"cancel",
+		"retry",
+		"interceptor"
+	],
 	"scripts": {
 		"prepare": "husky",
-		"check-types": "tsc --pretty",
-		"format": "prettier --write .",
-		"lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
-		"dev": "tsup --watch",
+		"test:check-types": "tsc --pretty -p tsconfig.json",
+		"test:format": "prettier --write .",
+		"test:lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
 		"build": "tsup",
+		"build:dev": "tsup --watch",
 		"release": "pnpm build && changelogen && changeset publish"
 	},
 	"main": "./dist/index.js",
-	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
@@ -29,9 +43,10 @@
 		}
 	},
 	"files": [
-		"dist"
+		"**"
 	],
 	"sideEffects": false,
+	"packageManager": "pnpm@9.4.0",
 	"publishConfig": {
 		"access": "public",
 		"registry": "https://registry.npmjs.org/"

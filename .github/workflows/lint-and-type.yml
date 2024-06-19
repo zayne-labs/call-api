@@ -1,19 +1,17 @@
-name: CI
+name: Lint and Type
 
 on:
    push:
-      branches:
-         - "**"
-   #  pull_request:
-   #     branches:
-   #        - main
+      branches: [main]
+   pull_request:
+      types: [opened, synchronize]
 
 jobs:
    build:
       runs-on: ubuntu-latest
       strategy:
          matrix:
-            node-version: [20.x]
+            node-version: [18]
       steps:
          - name: Checkout code
            uses: actions/checkout@v3
@@ -28,15 +26,11 @@ jobs:
            with:
               node-version: ${{ matrix.node-version }}
               cache: "pnpm"
+              cache-dependency-path: "**/pnpm-lock.yaml"
 
-         - name: Install dependencies
-           run: pnpm install --frozen-lockfile
-
-         - name: Type check
-           run: pnpm check-types -p tsconfig.json
-
-         - name: Lint
-           run: pnpm lint
-
-         - name: Build
-           run: pnpm build
+         - name: Install dependencies and run tests
+           run: |
+              pnpm install --frozen-lockfile
+              pnpm run test:format
+              pnpm run test:check-types
+              pnpm run test:lint

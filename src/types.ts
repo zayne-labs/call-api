@@ -1,5 +1,5 @@
-import type { AnyNumber, AnyString } from "./type-helpers";
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
+import type { AnyNumber, AnyString } from "./type-helpers";
 import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils";
 
 export type $RequestConfig = Pick<FetchConfig, (typeof fetchSpecificKeys)[number]>;
