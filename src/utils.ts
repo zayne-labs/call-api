@@ -1,5 +1,4 @@
-import { isArray, isFunction, isObject } from "./type-helpers";
-
+import type { AnyFunction } from "./type-helpers";
 import type {
 	$BaseRequestConfig,
 	$RequestConfig,
@@ -140,6 +139,8 @@ type DataInfo = {
 	response: Response;
 };
 
+// == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
+// LINK - See https://www.zhenghao.io/posts/type-functions for more info
 export const resolveSuccessResult = <CallApiResult>(info: DataInfo): CallApiResult => {
 	const { options, response, successData } = info;
 
@@ -237,3 +238,14 @@ export const wait = (delay: number) => {
 
 	return promise;
 };
+
+const isArray = <TArray>(value: unknown): value is TArray[] => Array.isArray(value);
+
+export const isFormData = (value: unknown) => value instanceof FormData;
+
+export const isObject = <TObject extends Record<string, unknown>>(value: unknown): value is TObject => {
+	return typeof value === "object" && value !== null && !isFormData(value) && !Array.isArray(value);
+};
+
+export const isFunction = <TFunction extends AnyFunction>(value: unknown): value is TFunction =>
+	typeof value === "function";

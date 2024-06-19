@@ -1,5 +1,5 @@
 export default {
-	"*.{js,ts}": ["pnpm format", "pnpm lint"],
-	"*.ts": () => "pnpm check-types -p tsconfig.json",
+	"*.{js,ts}": ["pnpm test:format", "pnpm test:lint"],
+	"*.ts": () => "pnpm test:check-types",
 	"*.{json,yaml}": ["prettier --write"],
 };
