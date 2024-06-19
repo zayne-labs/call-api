@@ -8,14 +8,8 @@
 		"url": "https://github.com/ryan-zayne/callApi.git"
 	},
 	"homepage": "https://github.com/ryan-zayne/callApi#readme",
-	"bugs": {
-		"url": "https://github.com/ryan-zayne/callApi/issues"
-	},
 	"license": "MIT",
-	"author": "Ikedigwe Ebube",
-	"engines": {
-		"node": ">=12.20.0"
-	},
+	"author": "Ryan Zayne",
 	"keywords": [
 		"fetch",
 		"api",
@@ -35,22 +29,21 @@
 		"version-package": "changeset version",
 		"release": "changeset publish"
 	},
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
+	"main": "./index.js",
+	"types": "./index.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/index.js",
-			"require": "./dist/index.cjs"
+			"import": "./index.js",
+			"require": "./index.cjs"
 		}
 	},
 	"files": [
-		"**"
+		"dist"
 	],
 	"sideEffects": false,
 	"packageManager": "pnpm@9.4.0",
 	"publishConfig": {
-		"access": "public",
-		"registry": "https://registry.npmjs.org/"
+		"access": "public"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.5",
