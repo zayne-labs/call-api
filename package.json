@@ -39,7 +39,7 @@
 		"access": "public"
 	},
 	"files": [
-		"dist"
+		"src"
 	],
 	"sideEffects": false,
 	"packageManager": "pnpm@9.4.0",
