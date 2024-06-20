@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.0.4
+
+### Patch Changes
+
+-  a9f7824: changed package.json files property to hold src files instead of dist
+
 ## 0.0.3
 
 ### Patch Changes
