@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.0.5
+
+### Patch Changes
+
+-  7e3fd59: fix: update package.json to better resolve necessary files and update typescript version
+
 ## 0.0.4
 
 ### Patch Changes
