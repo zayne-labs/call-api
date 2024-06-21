@@ -126,7 +126,7 @@ const eslintConfigArray = [
 					exceptMethods: [],
 				},
 			],
-			complexity: ["warn", 30],
+			complexity: ["warn", 35],
 			// specify curly brace conventions for all control statements
 			// https://eslint.org/docs/rules/curly
 			curly: ["error", "multi-line"], // multiline
@@ -297,7 +297,7 @@ const eslintConfigArray = [
 			"import-x/export": "error",
 			"import-x/no-named-as-default": "error",
 			"import-x/namespace": "off",
-			"import-x/prefer-default-export": "warn",
+			"import-x/prefer-default-export": "off",
 			"import-x/no-named-as-default-member": "error",
 			"import-x/no-mutable-exports": "error",
 			"import-x/first": "error",
