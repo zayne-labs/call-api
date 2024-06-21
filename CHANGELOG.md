@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.0.6
+
+### Patch Changes
+
+-  2f2c22c: add main entry point via pkg.json
+
 ## 0.0.5
 
 ### Patch Changes
