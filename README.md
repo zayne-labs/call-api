@@ -116,9 +116,9 @@ You can add `query` object as an option and callApi will create a query string f
 
 ```js
 callApi("some-url", {
-  query: {
-    param1: "value1",
-    param2: "to encode",
+ query: {
+  param1: "value1",
+  param2: "to encode",
  },
 });
 
@@ -157,8 +157,8 @@ If you pass in a string, callApi will set `Content-Type` to `application/x-www-f
 import { toQueryString } from "@zayne-labs/callapi";
 
 callApi("some-url", {
-  method: "POST",
-  body: toQueryString({ message: "Good game" }),
+ method: "POST",
+ body: toQueryString({ message: "Good game" }),
 });
 
 // The above request is equivalent to this
@@ -175,7 +175,6 @@ If you pass in a FormData, callApi will let the native `fetch` function handle t
 const data = new FormData(form.elements);
 
 callApi("some-url", { body: data });
-
 ```
 
 ## ✔️ Authorization header helpers
@@ -222,10 +221,10 @@ const { data, error } = await callAnotherApi("some-url", {
 
 By default callApi supports all response types offered by the fetch api like `json`, `text`,`blob` etc, so you don't have to write `response.json()`, `response.text()` or `response.blob()`.
 
-But if you want to handle a response not supported by fetch, you can pass a custom handler function to the  `responseParser` option.
+But if you want to handle a response not supported by fetch, you can pass a custom handler function to the `responseParser` option.
 
 ```js
-const { data, error, } = await callApi("url", {
+const { data, error } = await callApi("url", {
  responseParser: customResponseParser,
 });
 ```
@@ -248,7 +247,7 @@ const callAnotherApi = callApi.create({
 
 ## ✔️ Interceptors (just like axios)
 
-Providing interceptors to hook into lifecycle events of a  `callApi` call is possible.
+Providing interceptors to hook into lifecycle events of a `callApi` call is possible.
 
 These interceptors can be either asynchronous or synchronous.
 
@@ -260,12 +259,12 @@ You might want to use `callApi.create` to set shared interceptors.
 
 ```js
 await callApi("/api", {
-  onRequest: ({ request, options }) => {
-    // Log request
-    console.log(request, options);
+ onRequest: ({ request, options }) => {
+  // Log request
+  console.log(request, options);
 
-    // Do other stuff
-  },
+  // Do other stuff
+ },
 });
 ```
 
@@ -275,10 +274,10 @@ await callApi("/api", {
 
 ```js
 await callApi("/api", {
-   onRequestError: ({ request, options, error }) => {
-    // Log error
-    console.log("[fetch request error]", request, error);
-  },
+ onRequestError: ({ request, options, error }) => {
+  // Log error
+  console.log("[fetch request error]", request, error);
+ },
 });
 ```
 
@@ -290,12 +289,12 @@ The response object here contains all regular fetch response properties, plus a 
 
 ```js
 await callApi("/api", {
-  onResponse: ({ request, response, options }) =>{
-    // Log response
-    console.log( request, response.status, response.data);
+ onResponse: ({ request, response, options }) => {
+  // Log response
+  console.log(request, response.status, response.data);
 
-    // Do other stuff
-  },
+  // Do other stuff
+ },
 });
 ```
 
@@ -317,34 +316,30 @@ The response object here contains all regular fetch response properties, plus an
 This example uses a shared interceptor for all requests made with the instance.
 
 ```js
-const callAnotherApi =  callApi.create({
-  onResponseError: ({ response, request, options }) => {
-    // Log error response
-    console.log(
-      request,
-      response.status,
-      response.errorData
-    );
+const callAnotherApi = callApi.create({
+ onResponseError: ({ response, request, options }) => {
+  // Log error response
+  console.log(request, response.status, response.errorData);
 
   // Perform action on various error conditions
-    if (response.status === 401) {
-      actions.clearSession();
-    }
+  if (response.status === 401) {
+   actions.clearSession();
+  }
 
-    if (response.status === 429) {
-      toast.error("Too may requests!");
-    }
+  if (response.status === 429) {
+   toast.error("Too may requests!");
+  }
 
-    if (response.status === 403 && response.errorData?.message === "2FA is required") {
-      toast.error(response.errorData?.message, {
-        description: "Please authenticate to continue",
-      });
-    }
+  if (response.status === 403 && response.errorData?.message === "2FA is required") {
+   toast.error(response.errorData?.message, {
+    description: "Please authenticate to continue",
+   });
+  }
 
-    if (response.status === 500) {
-      toast.error("Internal server Error!");
-    }
-  },
+  if (response.status === 500) {
+   toast.error("Internal server Error!");
+  }
+ },
 });
 ```
 
@@ -373,10 +368,10 @@ The default for `retryMethods` is `["GET", "POST"]`.
 
 ```js
 await callApi("http://google.com/404", {
-  retry: 3,
-  retryDelay: 500, // ms
-  retryStatusCodes: [404, 502, 503, 504], // custom status codes for retries
-  retryMethods: ["POST", "PUT", "PATCH", "DELETE"], // custom methods for retries
+ retry: 3,
+ retryDelay: 500, // ms
+ retryStatusCodes: [404, 502, 503, 504], // custom status codes for retries
+ retryMethods: ["POST", "PUT", "PATCH", "DELETE"], // custom methods for retries
 });
 ```
 
@@ -386,7 +381,7 @@ You can specify `timeout` in milliseconds to automatically abort a request after
 
 ```js
 await callApi("http://google.com/404", {
-  timeout: 3000, // Timeout after 3 seconds
+ timeout: 3000, // Timeout after 3 seconds
 });
 ```
 
@@ -396,36 +391,34 @@ You can throw an error on all errors (including http errors) by passing `throwOn
 
 ```js
 const callMainApi = callApi.create({
-  throwOnError: true,
+ throwOnError: true,
 });
 
 const { data, error } = useQuery({
-  queryKey: ["todos"],
-  queryFn: async () => {
-    // CallApi will throw an error if the request fails or there is an error response, which react query would handle
-    const { data } = await callMainApi("todos");
+ queryKey: ["todos"],
+ queryFn: async () => {
+  // CallApi will throw an error if the request fails or there is an error response, which react query would handle
+  const { data } = await callMainApi("todos");
 
-    return data;
-  },
+  return data;
+ },
 });
 ```
 
 Doing this with regular fetch would imply the following extra steps:
 
 ```js
-
 const { data, error } = useQuery({
-  queryKey: ["todos"],
-  queryFn: async () => {
+ queryKey: ["todos"],
+ queryFn: async () => {
+  const response = await fetch("todos");
 
-    const response = await fetch("todos");
+  if (!response.ok) {
+   throw new Error("Failed to fetch");
+  }
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch");
-    }
-
-    return response.json();
-  },
+  return response.json();
+ },
 });
 ```
 
@@ -433,14 +426,14 @@ For even more convenience, you can specify a resultMode for callApi in addition 
 
 ```js
 const callMainApi = callApi.create({
-  throwOnError: true,
-  resultMode: "onlySuccess",
+ throwOnError: true,
+ resultMode: "onlySuccess",
 });
 
 const { data, error } = useQuery({
-  queryKey: ["todos"],
-  // CallApi will throw on errors here, and also return only data, which react query is interested in
-  queryFn: () => callMainApi("todos"),
+ queryKey: ["todos"],
+ // CallApi will throw on errors here, and also return only data, which react query is interested in
+ queryFn: () => callMainApi("todos"),
 });
 ```
 
@@ -457,7 +450,6 @@ const callMainApi = callApi.create<FormResponseDataType, FormErrorResponseType>(
  retries: 3,
 
  credentials: "same-origin",
-
 });
 ```
 
@@ -468,33 +460,33 @@ This simply means that if data is available error will be null, and if error is 
 ```ts
 // As is, both data and error could be null
 const { data, error } = await callMainApi("some-url", {
-  body: { message: "Good game" },
+ body: { message: "Good game" },
 });
 
 if (error) {
-  console.error(error);
-  return;
+ console.error(error);
+ return;
 }
 
 // Now, data is no longer null
-console.log(data)
+console.log(data);
 ```
 
 - The types for the object passed to onResponse and onResponseError could be augmented with type helpers provided by `@zayne-labs/callapi`.
 
 ```ts
-const callAnotherApi =  callApi.create({
-  onResponseError: ({ response, request, options }: ResponseErrorContext<{ message?: string; }>) => {
-    // Log error response
-    console.log(
-      request,
-      response.status,
-      // error data, coming back from api
-      response.errorData,
-      // Typescript will then understand the errorData might contains a message property
-      response.errorData?.message
-    );
-  },
+const callAnotherApi = callApi.create({
+ onResponseError: ({ response, request, options }: ResponseErrorContext<{ message?: string }>) => {
+  // Log error response
+  console.log(
+   request,
+   response.status,
+   // error data, coming back from api
+   response.errorData,
+   // Typescript will then understand the errorData might contains a message property
+   response.errorData?.message
+  );
+ },
 });
 ```
 
@@ -521,7 +513,7 @@ const callAnotherApi =  callApi.create({
 - `retryCodes`: HTTP status codes that trigger a retry. (default: [409, 425, 429, 500, 502, 503, 504])
 - `retryMethods`: HTTP methods that are allowed to retry. (default: ["GET", "POST"])
 - `meta`: An optional field for additional information, typically used for logging or tracing.
-- `onRequest`: Interceptor called just before the request is made, allowing for modifications or  additional operations.
+- `onRequest`: Interceptor called just before the request is made, allowing for modifications or additional operations.
 - `onRequestError`: Interceptor called when an error occurs during the fetch request.
 - `onResponse`: Interceptor called when a successful response is received from the API.
 - `onResponseError`: Interceptor called when an error response is received from the API.
