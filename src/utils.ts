@@ -1,19 +1,34 @@
-import type { AnyFunction } from "./type-helpers";
+import { isArray, isFunction, isObject } from "./typeof";
 import type {
-	$BaseRequestConfig,
-	$RequestConfig,
+	$BaseRequestOptions,
+	$RequestOptions,
+	ApiErrorVariant,
 	BaseConfig,
 	ExtraOptions,
 	FetchConfig,
 	PossibleErrorObject,
 } from "./types";
 
+type ToQueryStringFn = {
+	(params: Required<ExtraOptions>["query"]): string;
+	(params: ExtraOptions["query"]): string | null;
+};
+
+export const toQueryString: ToQueryStringFn = (params) => {
+	if (!params) {
+		console.error("No query params provided");
+		return null as never;
+	}
+
+	return new URLSearchParams(params as Record<string, string>).toString();
+};
+
 export const mergeUrlWithParams = (url: string, params: ExtraOptions["query"]): string => {
 	if (!params) {
 		return url;
 	}
 
-	const paramsString = new URLSearchParams(params as Record<string, string>).toString();
+	const paramsString = toQueryString(params);
 
 	if (url.includes("?") && !url.endsWith("?")) {
 		return `${url}&${paramsString}`;
@@ -97,7 +112,7 @@ const pickKeys = <TObject extends Record<string, unknown>, const TPickArray exte
 
 export const splitConfig = <TObject extends object>(
 	config: TObject
-): ["body" extends keyof TObject ? $RequestConfig : $BaseRequestConfig, ExtraOptions] => [
+): ["body" extends keyof TObject ? $RequestOptions : $BaseRequestOptions, ExtraOptions] => [
 	pickKeys(config as Record<string, unknown>, fetchSpecificKeys) as never,
 	omitKeys(config as Record<string, unknown>, fetchSpecificKeys) as never,
 ];
@@ -108,7 +123,7 @@ export const handleResponseType = <TResponse>(
 ) => ({
 	json: async () => {
 		if (parser) {
-			return parser<TResponse>(await response.text());
+			return parser(await response.text());
 		}
 
 		return response.json() as Promise<TResponse>;
@@ -133,7 +148,7 @@ export const getResponseData = <TResponse>(
 	return RESPONSE_TYPE_LOOKUP[responseType]();
 };
 
-type DataInfo = {
+type data = {
 	successData: unknown;
 	options: ExtraOptions;
 	response: Response;
@@ -141,17 +156,21 @@ type DataInfo = {
 
 // == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
 // LINK - See https://www.zhenghao.io/posts/type-functions for more info
-export const resolveSuccessResult = <CallApiResult>(info: DataInfo): CallApiResult => {
+export const resolveSuccessResult = <CallApiResult>(info: data): CallApiResult => {
 	const { options, response, successData } = info;
 
-	const apiDetails = { dataInfo: successData, errorInfo: null, response };
+	const apiDetails = {
+		data: successData,
+		errorInfo: null,
+		response,
+	};
 
 	if (options.resultMode === undefined || options.resultMode === "all") {
 		return apiDetails as CallApiResult;
 	}
 
 	return {
-		onlySuccess: apiDetails.dataInfo,
+		onlySuccess: apiDetails.data,
 		onlyError: apiDetails.errorInfo,
 		onlyResponse: apiDetails.response,
 	}[options.resultMode] as CallApiResult;
@@ -179,11 +198,11 @@ export const $resolveErrorResult = <CallApiResult>($info: { error?: unknown; opt
 		}
 
 		return {
-			dataInfo: null,
-			errorInfo: {
+			data: null,
+			error: {
 				errorName: (error as PossibleErrorObject)?.name ?? "UnknownError",
+				errorData: errorData ?? null,
 				message: message ?? (error as PossibleErrorObject)?.message ?? options.defaultErrorMessage,
-				...(Boolean(errorData) && { errorData }),
 			},
 			response: response ?? null,
 		} as CallApiResult;
@@ -191,9 +210,10 @@ export const $resolveErrorResult = <CallApiResult>($info: { error?: unknown; opt
 
 	return resolveErrorResult;
 };
-export const isHTTPErrorInfo = (
-	errorInfo: Record<string, unknown> | null
-): errorInfo is { errorName: "HTTPError" } => isObject(errorInfo) && errorInfo.errorName === "HTTPError";
+
+export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["error"] | null) => {
+	return isObject(error) && error.errorName === "HTTPError";
+};
 
 type ErrorDetails<TErrorResponse> = {
 	response: Response & { errorData: TErrorResponse };
@@ -220,16 +240,16 @@ export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
 	}
 }
 
+// prettier-ignore
 export const isHTTPErrorInstance = <TErrorResponse>(
 	error: unknown
 ): error is HTTPError<TErrorResponse> => {
 	return (
-		error instanceof HTTPError ||
-		(isObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
+		error instanceof HTTPError || (isObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
 	);
 };
 
-export const wait = (delay: number) => {
+export const waitUntil = (delay: number) => {
 	if (delay === 0) return;
 
 	const { promise, resolve } = Promise.withResolvers();
@@ -238,14 +258,3 @@ export const wait = (delay: number) => {
 
 	return promise;
 };
-
-const isArray = <TArray>(value: unknown): value is TArray[] => Array.isArray(value);
-
-export const isFormData = (value: unknown) => value instanceof FormData;
-
-export const isObject = <TObject extends Record<string, unknown>>(value: unknown): value is TObject => {
-	return typeof value === "object" && value !== null && !isFormData(value) && !Array.isArray(value);
-};
-
-export const isFunction = <TFunction extends AnyFunction>(value: unknown): value is TFunction =>
-	typeof value === "function";

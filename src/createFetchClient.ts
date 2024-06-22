@@ -1,12 +1,13 @@
+import { isFormData, isObject, isString } from "./typeof";
 import type {
-	$RequestConfig,
+	$RequestOptions,
 	AbortSignalWithAny,
 	BaseConfig,
 	ExtraOptions,
 	FetchConfig,
 	GetCallApiResult,
 	PossibleErrorObject,
-	ResultStyleUnion,
+	ResultModeUnion,
 } from "./types";
 import {
 	$resolveErrorResult,
@@ -14,34 +15,32 @@ import {
 	defaultRetryCodes,
 	defaultRetryMethods,
 	getResponseData,
-	isFormData,
-	isHTTPErrorInfo,
 	isHTTPErrorInstance,
-	isObject,
 	mergeUrlWithParams,
 	objectifyHeaders,
 	resolveSuccessResult,
 	splitConfig,
-	wait,
+	waitUntil,
 } from "./utils";
 
-const createFetchClient = <
-	TBaseData,
-	TBaseErrorData,
-	TBaseResultMode extends ResultStyleUnion = undefined,
->(
+const createFetchClient = <TBaseData, TBaseErrorData, TBaseResultMode extends ResultModeUnion = undefined>(
 	baseConfig?: BaseConfig<TBaseData, TBaseErrorData, TBaseResultMode>
 ) => {
 	const abortControllerStore = new Map<string, AbortController>();
 
 	const [baseFetchConfig, baseExtraOptions] = splitConfig(baseConfig ?? {});
 
-	const { headers: baseHeaders, signal: baseSignal, ...restOfBaseFetchConfig } = baseFetchConfig;
+	const {
+		headers: baseHeaders,
+		body: baseBody,
+		signal: baseSignal,
+		...restOfBaseFetchConfig
+	} = baseFetchConfig;
 
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
-		TResultMode extends ResultStyleUnion = TBaseResultMode,
+		TResultMode extends ResultModeUnion = TBaseResultMode,
 	>(
 		url: string,
 		config?: FetchConfig<TData, TErrorData, TResultMode>
@@ -64,7 +63,7 @@ const createFetchClient = <
 			...extraOptions,
 		} satisfies ExtraOptions;
 
-		const { signal = baseSignal, body, headers, ...restOfFetchConfig } = fetchConfig;
+		const { signal = baseSignal, body = baseBody, headers, ...restOfFetchConfig } = fetchConfig;
 
 		const prevFetchController = abortControllerStore.get(url);
 
@@ -93,9 +92,12 @@ const createFetchClient = <
 
 			body: isObject(body) ? options.bodySerializer(body) : body,
 
-			// == Return undefined if there are no headers provided or if the body is not an object
+			// == Return undefined if the following conditions are not met (so that native fetch would auto set the correct headers):
+			// - headers are provided
+			// - The body is an object
+			// - The auth option is provided
 			headers:
-				baseHeaders || headers || isObject(body)
+				baseHeaders || headers || options.auth || isObject(body)
 					? {
 							...(isObject(body) && {
 								"Content-Type": "application/json",
@@ -104,6 +106,12 @@ const createFetchClient = <
 							...(isFormData(body) && {
 								"Content-Type": "multipart/form-data",
 							}),
+							...(isString(body) && {
+								"Content-Type": "application/x-www-form-urlencoded",
+							}),
+							...(Boolean(options.auth) && {
+								Authorization: `Bearer ${options.auth}`,
+							}),
 							...objectifyHeaders(baseHeaders),
 							...objectifyHeaders(headers),
 						}
@@ -111,7 +119,7 @@ const createFetchClient = <
 
 			...restOfBaseFetchConfig,
 			...restOfFetchConfig,
-		} satisfies $RequestConfig;
+		} satisfies $RequestOptions;
 
 		try {
 			await options.onRequest?.({ request: requestInit, options });
@@ -122,14 +130,14 @@ const createFetchClient = <
 			);
 
 			const shouldRetry =
-				!combinedSignal.aborted &&
-				options.retries !== 0 &&
 				!response.ok &&
+				!combinedSignal.aborted &&
+				options.retries > 0 &&
 				options.retryCodes.includes(response.status) &&
 				options.retryMethods.includes(requestInit.method);
 
 			if (shouldRetry) {
-				await wait(options.retryDelay);
+				await waitUntil(options.retryDelay);
 
 				return await callApi(url, { ...config, retries: options.retries - 1 });
 			}
@@ -212,13 +220,10 @@ const createFetchClient = <
 	};
 
 	callApi.create = createFetchClient;
-	callApi.isHTTPErrorInfo = isHTTPErrorInfo;
-	callApi.isHTTPErrorInstance = isHTTPErrorInstance;
+
 	callApi.cancel = (url: string) => abortControllerStore.get(url)?.abort();
 
 	return callApi;
 };
 
-const callApi = createFetchClient();
-
-export default callApi;
+export { createFetchClient };

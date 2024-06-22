@@ -3,8 +3,8 @@
 	"version": "0.0.6",
 	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
-	"main": "dist/index.cjs",
-	"module": "dist/index.js",
+	"main": "dist/index.js",
+	"types": "./dist/index.d.ts",
 	"scripts": {
 		"prepare": "husky",
 		"test:check-types": "tsc --pretty -p tsconfig.json",
@@ -15,7 +15,6 @@
 		"version-package": "changeset version",
 		"release": "changeset publish"
 	},
-	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
 			"import": "./dist/index.js",
