@@ -1,5 +1,16 @@
 # @zayne-labs/callapi
 
+## 0.1.0
+
+### Minor Changes
+
+-  9128630: feat: added a new feature for auth tokens
+-  9128630: Updated a few types and parts of the api to be more user friendly
+
+### Patch Changes
+
+-  9128630: docs: added proper docs to readme
+
 ## 0.0.6
 
 ### Patch Changes
