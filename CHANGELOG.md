@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.1.1
+
+### Patch Changes
+
+-  f2e0417: fix: fix build by adding missing entry
+
 ## 0.1.0
 
 ### Minor Changes
