@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.2.2
+
+### Patch Changes
+
+-  b448415: fix: update entry points
+
 ## 0.2.1
 
 ### Patch Changes
