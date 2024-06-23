@@ -31,6 +31,11 @@ export type ExtraOptions<
 	auth?: string;
 
 	/**
+	 * @description Custom function to validate the response data.
+	 */
+	responseValidator?: (data: TBaseData) => TBaseData;
+
+	/**
 	 * @description Custom function to serialize the body object into a string.
 	 */
 	bodySerializer?: (bodyData: Record<string, unknown>) => string;
