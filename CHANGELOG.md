@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.2.1
+
+### Patch Changes
+
+-  da4d300: chore: update build dir structure
+
 ## 0.2.0
 
 ### Minor Changes
