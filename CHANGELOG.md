@@ -1,5 +1,15 @@
 # @zayne-labs/callapi
 
+## 0.2.0
+
+### Minor Changes
+
+-  66c4dad: feat: added option for adding custom validator function
+
+### Patch Changes
+
+-  66c4dad: refactor: exposed createFetchClient function for users who prefer it
+
 ## 0.1.1
 
 ### Patch Changes
