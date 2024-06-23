@@ -541,7 +541,7 @@ const callAnotherApi = callApi.create({
 - `retryDelay`: Delay between retries in milliseconds. (default: 500)
 - `retryCodes`: HTTP status codes that trigger a retry. (default: [409, 425, 429, 500, 502, 503, 504])
 - `retryMethods`: HTTP methods that are allowed to retry. (default: ["GET", "POST"])
-- `meta`: An optional field for additional information, typically used for logging or tracing.
+- `meta`: An optional field that can contain additional information about a request, which could be helpful in differentiating between different requests in a shared interceptor.
 - `onRequest`: Interceptor called just before the request is made, allowing for modifications or additional operations.
 - `onRequestError`: Interceptor called when an error occurs during the fetch request.
 - `onResponse`: Interceptor called when a successful response is received from the API.
