@@ -8,8 +8,14 @@ export default defineConfig((options) => ({
 	skipNodeModulesBundle: true, // skip building deps for node_modules, simply use them as is
 	dts: true,
 	minify: !options.watch,
+	splitting: true,
 	bundle: false,
 	treeshake: true,
 	tsconfig: "tsconfig.json",
 	sourcemap: !options.watch,
+	esbuildOptions: (esOptions) => {
+		// Keep directory structure same as the source
+		// eslint-disable-next-line no-param-reassign
+		esOptions.outbase = "./";
+	},
 }));
