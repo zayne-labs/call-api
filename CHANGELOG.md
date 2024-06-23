@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.2.3
+
+### Patch Changes
+
+-  3907e38: update types in pkg.json
+
 ## 0.2.2
 
 ### Patch Changes
