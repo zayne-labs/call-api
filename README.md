@@ -280,7 +280,7 @@ Providing interceptors to hook into lifecycle events of a `callApi` call is poss
 
 These interceptors can be either asynchronous or synchronous.
 
-You might want to use `callApi.create` to set shared interceptors.
+**Note: You might want to use `callApi.create` to set shared interceptors**
 
 ### `onRequest({ request, options })`
 
@@ -482,7 +482,7 @@ const callMainApi = callApi.create<FormResponseDataType, FormErrorResponseType>(
 });
 ```
 
-- Since the data and error properties destructured from callApi are a discriminated union, simply checking for and handling the `error` property will narrow down the type of the data.
+- Since the `data` and `error` properties destructured from callApi are in a discriminated union, simply checking for and handling the `error` property will narrow down the type of the data. The reverse case also holds (checking for data to narrow error type).
 
 This simply means that if data is available error will be null, and if error is available data will be null. Both cannot exist at the same time.
 
