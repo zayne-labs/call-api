@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.2.4
+
+### Patch Changes
+
+-  5e35ac4: expanded conditional types in pkg.json to resolve to proper types
+
 ## 0.2.3
 
 ### Patch Changes
