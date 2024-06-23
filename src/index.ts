@@ -1,6 +1,4 @@
-import { createFetchClient } from "./createFetchClient";
-
-export const callApi = createFetchClient();
+export { callApi, createFetchClient } from "./createFetchClient";
 
 export type {
 	FetchConfig,

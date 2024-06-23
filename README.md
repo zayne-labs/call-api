@@ -6,7 +6,6 @@ CallApi Fetch is an extra-lightweight wrapper over fetch that provides convenien
 
 It takes in a url and a request options object, just like fetch, but with some additional options to make your life easier. Check out the [API Reference](#api-reference) for more details.
 
-
 ## Installing CallApi
 
 ### Through npm (recommended)
@@ -85,7 +84,7 @@ For extra convenience with typescript, visit the [Typescript section](#usage-wit
 
 ## Helpful Features
 
-## Auto cancellation of redundant requests
+## Auto cancellation of redundant requests (No more race conditions🤩)
 
 `CallApi` automatically cancels the previous requests if the same url is called again before the previous request is resolved. This essentially only lets the last request through, hence preventing dreaded race conditions.
 
@@ -207,7 +206,10 @@ You can create an instance of `callApi` with predefined options. This is super h
 import { callApi } from "@zayne-labs/callapi";
 
 // Creating the instance, with some base options
-const callAnotherApi = callApi.create({ timeout: 5000, baseURL: "https://api.example.com" });
+const callAnotherApi = callApi.create({
+ timeout: 5000,
+ baseURL: "https://api.example.com"
+});
 
 // Using the instance
 const { data, error } = await callAnotherApi("some-url");
@@ -218,11 +220,22 @@ const { data, error } = await callAnotherApi("some-url", {
 });
 ```
 
-## ✔️ Custom response handler and custom body serializer
+You could also use the `createFetchClient` function to create an instance, if you don't want to use `callApi.create`.
+
+```js
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const callAnotherApi = createFetchClient({
+ timeout: 5000,
+ baseURL: "https://api.example.com"
+});
+```
+
+## ✔️ Custom response parser and custom body serializer
 
 By default callApi supports all response types offered by the fetch api like `json`, `text`,`blob` etc, so you don't have to write `response.json()`, `response.text()` or `response.blob()`.
 
-But if you want to handle a response not supported by fetch, you can pass a custom handler function to the `responseParser` option.
+But if you want to parse a response with a custom function other than the default `JSON.parse`, you can pass a custom parser function to the `responseParser` option.
 
 ```js
 const { data, error } = await callApi("url", {
@@ -238,11 +251,26 @@ const callAnotherApi = callApi.create({
 });
 ```
 
-You could also provide a custom serializer/stringifier for objects passed to the body of the request via the `bodySerializer` option.
+You could also provide a custom serializer/stringifier, other the default `JSON.stringify`, for objects passed to the reuqest body via the `bodySerializer` option.
 
 ```js
 const callAnotherApi = callApi.create({
  bodySerializer: customBodySerializer,
+});
+```
+
+## ✔️Validator function
+
+CallApi also provides a `responseValidator` option, which could pass in a function that would validate the data returned from the server.
+
+A good use case for this would to pass in, for instance, a zod schema parse/safeParse function to validate the data.
+
+If your parser function throws an error, and have the `throwOnError` option set to `true`, you will expected to check and handle the errors in a catch block.
+But, if `throwOnError` is set to `false` (default), it will just return the error object as usual.
+
+```js
+const callMainApi = await callApi.create({
+ responseValidator: zodSchema.parse, // or zodSchema.safeParse or any other validator you wish to use
 });
 ```
 

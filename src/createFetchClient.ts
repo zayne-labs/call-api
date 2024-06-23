@@ -23,7 +23,11 @@ import {
 	waitUntil,
 } from "./utils";
 
-const createFetchClient = <TBaseData, TBaseErrorData, TBaseResultMode extends ResultModeUnion = undefined>(
+export const createFetchClient = <
+	TBaseData,
+	TBaseErrorData,
+	TBaseResultMode extends ResultModeUnion = undefined,
+>(
 	baseConfig?: BaseConfig<TBaseData, TBaseErrorData, TBaseResultMode>
 ) => {
 	const abortControllerStore = new Map<string, AbortController>();
@@ -37,6 +41,7 @@ const createFetchClient = <TBaseData, TBaseErrorData, TBaseResultMode extends Re
 		...restOfBaseFetchConfig
 	} = baseFetchConfig;
 
+	/* eslint-disable complexity */
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
@@ -49,6 +54,7 @@ const createFetchClient = <TBaseData, TBaseErrorData, TBaseResultMode extends Re
 
 		const [fetchConfig, extraOptions] = splitConfig(config ?? {});
 
+		/** Default Options */
 		const options = {
 			bodySerializer: JSON.stringify,
 			responseType: "json",
@@ -162,13 +168,17 @@ const createFetchClient = <TBaseData, TBaseErrorData, TBaseResultMode extends Re
 				options.responseParser
 			);
 
+			const validSuccessData = options.responseValidator
+				? options.responseValidator(successData)
+				: successData;
+
 			await options.onResponse?.({
-				response: { ...response, data: successData },
+				response: { ...response, data: validSuccessData },
 				request: requestInit,
 				options,
 			});
 
-			return resolveSuccessResult<CallApiResult>({ successData, response, options });
+			return resolveSuccessResult<CallApiResult>({ successData: validSuccessData, response, options });
 
 			// == Exhaustive Error handling
 		} catch (error) {
@@ -226,4 +236,4 @@ const createFetchClient = <TBaseData, TBaseErrorData, TBaseResultMode extends Re
 	return callApi;
 };
 
-export { createFetchClient };
+export const callApi = createFetchClient();
