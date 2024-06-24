@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.2.5
+
+### Patch Changes
+
+-  2c8dbd6: add support for token version of auth header, also updated docs
+
 ## 0.2.4
 
 ### Patch Changes
