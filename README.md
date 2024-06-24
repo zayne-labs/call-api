@@ -96,23 +96,29 @@ For extra convenience with typescript, visit the [Typescript section](#usage-wit
 
 ## Helpful Features
 
-## Auto cancellation of redundant requests (No more race conditions🤩)
+## ✔️ Automatic Cancellation of Redundant Requests (No more race conditions🤩)
 
-`CallApi` automatically cancels the previous requests if the same url is called again before the previous request is resolved. This essentially only lets the last request through, hence preventing dreaded race conditions.
+`CallApi` implements an internal request management system to prevent race conditions and ensure that only the most recent request to a given URL is processed.
 
-What this implies is that you can use `callApi` in a `useEffect` hook for instance and it will automatically cancel the previous request if a request is made to the same URL again, effectively only letting the last request through 🤩.
+**How this feature Works in detail**:
 
-This behavior can be disabled if you don't like it, by setting `{ cancelRedundantRequests: false }` in the fetch options.
+- When a new request is made, `callApi` internals first check if there's an ongoing request to the same URL.
+- If a pending request exists, it's automatically cancelled.
+- The new request is then processed, ensuring that only the most recent data is retrieved and handled.
 
-You can also cancel a request to a particular url manually, by passing that url as an argument to the `cancel` method attached to callApi.
+**Key takeaways**:
+
+- Automatic Cancellation: When multiple requests are made to the same URL in quick succession, `callApi` automatically cancels any pending previous requests, allowing only the latest request to proceed.
+- Race Condition Prevention: This mechanism eliminates race conditions that can occur when rapid, successive API calls are made, such as during fast typing in a search input, button clicks, etc.
+- Ideal for React Hooks: This feature is particularly useful when `callApi` is used within React's useEffect hook or similar scenarios where component updates might trigger multiple API calls.
+- Configurable: If you prefer to handle request management differently, you can disable this feature by setting { cancelRedundantRequests: false } in the fetch options. No pressure 👌.
+- Manual Cancellation: You can manually cancel requests to a specific URL using the cancel method attached to `callApi`. You can also pass an abort controller signal to `callApi` (just like with fetch) as an option and abort the request when you want to.
 
 ```js
 callApi("some-url");
 
 callApi.cancel("some-url");
 ```
-
-You can also pass a signal to callApi as an option and cancel it when you want to.
 
 ```js
 const controller = new AbortController();
