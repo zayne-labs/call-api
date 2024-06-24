@@ -89,9 +89,9 @@ For extra convenience with typescript, visit the [Typescript section](#usage-wit
 
 `CallApi` automatically cancels the previous requests if the same url is called again before the previous request is resolved. This essentially only lets the last request through, hence preventing dreaded race conditions.
 
-What this implies is that you can use `callApi` in a `useEffect` hook for instance and it will automatically cancel the previous request if the url is called again before the previous request is resolved 🤩.
+What this implies is that you can use `callApi` in a `useEffect` hook for instance and it will automatically cancel the previous request if a request is made to the same URL again, effectively only letting the last request through 🤩.
 
-This behavior can be disabled if you don't like it, by passing in `{ cancelPreviousRequest: false }` to the fetch options.
+This behavior can be disabled if you don't like it, by setting `{ cancelRedundantRequests: false }` in the fetch options.
 
 You can also cancel a request to a particular url by passing the url as a parameter to the cancel property attached to callApi.
 
