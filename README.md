@@ -93,7 +93,7 @@ What this implies is that you can use `callApi` in a `useEffect` hook for instan
 
 This behavior can be disabled if you don't like it, by setting `{ cancelRedundantRequests: false }` in the fetch options.
 
-You can also cancel a request to a particular url by passing the url as a parameter to the cancel property attached to callApi.
+You can also cancel a request to a particular url manually, by passing that url as an argument to the `cancel` method attached to callApi.
 
 ```js
 callApi("some-url");
