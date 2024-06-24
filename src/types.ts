@@ -28,7 +28,14 @@ export type ExtraOptions<
 	/**
 	 * @description Authorization header value.
 	 */
-	auth?: string;
+	auth?:
+		| string
+		| {
+				bearer: string;
+		  }
+		| {
+				token: string;
+		  };
 
 	/**
 	 * @description Custom function to validate the response data.

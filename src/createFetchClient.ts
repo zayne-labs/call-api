@@ -115,8 +115,14 @@ export const createFetchClient = <
 							...(isString(body) && {
 								"Content-Type": "application/x-www-form-urlencoded",
 							}),
-							...(Boolean(options.auth) && {
+							...(isString(options.auth) && {
 								Authorization: `Bearer ${options.auth}`,
+							}),
+							...(isObject(options.auth) && {
+								Authorization:
+									"bearer" in options.auth
+										? `Bearer ${options.auth.bearer}`
+										: `Token ${options.auth.token}`,
 							}),
 							...objectifyHeaders(baseHeaders),
 							...objectifyHeaders(headers),

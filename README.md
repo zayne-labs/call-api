@@ -32,7 +32,7 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 
 ```html
 <script type="module">
- import { callApi } from "https://cdn.jsdelivr.net/npm/@zayne-labs/callapi/dist/index.js";
+ import { callApi } from "https://cdn.jsdelivr.net/npm/@zayne-labs/callapi/dist/src/index.min.js";
 </script>
 ```
 
@@ -56,12 +56,23 @@ To see how to use callApi with typescript for extra autocomplete convenience, vi
 
 ## Supported response types
 
-CallApi supports all response types offered by the fetch api like `json`, `text`,`blob` etc, so you don't have to write `response.json()`, `response.text()` or `response.blob()`.
+CallApi supports all response types offered by the fetch api like `json`, `text`,`blob`,`formData` etc, so you don't have to write `response.json()`, `response.text()`, `response.formData()` etc.
 
-It can configure the response type by passing in the `responseType` option and setting it to the appropriate type. By default it's set to `json`.
+You can configure the response type you prefer by passing in the `responseType` option and setting it to the form you want the data from the response to be in. By default it's set to `json`.
 
 ```js
-const { data, error } = await callApi("url", { responseType: "json" });
+// Json (default)
+const { data } = await callApi("url", { responseType: "json" });
+// Text
+const { data } = await callApi("url", {responseType: "text"});
+// Blob, etc
+const { data } = await callApi("url", {responseType: "blob"});
+
+
+// Doing this in fetch would imply:
+const response = await fetch("some-url");
+
+const data = await response.json(); // Or response.text() or response.blob() etc
 ```
 
 ## Easy error handling when using `async`/`await`
@@ -180,16 +191,41 @@ callApi("some-url", { body: data });
 
 ## ✔️ Authorization header helpers
 
-If you provide callApi with an `auth` property, it will generate an Authorization Header for you.
+If you provide callApi with an `auth` property, it will conveniently generate an Authorization Header for you.
 
 If you pass in a `string` (commonly for tokens) , it will generate a Bearer Auth.
 
+But if you pass in an `object`, you would have two options to chose from:
+
+- Use `bearer` option if you want to generate a Bearer Auth Header.
+- Use `token` if you want to generate a Token Auth Header.
+
 ```js
+// Passing a string
 callApi("some-url", { auth: "token12345" });
 
 // The above request can be written in Fetch like this:
 fetch("some-url", {
  headers: { Authorization: `Bearer token12345` },
+});
+
+// Passing an object:
+
+// For Bearer Auth
+callApi("some-url", { auth: { bearer: "token12345" } });
+// For Token Auth
+callApi("some-url", { auth: { token: "token12345" } });
+
+// The above requests can be written in Fetch like this:
+
+// For Bearer Auth
+fetch("some-url", {
+ headers: { Authorization: `Bearer token12345` },
+});
+
+// For Token Auth
+fetch("some-url", {
+ headers: { Authorization: `Token token12345` },
 });
 ```
 
