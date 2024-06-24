@@ -66,17 +66,18 @@ const { data, error } = await callApi("url", { responseType: "json" });
 
 ## Easy error handling when using `async`/`await`
 
-CallApi lets you access all errors, both http errors and javascript errors, in an `error` object. This object contains the `errorName` (eg: TypeError, SyntaxError etx) and the error message as well.
+CallApi lets you access all errors, both http errors and other regular javascript errors, in an `error` object. This object contains the `errorName` (eg: 'TypeError', 'SyntaxError' etc) and the error message as well.
 
-If the error is an http error, the `errorName` property will be set to "HTTPError" and the `error` object will also contain a property `errorData`.
+If the error is an http error, the `errorName` property will be set to "HTTPError" and the `error` object will also have a property `errorData`.
 
-This property contains the error response data coming from the api. If the error is not an http error but some other error, the `errorData` property will be set to `null`.
+This property would contains the error response data coming from the api. If the error is not an http error but some other error, the `errorData` property will be set to `null`.
 
 ```js
 const { data, error } = await callApi("some-url");
 
 console.log(error.errorName);
 console.log(error.message);
+// Will be null if not an http error, else would contain the parsed error response data
 console.log(error.errorData);
 ```
 
