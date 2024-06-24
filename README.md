@@ -40,7 +40,7 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 
 You can use callApi just like a normal `fetch` function. The only difference is you don't have to write a `response.json` or `response.text`, you could just destructure the data and error directly.
 
-This also means that all options for the native fetch function are supported, and you can use the same syntax to send requests.
+This also means that all options for the native fetch options are supported, and you can use the same syntax to send requests.
 
 ```js
 const { data, error } = await callApi("url", fetchOptions);
