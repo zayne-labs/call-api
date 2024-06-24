@@ -38,7 +38,7 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 
 ## Quick Start
 
-You can use callApi just like a normal `fetch` function. The only difference is you don't have to write a `response.json` or `response.text`, you could just destructure the data and data directly.
+You can use callApi just like a normal `fetch` function. The only difference is you don't have to write a `response.json` or `response.text`, you could just destructure the data and error directly.
 
 This also means that all options for the native fetch function are supported, and you can use the same syntax to send requests.
 
