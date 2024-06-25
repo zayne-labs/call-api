@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.2.6
+
+### Patch Changes
+
+-  2d418c5: remove src dir from dist
+
 ## 0.2.5
 
 ### Patch Changes
