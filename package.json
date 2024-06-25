@@ -3,7 +3,7 @@
 	"version": "0.2.5",
 	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
-	"main": "./dist/src/index.js",
+	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"scripts": {
 		"prepare": "husky",
@@ -19,11 +19,11 @@
 		".": {
 			"import": {
 				"types": "./dist/index.d.ts",
-				"default": "./dist/src/index.js"
+				"default": "./dist/index.js"
 			},
 			"require": {
 				"types": "./dist/index.d.cts",
-				"default": "./dist/src/index.cjs"
+				"default": "./dist/index.cjs"
 			}
 		}
 	},
@@ -55,7 +55,6 @@
 		"@changesets/cli": "^2.27.5",
 		"@eslint/js": "^9.5.0",
 		"@zayne-labs/tsconfig": "^0.0.7",
-		"changelogen": "^0.5.5",
 		"eslint": "^9.5.0",
 		"eslint-plugin-import-x": "^0.5.1",
 		"eslint-plugin-jsdoc": "^48.2.12",
