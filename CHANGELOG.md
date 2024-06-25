@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.2.7
+
+### Patch Changes
+
+-  9190d6a: add separate configs for esm and cjs, with diff folders
+
 ## 0.2.6
 
 ### Patch Changes
