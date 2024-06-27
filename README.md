@@ -525,6 +525,15 @@ const callMainApi = callApi.create<FormResponseDataType, FormErrorResponseType>(
 });
 ```
 
+- Just like the fetch options, all type parameters (generics) can also be overriden per instance level
+  ```ts
+const { data } = callMainApi<NewResponseDataType>({
+ method: "GET",
+
+ retries: 5,
+});
+```
+
 - Since the `data` and `error` properties destructured from callApi are in a discriminated union, simply checking for and handling the `error` property will narrow down the type of the data. The reverse case also holds (checking for data to narrow error type).
 
 This simply means that if data is available error will be null, and if error is available data will be null. Both cannot exist at the same time.
