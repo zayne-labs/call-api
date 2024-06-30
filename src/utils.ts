@@ -201,7 +201,7 @@ export const $resolveErrorResult = <CallApiResult>($info: { error?: unknown; opt
 			data: null,
 			error: {
 				errorName: (error as PossibleErrorObject)?.name ?? "UnknownError",
-				errorData: errorData ?? null,
+				errorData: errorData ?? error,
 				message: message ?? (error as PossibleErrorObject)?.message ?? options.defaultErrorMessage,
 			},
 			response: response ?? null,

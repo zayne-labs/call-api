@@ -197,7 +197,7 @@ type ApiSuccessVariant<TData> = {
 	response: Response;
 };
 
-type PossibleErrors =
+type PossibleErrorNames =
 	| "AbortError"
 	| "TimeoutError"
 	| "SyntaxError"
@@ -218,7 +218,8 @@ export type ApiErrorVariant<TErrorData> =
 	| {
 			data: null;
 			error: {
-				errorName: PossibleErrors;
+				errorName: PossibleErrorNames;
+				errorData: Error;
 				message: string;
 			};
 			response: null;
@@ -247,7 +248,7 @@ export type AbortSignalWithAny = typeof AbortSignal & {
 
 export type PossibleErrorObject =
 	| {
-			name?: PossibleErrors;
+			name?: PossibleErrorNames;
 			message?: string;
 	  }
 	| undefined;

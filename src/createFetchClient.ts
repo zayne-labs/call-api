@@ -219,8 +219,8 @@ export const createFetchClient = <
 
 				return resolveErrorResult({
 					errorData,
-					response,
 					message: (errorData as PossibleErrorObject)?.message,
+					response,
 				});
 			}
 
