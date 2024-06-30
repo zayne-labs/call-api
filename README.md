@@ -64,9 +64,9 @@ You can configure the response type you prefer by passing in the `responseType` 
 // Json (default)
 const { data } = await callApi("url", { responseType: "json" });
 // Text
-const { data } = await callApi("url", {responseType: "text"});
+const { data } = await callApi("url", { responseType: "text" });
 // Blob, etc
-const { data } = await callApi("url", {responseType: "blob"});
+const { data } = await callApi("url", { responseType: "blob" });
 
 
 // Doing this in fetch would imply:
