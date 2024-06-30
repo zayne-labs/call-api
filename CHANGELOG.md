@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.3.0
+
+### Minor Changes
+
+-  aaa3951: Improved error handling experience, as well as the docs
+
 ## 0.2.7
 
 ### Patch Changes
