@@ -540,14 +540,13 @@ const callMainApi = callApi.create<FormResponseDataType, FormErrorResponseType>(
 ```
 
 - Just like the fetch options, all type parameters (generics) can also be overriden per instance level
-  ```ts
 
+```ts
 const { data } = callMainApi<NewResponseDataType>({
  method: "GET",
 
  retries: 5,
 });
-
 ```
 
 - Since the `data` and `error` properties destructured from callApi are in a discriminated union, simply checking for and handling the `error` property will narrow down the type of the data. The reverse case also holds (checking for data to narrow error type).
@@ -567,6 +566,31 @@ if (error) {
 
 // Now, data is no longer null
 console.log(data);
+```
+
+- CallApi provides a type guard that allows differentiate between an HTTPError and standard js errors. It also helps narrow down the discriminated union type of the error object.
+
+```ts
+import { isHTTPError } from "@zayne-labs/callapi";
+
+const { data, error } = await callMainApi("some-url", {
+ body: { message: "Good game" },
+});
+
+if (isHTTPError(error)) {
+ console.error(error.errorName); // `HTTPError`
+ console.error(error.message); // contains the parsed error message, if the response from the server contains such a property
+ console.error(error.errorData); // contains the parsed error response
+
+ return;
+}
+
+if (error) {
+ console.error(error.errorName); // contains the name of the error
+ console.error(error.message); // contains the error message
+ console.error(error.errorData); // contains the original error object
+}
+
 ```
 
 - The types for the object passed to onResponse and onResponseError could be augmented with type helpers provided by `@zayne-labs/callapi`.
