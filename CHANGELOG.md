@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.3.1
+
+### Patch Changes
+
+-  7a27edd: provided a response clone to the getResponseData function, to prevent bodyused errors when user tries to call res.whatever() in interceptor
+
 ## 0.3.0
 
 ### Minor Changes
