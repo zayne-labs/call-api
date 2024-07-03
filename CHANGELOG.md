@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.3.2
+
+### Patch Changes
+
+-  f2762ec: improve types for auth
+
 ## 0.3.1
 
 ### Patch Changes
