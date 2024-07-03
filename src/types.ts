@@ -32,9 +32,11 @@ export type ExtraOptions<
 		| string
 		| {
 				bearer: string;
+				token?: never;
 		  }
 		| {
 				token: string;
+				bearer?: never;
 		  };
 
 	/**
