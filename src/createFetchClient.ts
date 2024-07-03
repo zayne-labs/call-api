@@ -156,7 +156,7 @@ export const createFetchClient = <
 
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(
-					response,
+					response.clone(),
 					options.responseType,
 					options.responseParser
 				);
@@ -169,7 +169,7 @@ export const createFetchClient = <
 			}
 
 			const successData = await getResponseData<TData>(
-				response,
+				response.clone(),
 				options.responseType,
 				options.responseParser
 			);
