@@ -112,7 +112,7 @@ For extra convenience with typescript, visit the [Typescript section](#usage-wit
 
 ## ✔️ Automatic Cancellation of Redundant Requests (No more race conditions🤩)
 
-`CallApi` implements an internal request management system to prevent race conditions and ensure that only the most recent request to a given URL is processed.
+`CallApi` uses an internal request management system to ensure that only the most recent request to a given URL is processed, hence preventing the dreaded race conditions.
 
 **How this feature Works in detail**:
 
@@ -128,11 +128,15 @@ For extra convenience with typescript, visit the [Typescript section](#usage-wit
 - Configurable: If you prefer to handle request management differently, you can disable this feature by setting { cancelRedundantRequests: false } in the fetch options. No pressure 👌.
 - Manual Cancellation: You can manually cancel requests to a specific URL using the cancel method attached to `callApi`. You can also pass an abort controller signal to `callApi` (just like with fetch) as an option and abort the request when you want to.
 
+Using `callApi.cancel`:
+
 ```js
 callApi("some-url");
 
 callApi.cancel("some-url");
 ```
+
+Using `AbortController`:
 
 ```js
 const controller = new AbortController();
@@ -220,28 +224,41 @@ But if you pass in an `object`, you would have two options to chose from:
 - Use `bearer` option if you want to generate a Bearer Auth Header.
 - Use `token` if you want to generate a Token Auth Header.
 
-```js
-// Passing a string
-callApi("some-url", { auth: "token12345" });
+**Passing a string:**
 
-// The above request can be written in Fetch like this:
+```js
+callApi("some-url", { auth: "token12345" });
+```
+
+The above request can be written in Fetch like this:
+
+```js
 fetch("some-url", {
  headers: { Authorization: `Bearer token12345` },
 });
+```
 
-// Passing an object:
+**Passing an object:**
 
+```js
 // For Bearer Auth
 callApi("some-url", { auth: { bearer: "token12345" } });
+
+// Or
+
 // For Token Auth
 callApi("some-url", { auth: { token: "token12345" } });
+```
 
-// The above requests can be written in Fetch like this:
+The above requests can be written in Fetch like this:
 
+```js
 // For Bearer Auth
 fetch("some-url", {
  headers: { Authorization: `Bearer token12345` },
 });
+
+// Or
 
 // For Token Auth
 fetch("some-url", {
