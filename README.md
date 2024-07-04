@@ -59,7 +59,7 @@ const { data, error, response } = await callApi("url", fetchOptions);
 
 To see how to use callApi with typescript for extra autocomplete convenience, visit the [Typescript section](#usage-with-typescript)
 
-
+<br>
 
 # Features
 
