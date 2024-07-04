@@ -1,5 +1,12 @@
 # @zayne-labs/callapi
 
+## 0.3.3
+
+### Patch Changes
+
+-  d36c285: removed abort.any type cast
+-  ffffc02: fixed the respone spread issue
+
 ## 0.3.2
 
 ### Patch Changes
