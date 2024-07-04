@@ -34,6 +34,11 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 <script type="module">
  import { callApi } from "https://esm.run/@zayne-labs/callapi";
 </script>
+
+<!-- Locked to a specific version -->
+<script type="module">
+ import { callApi } from "https://esm.run/@zayne-labs/callapi@0.3.2";
+</script>
 ```
 
 ## Quick Start
@@ -116,9 +121,12 @@ For extra convenience with typescript, visit the [Typescript section](#usage-wit
 
 **How this feature Works in detail**:
 
-- When a new request is made, `callApi` internals first check if there's an ongoing request to the same URL.
+- When a request is made, `callApi` internals check if there's an ongoing request to the same URL.
 - If a pending request exists, it's automatically cancelled.
-- The new request is then processed, ensuring that only the most recent data is retrieved and handled.
+- Then the new request is sent.
+- This process is repeated until it is certain that only the latest request to that same URL is allowed to proceed.
+
+![Example of automatic cancellation](./assets/image.avif)
 
 **Key takeaways**:
 
