@@ -80,7 +80,9 @@ const response = await fetch("some-url");
 const data = await response.json(); // Or response.text() or response.blob() etc
 ```
 
-## Easy error handling via using `async`/`await`
+## Features
+
+## Easy error handling via `async`/`await`
 
 CallApi provides a unified error handling through an `error` object, which captures both HTTP errors (errors coming as a response from the api) and standard JavaScript errors.
 
@@ -112,8 +114,6 @@ console.log(error.errorData);
 ```
 
 For extra convenience with typescript, visit the [Typescript section](#usage-with-typescript)
-
-## Helpful Features
 
 ## ✔️ Automatic Cancellation of Redundant Requests (No more race conditions🤩)
 
