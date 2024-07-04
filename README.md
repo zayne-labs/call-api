@@ -59,6 +59,8 @@ const { data, error, response } = await callApi("url", fetchOptions);
 
 To see how to use callApi with typescript for extra autocomplete convenience, visit the [Typescript section](#usage-with-typescript)
 
+## Features
+
 ## Supported response types
 
 CallApi supports all response types offered by the fetch api like `json`, `text`,`blob`,`formData` etc, so you don't have to write `response.json()`, `response.text()`, `response.formData()` etc.
@@ -79,8 +81,6 @@ const response = await fetch("some-url");
 
 const data = await response.json(); // Or response.text() or response.blob() etc
 ```
-
-## Features
 
 ## Easy error handling via `async`/`await`
 
