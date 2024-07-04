@@ -299,7 +299,7 @@ You could also use the `createFetchClient` function to create an instance, if yo
 ```js
 import { createFetchClient } from "@zayne-labs/callapi";
 
-const callAnotherApi = createFetchClient({
+const callApi = createFetchClient({
  timeout: 5000,
  baseURL: "https://api.example.com"
 });
