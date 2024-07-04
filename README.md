@@ -102,7 +102,7 @@ const { data, error } = await callApi("some-url");
 
 console.log(error.errorName);
 console.log(error.message);
-// Will reference the Error object if the error not an http error, else would contain the parsed error response data
+// Will reference the would contain the parsed error response data if it is an HTTPError, else it would just reference the corresponding js Error object
 console.log(error.errorData);
 ```
 
