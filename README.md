@@ -61,9 +61,9 @@ To see how to use callApi with typescript for extra autocomplete convenience, vi
 
 <br>
 
-# Features
+# Helpful Features
 
-## Supported response types
+## ✔️ Supported response types
 
 CallApi supports all response types offered by the fetch api like `json`, `text`,`blob`,`formData` etc, so you don't have to write `response.json()`, `response.text()`, `response.formData()` etc.
 
@@ -84,7 +84,7 @@ const response = await fetch("some-url");
 const data = await response.json(); // Or response.text() or response.blob() etc
 ```
 
-## Easy error handling via `async`/`await`
+## ✔️ Easy error handling via `async`/`await`
 
 CallApi provides a unified error handling through an `error` object, which captures both HTTP errors (errors coming as a response from the api) and standard JavaScript errors.
 
