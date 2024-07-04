@@ -163,7 +163,7 @@ export const createFetchClient = <
 
 				// == Pushing all error handling responsibilities to the catch block
 				throw new HTTPError({
-					response: { ...response, errorData },
+					response: Object.assign(response.clone(), { errorData }),
 					defaultErrorMessage: options.defaultErrorMessage,
 				});
 			}
@@ -179,7 +179,8 @@ export const createFetchClient = <
 				: successData;
 
 			await options.onResponse?.({
-				response: { ...response, data: validSuccessData },
+				// == Workaround as opposed to using the spread operator, as it doesn't work on the response object. So using Object.assign instead on a clone of the response object.
+				response: Object.assign(response.clone(), { data: validSuccessData }),
 				request: requestInit,
 				options,
 			});
@@ -212,7 +213,7 @@ export const createFetchClient = <
 				const { errorData, ...response } = error.response;
 
 				await options.onResponseError?.({
-					response: { ...response, errorData },
+					response: error.response,
 					request: requestInit,
 					options,
 				});
