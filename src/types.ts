@@ -244,10 +244,6 @@ export type GetCallApiResult<TData, TErrorData, TResultMode> =
 		? ResultModeMap<TData, TErrorData>[TResultMode]
 		: ResultModeMap<TData, TErrorData>["all"];
 
-export type AbortSignalWithAny = typeof AbortSignal & {
-	any: (signalArray: AbortSignal[]) => AbortSignal;
-};
-
 export type PossibleErrorObject =
 	| {
 			name?: PossibleErrorNames;

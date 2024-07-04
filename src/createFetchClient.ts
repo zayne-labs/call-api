@@ -1,7 +1,6 @@
 import { isFormData, isObject, isString } from "./typeof";
 import type {
 	$RequestOptions,
-	AbortSignalWithAny,
 	BaseConfig,
 	ExtraOptions,
 	FetchConfig,
@@ -54,7 +53,9 @@ export const createFetchClient = <
 
 		const [fetchConfig, extraOptions] = splitConfig(config ?? {});
 
-		/** Default Options */
+		const { signal = baseSignal, body = baseBody, headers, ...restOfFetchConfig } = fetchConfig;
+
+		// == Default Options
 		const options = {
 			bodySerializer: JSON.stringify,
 			responseType: "json",
@@ -69,8 +70,6 @@ export const createFetchClient = <
 			...extraOptions,
 		} satisfies ExtraOptions;
 
-		const { signal = baseSignal, body = baseBody, headers, ...restOfFetchConfig } = fetchConfig;
-
 		const prevFetchController = abortControllerStore.get(url);
 
 		if (prevFetchController && options.cancelRedundantRequests) {
@@ -84,8 +83,7 @@ export const createFetchClient = <
 
 		const timeoutSignal = options.timeout ? AbortSignal.timeout(options.timeout) : null;
 
-		// FIXME - Remove this type cast once TS updates its lib-dom types for AbortSignal to include the any() method
-		const combinedSignal = (AbortSignal as AbortSignalWithAny).any([
+		const combinedSignal = AbortSignal.any([
 			newFetchController.signal,
 			timeoutSignal ?? newFetchController.signal,
 			signal ?? newFetchController.signal,
