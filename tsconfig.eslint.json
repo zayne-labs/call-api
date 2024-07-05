@@ -4,7 +4,6 @@
 	"compilerOptions": {
 		"composite": true
 	},
-
-	"include": ["src/**/*", "*"],
+	"include": ["src/**/*", "*", "website/**/*"],
 	"exclude": ["node_modules"]
 }
