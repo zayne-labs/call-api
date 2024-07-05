@@ -1,0 +1,34 @@
+# Features
+
+CallApi provides several features. Let's explore them in this section.
+
+## ✔️ Easy Error Handling
+
+CallApi offers unified error handling through an `error` object, which captures both HTTP errors (errors coming as a response from the API) and standard JavaScript errors.
+
+The `error` object contains the following properties:
+
+1. `errorName`: A string indicating the type of error (e.g., 'TypeError', 'SyntaxError', 'HTTPError').
+2. `message`: The error message describing what went wrong.
+3. `errorData`: The error data, which can be an error response from the API or a standard JavaScript error object.
+
+For `HTTP errors`:
+
+-  `errorName` is set to "HTTPError"
+-  An additional `errorData` property contains the error response data from the API.
+
+For `non-HTTP errors` (e.g., TypeError, SyntaxError):
+
+-  `errorName` reflects the specific JavaScript error type (i.e., 'TypeError', 'SyntaxError')
+-  The `errorData` property contains the original JavaScript Error object.
+
+This structure allows you to easily identify and handle different types of errors that may occur during API calls.
+
+```js
+const { data, error } = await callApi("some-url");
+
+console.log(error.errorName);
+console.log(error.message);
+// Will reference the would contain the parsed error response data if it is an HTTPError, else it would just reference the corresponding js Error object
+console.log(error.errorData);
+```

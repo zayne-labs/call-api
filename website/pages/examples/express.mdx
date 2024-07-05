@@ -1,0 +1,43 @@
+# ExpressJs
+
+To use easymailer with expressjs
+
+-  in your express app, install the `easymailer` package
+
+```js npm2yarn copy
+npm i @xeuxdev/easymailer
+```
+
+-  `import the easymailer package into your file`
+
+```js filename="ESM" copy
+import { sendMail } from "@xeuxdev/easymailer";
+```
+
+```js filename="CJS" copy
+const { sendMail } = require("@xeuxdev/easymailer");
+```
+
+-  Don't forget to add your environment variables, to see how you can do that go to [usage](/configuration)
+
+-  use the `sendMail()` function
+
+```js
+app.get("/", async (req, res) => {
+	const response = await sendMail({
+		message: {
+			from: "xeuxdev Express example",
+			html: "Hey this is a message from easymailer using express",
+			bcc: ["email1@gmail.com", "wmail2@gmail.com", "email3@gmail.com", "email4@gmail.com"],
+			subject: "Test Email From Express",
+		},
+		transport: {
+			service: "gmail",
+		},
+	});
+
+	res.status(200).json(response);
+});
+```
+
+View the [source code here](https://github.com/xeuxdev/easy-mailer/tree/main/apps/examples/express)
