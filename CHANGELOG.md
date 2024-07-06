@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.3.4
+
+### Patch Changes
+
+-  b21eb8b: refactored httpError class to better support response object.assign
+
 ## 0.3.3
 
 ### Patch Changes
