@@ -216,7 +216,8 @@ export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["erro
 };
 
 type ErrorDetails<TErrorResponse> = {
-	response: Response & { errorData: TErrorResponse };
+	errorData: TErrorResponse;
+	response: Response;
 	defaultErrorMessage: string;
 };
 
@@ -226,16 +227,18 @@ type ErrorOptions = {
 
 export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
 	response: ErrorDetails<TErrorResponse>["response"];
+	errorData: ErrorDetails<TErrorResponse>["errorData"];
 
 	override name = "HTTPError" as const;
 
 	isHTTPError = true;
 
 	constructor(errorDetails: ErrorDetails<TErrorResponse>, errorOptions?: ErrorOptions) {
-		const { defaultErrorMessage, response } = errorDetails;
+		const { defaultErrorMessage, response, errorData } = errorDetails;
 
-		super((response.errorData as { message?: string }).message ?? defaultErrorMessage, errorOptions);
+		super((errorData as { message?: string }).message ?? defaultErrorMessage, errorOptions);
 
+		this.errorData = errorData;
 		this.response = response;
 	}
 }

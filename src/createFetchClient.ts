@@ -161,7 +161,8 @@ export const createFetchClient = <
 
 				// == Pushing all error handling responsibilities to the catch block
 				throw new HTTPError({
-					response: Object.assign(response.clone(), { errorData }),
+					errorData,
+					response,
 					defaultErrorMessage: options.defaultErrorMessage,
 				});
 			}
@@ -208,10 +209,10 @@ export const createFetchClient = <
 			}
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
-				const { errorData, ...response } = error.response;
+				const { errorData, response } = error;
 
 				await options.onResponseError?.({
-					response: error.response,
+					response: Object.assign(response.clone(), { errorData }),
 					request: requestInit,
 					options,
 				});
