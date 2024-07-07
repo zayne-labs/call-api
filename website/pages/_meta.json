@@ -4,15 +4,5 @@
 	"features": "Core Features",
 	"advanced": "Advanced",
 	"api-reference": "API Reference",
-	"examples": "Examples",
-	"about": {
-		"title": "About",
-		"type": "page"
-	},
-	"contact": {
-		"title": "Contact ↗",
-		"type": "page",
-		"href": "https://twitter.com/xeuxdev",
-		"newWindow": true
-	}
+	"examples": "Examples"
 }
