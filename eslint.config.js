@@ -271,9 +271,6 @@ const eslintConfigArray = [
 			"@typescript-eslint/dot-notation": "error",
 			"@typescript-eslint/no-shadow": "error",
 			"@typescript-eslint/prefer-nullish-coalescing": ["error", { ignoreConditionalTests: true }],
-			// "@typescript-eslint/no-unsafe-assignment": "off",
-			// "@typescript-eslint/no-unsafe-call": "off",
-			// "@typescript-eslint/no-var-requires": "off",
 		},
 	},
 
@@ -336,7 +333,6 @@ const eslintConfigArray = [
 			"unicorn/no-array-reduce": "off",
 			"unicorn/no-array-for-each": "off",
 			"unicorn/no-useless-undefined": ["error", { checkArguments: true }],
-			// "unicorn/prefer-module": "off",
 		},
 	},
 
