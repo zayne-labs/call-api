@@ -216,3 +216,49 @@ const data = await response.json(); // Or response.text() or response.blob() etc
 ```
 
 This simplifies fetching data from responses, allowing you to specify the format you want directly.
+
+#### Custom response parser
+
+if you want to parse a response with a custom function other than the default `JSON.parse`, you can pass a custom parser function to the `responseParser` option.
+
+```js
+const { data, error } = await callApi("url", {
+	responseParser: customResponseParser,
+});
+```
+
+Or even better, provide it as a base option for `callApi`.
+
+```js
+const callAnotherApi = callApi.create({
+	responseParser: customResponseParser,
+});
+```
+
+#### Custom body serializer
+
+You could also provide a custom serializer/stringifier, other the default `JSON.stringify`, for objects passed to the request body via the `bodySerializer` option.
+
+```js
+const callAnotherApi = callApi.create({
+	bodySerializer: customBodySerializer,
+});
+```
+
+These options give you flexibility in handling both responses and request bodies in the way that best suits your needs.
+
+## ✔️ Validator Function
+
+`CallApi` also provides a `responseValidator` option, allowing you to pass in a function that validates the data returned from the server.
+
+A good use case for this would be to use a library like Zod and pass its schema `parse` or `safeParse` function to validate the data.
+
+If your validator function throws an error and you have the `throwOnError` option set to `true`, you will need to check and handle the errors in a `catch` block. However, if `throwOnError` is set to `false` (default), it will just return the error object as usual.
+
+```js
+const callMainApi = callApi.create({
+	responseValidator: zodSchema.parse, // or zodSchema.safeParse or any other validator you wish to use
+});
+```
+
+This feature helps ensure the data you receive meets your validation criteria, making error handling more robust and predictable.
