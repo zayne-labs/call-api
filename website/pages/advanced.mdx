@@ -291,7 +291,7 @@ const { data, error } = await callMainApi("some-url", {
 });
 
 if (isHTTPError(error)) {
-	console.error(error.errorName); // `HTTPError`
+	console.error(error.name); // `HTTPError`
 	console.error(error.message); // contains the parsed error message, if the response from the server contains such a property
 	console.error(error.errorData); // contains the parsed error response
 
@@ -299,7 +299,7 @@ if (isHTTPError(error)) {
 }
 
 if (error) {
-	console.error(error.errorName); // contains the name of the error
+	console.error(error.name); // contains the name of the error
 	console.error(error.message); // contains the error message
 	console.error(error.errorData); // contains the original error object
 }
