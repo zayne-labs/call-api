@@ -199,19 +199,15 @@ type ApiSuccessVariant<TData> = {
 	response: Response;
 };
 
-type PossibleErrorNames =
-	| "AbortError"
-	| "TimeoutError"
-	| "SyntaxError"
-	| "TypeError"
-	| "Error"
-	| "UnknownError";
+type PossibleErrorNames = {
+	_: "AbortError" | "TimeoutError" | "SyntaxError" | "TypeError" | "Error" | "UnknownError";
+}["_"];
 
 export type ApiErrorVariant<TErrorData> =
 	| {
 			data: null;
 			error: {
-				errorName: "HTTPError";
+				name: "HTTPError";
 				errorData: TErrorData;
 				message: string;
 			};
@@ -220,7 +216,7 @@ export type ApiErrorVariant<TErrorData> =
 	| {
 			data: null;
 			error: {
-				errorName: PossibleErrorNames;
+				name: PossibleErrorNames;
 				errorData: Error;
 				message: string;
 			};

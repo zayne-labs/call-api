@@ -4,6 +4,6 @@
 	"compilerOptions": {
 		"composite": true
 	},
-	"include": ["src/**/*", "*", "website/**/*"],
+	"include": ["src/**/*", "*", ".size-limit.ts", "website/**/*"],
 	"exclude": ["node_modules"]
 }

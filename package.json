@@ -1,6 +1,6 @@
 {
 	"name": "@zayne-labs/callapi",
-	"version": "0.3.3",
+	"version": "0.4.0",
 	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"main": "./dist/cjs/index.cjs",
@@ -9,8 +9,9 @@
 	"scripts": {
 		"prepare": "husky",
 		"test:check-types": "tsc --pretty -p tsconfig.json",
-		"test:format": "prettier --write .",
+		"test:format": "prettier --write --cache .",
 		"test:lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
+		"test:size": "size-limit",
 		"build": "tsup",
 		"build:dev": "tsup --watch",
 		"version-package": "changeset version",
@@ -50,6 +51,7 @@
 		"@arethetypeswrong/cli": "^0.15.3",
 		"@changesets/cli": "^2.27.5",
 		"@eslint/js": "^9.5.0",
+		"@size-limit/preset-small-lib": "^11.1.4",
 		"@zayne-labs/tsconfig": "^0.0.7",
 		"eslint": "^9.5.0",
 		"eslint-plugin-import-x": "^0.5.1",
@@ -60,8 +62,9 @@
 		"husky": "^9.0.11",
 		"lint-staged": "^15.2.7",
 		"prettier": "^3.3.2",
+		"size-limit": "^11.1.4",
 		"tsup": "^8.1.0",
-		"typescript": "5.5.2",
+		"typescript": "5.5.3",
 		"typescript-eslint": "^7.13.1"
 	}
 }

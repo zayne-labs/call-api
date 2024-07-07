@@ -2,7 +2,7 @@
 
 [![Build Size](https://img.shields.io/bundlephobia/minzip/@zayne-labs/callapi?label=bundle%20size&style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/result?p=@zayne-labs/callapi)[![Version](https://img.shields.io/npm/v/@zayne-labs/callapi?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@zayne-labs/callapi)
 
-CallApi Fetch is an extra-lightweight wrapper over fetch that provides convenient options for making HTTP requests, while keeping the API familiar to the fetch api.
+CallApi Fetch is an extra-lightweight wrapper over fetch that provides quality of life improvements beyond the bare fetch api, while keeping the API familiar.
 
 It takes in a url and a request options object, just like fetch, but with some additional options to make your life easier. Check out the [API Reference](#api-reference) for more details.
 
@@ -90,18 +90,18 @@ CallApi provides a unified error handling through an `error` object, which captu
 
 The `error` object contains the following properties:
 
-1. `errorName`: A string indicating the type of error (e.g., 'TypeError', 'SyntaxError', 'HTTPError').
+1. `name`: A string indicating the type of error (e.g., 'TypeError', 'SyntaxError', 'HTTPError').
 2. `message`: The error message describing what went wrong.
 3. `errorData`: The error data, which can be an error response from the API or a standard JavaScript error object.
 
 For HTTP errors:
 
-- `errorName` is set to "HTTPError"
+- `name` is set to "HTTPError"
 - An additional `errorData` property contains the error response data from the API.
 
 For non-HTTP errors (e.g., TypeError, SyntaxError):
 
-- `errorName` reflects the specific JavaScript error type (i.e., 'TypeError', 'SyntaxError')
+- `name` reflects the specific JavaScript error type (i.e., 'TypeError', 'SyntaxError')
 - The `errorData` property contains the original JavaScript Error object.
 
 This structure allows you to easily identify and handle different types of errors that may occur during API calls.
@@ -109,7 +109,7 @@ This structure allows you to easily identify and handle different types of error
 ```js
 const { data, error } = await callApi("some-url");
 
-console.log(error.errorName);
+console.log(error.name);
 console.log(error.message);
 // Will reference the would contain the parsed error response data if it is an HTTPError, else it would just reference the corresponding js Error object
 console.log(error.errorData);
@@ -605,7 +605,7 @@ const { data, error } = await callMainApi("some-url", {
 });
 
 if (isHTTPError(error)) {
- console.error(error.errorName); // `HTTPError`
+ console.error(error.name); // `HTTPError`
  console.error(error.message); // contains the parsed error message, if the response from the server contains such a property
  console.error(error.errorData); // contains the parsed error response
 
@@ -613,7 +613,7 @@ if (isHTTPError(error)) {
 }
 
 if (error) {
- console.error(error.errorName); // contains the name of the error
+ console.error(error.name); // contains the name of the error
  console.error(error.message); // contains the error message
  console.error(error.errorData); // contains the original error object
 }
