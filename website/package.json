@@ -10,7 +10,7 @@
 	},
 	"dependencies": {
 		"@vercel/analytics": "^1.1.1",
-		"next": "^14.1.1",
+		"next": "^13.5.6",
 		"nextra": "latest",
 		"nextra-theme-docs": "latest",
 		"react": "^18.2.0",
