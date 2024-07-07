@@ -1,0 +1,264 @@
+# Features
+
+CallApi provides several features. Let's explore them in this section.
+
+## ✔️ Easy Error Handling
+
+CallApi offers unified error handling through an `error` object, which captures both HTTP errors (errors coming as a response from the API) and standard JavaScript errors.
+
+The `error` object contains the following properties:
+
+1. `name`: A string indicating the type of error (e.g., 'TypeError', 'SyntaxError', 'HTTPError').
+2. `message`: The error message describing what went wrong.
+3. `errorData`: The error data, which can be an error response from the API or a standard JavaScript error object.
+
+For `HTTP errors`:
+
+-  `name` is set to "HTTPError"
+-  An additional `errorData` property contains the error response data from the API.
+
+For `non-HTTP errors` (e.g., TypeError, SyntaxError):
+
+-  `name` reflects the specific JavaScript error type (i.e., 'TypeError', 'SyntaxError')
+-  The `errorData` property contains the original JavaScript Error object.
+
+This structure allows you to easily identify and handle different types of errors that may occur during API calls.
+
+```js
+const { data, error } = await callApi("some-url");
+
+console.log(error.name);
+console.log(error.message);
+// Will reference the would contain the parsed error response data if it is an HTTPError, else it would just reference the corresponding js Error object
+console.log(error.errorData);
+```
+
+## ✔️ Automatic Requests Cancellation
+
+-  `CallApi` automatically cancels redundant requests which means (No more race conditions🤩)
+
+`CallApi` uses an internal request management system to ensure that only the most recent request to a given URL is processed. This helps in preventing the dreaded race conditions.
+
+### How This Feature Works in Detail
+
+1. When a request is made, CallApi's internals check if there's an ongoing request to the same URL.
+2. If a pending request exists, it's automatically cancelled.
+3. Then, the new request is sent.
+4. This process is repeated to ensure that only the latest request to that same URL is allowed to proceed.
+
+You can see this in action in the image below:
+
+![Automatic Cancellation of Redundant Requests](../.github/image.webp)
+
+### Key Takeaways:
+
+-  **Automatic Cancellation**: When multiple requests are made to the same URL in quick succession, `callApi` automatically cancels any pending previous requests, allowing only the latest request to proceed.
+-  **Race Condition Prevention**: This mechanism eliminates race conditions that can occur when rapid, successive API calls are made, such as during fast typing in a search input or multiple button clicks.
+-  **Ideal for React Hooks**: This feature is particularly useful when `callApi` is used within React's `useEffect` hook or similar scenarios where component updates might trigger multiple API calls.
+-  **Configurable**: If you prefer to handle request management differently, you can disable this feature by setting `{ cancelRedundantRequests: false }` in the fetch options.
+-  **Manual Cancellation**: You can manually cancel requests to a specific URL using the cancel method attached to `callApi`. You can also pass an abort controller signal to `callApi` (just like with `fetch`) as an option and abort the request whenever you want to.
+
+### Using `callApi.cancel`:
+
+```js copy
+callApi("some-url");
+
+callApi.cancel("some-url");
+```
+
+### Using `AbortController`:
+
+```js copy
+const controller = new AbortController();
+
+callApi("some-url", { signal: controller.signal });
+
+controller.abort();
+```
+
+## ✔️ Query search params
+
+You can add query object as an option and `callApi` will create a query string for you automatically.
+
+```js copy
+callApi("some-url", {
+	query: {
+		param1: "value1",
+		param2: "to encode",
+	},
+});
+
+// The above request can be written in Fetch like this:
+fetch("url?param1=value1&param2=to%20encode");
+```
+
+## ✔️ Content-Type Generation
+
+`CallApi` takes care of setting the `Content-Type` for you based on the body content. Here's how it works:
+
+-  **Automatic Content-Type Setting**: `CallApi` sets the `Content-Type` automatically depending on your body data. Supported data types for this automatic setting include:
+
+   -  Object
+   -  Query Strings
+   -  FormData
+
+-  **JSON Handling**: If you pass in an object, `CallApi` will set `Content-Type` to `application/json`. It will also `JSON.stringify` your body, so you don't have to do it yourself.
+
+```js copy
+callApi.post("some-url", {
+	body: { message: "Good game" },
+});
+
+// The above request is equivalent to this
+fetch("some-url", {
+	method: "post",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({ message: "Good game" }),
+});
+```
+
+If you pass in a string, `CallApi` will set `Content-Type` to `application/x-www-form-urlencoded`.
+
+`CallApi` also includes a `toQueryString` method that helps you convert objects to query strings, making it easy to use this option.
+
+```js copy
+import { toQueryString } from "@zayne-labs/callapi";
+
+callApi("some-url", {
+	method: "POST",
+	body: toQueryString({ message: "Good game" }),
+});
+
+// The above request is equivalent to this
+fetch("some-url", {
+	method: "post",
+	headers: { "Content-Type": "application/x-www-form-urlencoded" },
+	body: "message=Good%20game",
+});
+```
+
+If you pass in a `FormData`, `callApi` will let the native fetch function handle the `Content-Type`. Generally, this will use `multipart/form-data` with the default options.
+
+```js copy
+const data = new FormData(form.elements);
+
+callApi("some-url", { body: data });
+```
+
+## ✔️ Authorization Headers
+
+When using `callApi`, you can conveniently generate Authorization Headers by providing an `auth` property:
+
+-  If you pass in a `string`, typically for tokens, `callApi` will generate a Bearer Auth header.
+
+-  If you pass in an `object`, you have two options:
+
+   -  Use `bearer` to generate a Bearer Auth header.
+   -  Use `token` to generate a Token Auth header.
+
+-  Passing a string:
+
+```js
+callApi("some-url", { auth: "token12345" });
+
+// Equivalent to the following in fetch:
+fetch("some-url", {
+	headers: { Authorization: `Bearer token12345` },
+});
+```
+
+-  Passing an object:
+
+```js
+// For Bearer Auth
+callApi("some-url", { auth: { bearer: "token12345" } });
+
+// Or
+
+// For Token Auth
+callApi("some-url", { auth: { token: "token12345" } });
+
+// Equivalent to the following in fetch:
+
+// For Bearer Auth
+fetch("some-url", {
+	headers: { Authorization: `Bearer token12345` },
+});
+
+// Or
+
+// For Token Auth
+fetch("some-url", {
+	headers: { Authorization: `Token token12345` },
+});
+```
+
+This simplifies handling authorization headers, ensuring your requests are authenticated correctly.
+
+## ✔️ Handling Response
+
+`CallApi` supports all response types offered by the fetch API, such as `json`, `text`, `blob`, `formData`, etc. This means you don't need to manually handle `response.json()`, `response.text()`, `response.formData()`, etc.
+
+You can configure the response type you prefer by using the `responseType` option. By default, it's set to `json`.
+
+```js
+// Json (default)
+const { data } = await callApi("url", { responseType: "json" });
+// Text
+const { data } = await callApi("url", { responseType: "text" });
+// Blob, etc
+const { data } = await callApi("url", { responseType: "blob" });
+
+// Doing this in fetch would imply:
+const response = await fetch("some-url");
+
+const data = await response.json(); // Or response.text() or response.blob() etc
+```
+
+This simplifies fetching data from responses, allowing you to specify the format you want directly.
+
+#### Custom response parser
+
+if you want to parse a response with a custom function other than the default `JSON.parse`, you can pass a custom parser function to the `responseParser` option.
+
+```js
+const { data, error } = await callApi("url", {
+	responseParser: customResponseParser,
+});
+```
+
+Or even better, provide it as a base option for `callApi`.
+
+```js
+const callAnotherApi = callApi.create({
+	responseParser: customResponseParser,
+});
+```
+
+#### Custom body serializer
+
+You could also provide a custom serializer/stringifier, other the default `JSON.stringify`, for objects passed to the request body via the `bodySerializer` option.
+
+```js
+const callAnotherApi = callApi.create({
+	bodySerializer: customBodySerializer,
+});
+```
+
+These options give you flexibility in handling both responses and request bodies in the way that best suits your needs.
+
+## ✔️ Validator Function
+
+`CallApi` also provides a `responseValidator` option, allowing you to pass in a function that validates the data returned from the server.
+
+A good use case for this would be to use a library like Zod and pass its schema `parse` or `safeParse` function to validate the data.
+
+If your validator function throws an error and you have the `throwOnError` option set to `true`, you will need to check and handle the errors in a `catch` block. However, if `throwOnError` is set to `false` (default), it will just return the error object as usual.
+
+```js
+const callMainApi = callApi.create({
+	responseValidator: zodSchema.parse, // or zodSchema.safeParse or any other validator you wish to use
+});
+```
+
+This feature helps ensure the data you receive meets your validation criteria, making error handling more robust and predictable.

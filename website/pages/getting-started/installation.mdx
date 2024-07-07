@@ -1,0 +1,37 @@
+# Installation
+
+To install CallApi, you have a couple of options:
+
+### Using npm (recommended)
+
+First, run this command to install:
+
+```js npm2yarn copy
+npm install @zayne-labs/callapi
+```
+
+Once that's done, you can import it into your JavaScript file like this:
+
+```js filename="bulaba.js"
+import { callApi } from "@zayne-labs/callapi";
+```
+
+### Without npm
+
+If you prefer not to use npm, you can import CallApi directly into your JavaScript files via a CDN. Just add this script tag to your HTML:
+
+```html
+<script type="module">
+	import { callApi } from "https://esm.run/@zayne-labs/callapi";
+</script>
+```
+
+You might also want to lock the version you're using. You can do that like this:
+
+```html
+<script type="module">
+	import { callApi } from "https://esm.run/@zayne-labs/callapi@0.3.2";
+</script>
+```
+
+**Just a quick note:** Your script needs to be of type `module` for this to work.
