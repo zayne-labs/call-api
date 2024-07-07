@@ -200,7 +200,7 @@ export const $resolveErrorResult = <CallApiResult>($info: { error?: unknown; opt
 		return {
 			data: null,
 			error: {
-				errorName: (error as PossibleErrorObject)?.name ?? "UnknownError",
+				name: (error as PossibleErrorObject)?.name ?? "UnknownError",
 				errorData: errorData ?? error,
 				message: message ?? (error as PossibleErrorObject)?.message ?? options.defaultErrorMessage,
 			},
@@ -212,7 +212,7 @@ export const $resolveErrorResult = <CallApiResult>($info: { error?: unknown; opt
 };
 
 export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["error"] | null) => {
-	return isObject(error) && error.errorName === "HTTPError";
+	return isObject(error) && error.name === "HTTPError";
 };
 
 type ErrorDetails<TErrorResponse> = {
