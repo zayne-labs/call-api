@@ -1,6 +1,6 @@
 {
 	"name": "@zayne-labs/callapi",
-	"version": "0.3.4",
+	"version": "0.4.0",
 	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"main": "./dist/cjs/index.cjs",
