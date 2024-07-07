@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.4.0
+
+### Minor Changes
+
+-  dc92197: changed errorName to just name
+
 ## 0.3.4
 
 ### Patch Changes
