@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.4.1
+
+### Patch Changes
+
+-  c98edc8: Add Documentation website
+
 ## 0.4.0
 
 ### Minor Changes
