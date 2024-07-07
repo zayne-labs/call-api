@@ -41,6 +41,9 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 </script>
 ```
 
+## Docs
+[View Documentation website](https://zayne-callapi.vercel.app/)
+
 ## Quick Start
 
 You can use callApi just like a normal `fetch` function. The only difference is you don't have to write a `response.json` or `response.text`, you could just destructure the data and error directly.
