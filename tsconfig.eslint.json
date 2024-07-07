@@ -5,6 +5,6 @@
 		"composite": true
 	},
 
-	"include": ["src/**/*", "*"],
+	"include": ["src/**/*", "*", ".size-limit.ts"],
 	"exclude": ["node_modules"]
 }
