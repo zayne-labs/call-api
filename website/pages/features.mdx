@@ -35,7 +35,7 @@ console.log(error.errorData);
 
 ## ✔️ Automatic Requests Cancellation
 
--  `CallApi` automatically cancels redundant requests which means (No more race conditions🤩)
+This basically implies there's no race conditions by default using `callApi`.
 
 `CallApi` uses an internal request management system to ensure that only the most recent request to a given URL is processed. This helps in preventing the dreaded race conditions.
 
@@ -46,11 +46,11 @@ console.log(error.errorData);
 3. Then, the new request is sent.
 4. This process is repeated to ensure that only the latest request to that same URL is allowed to proceed.
 
-You can see this in action in the image below:
+You can see this in action via the image below:
 
 ![Automatic Cancellation of Redundant Requests](../.github/image.webp)
 
-### Key Takeaways:
+### Key Takeaways
 
 -  **Automatic Cancellation**: When multiple requests are made to the same URL in quick succession, `callApi` automatically cancels any pending previous requests, allowing only the latest request to proceed.
 -  **Race Condition Prevention**: This mechanism eliminates race conditions that can occur when rapid, successive API calls are made, such as during fast typing in a search input or multiple button clicks.
@@ -195,7 +195,7 @@ fetch("some-url", {
 
 This simplifies handling authorization headers, ensuring your requests are authenticated correctly.
 
-## ✔️ Handling Response
+## ✔️ Handling the Response Format
 
 `CallApi` supports all response types offered by the fetch API, such as `json`, `text`, `blob`, `formData`, etc. This means you don't need to manually handle `response.json()`, `response.text()`, `response.formData()`, etc.
 

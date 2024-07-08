@@ -4,7 +4,7 @@
 
 CallApi Fetch is an extra-lightweight wrapper over fetch that provides quality of life improvements beyond the bare fetch api, while keeping the API familiar.
 
-It takes in a url and a request options object, just like fetch, but with some additional options to make your life easier. Check out the [API Reference](#api-reference) for more details.
+It takes in a url and a request options object, just like fetch, but with some additional options to make your life easier. Check out the [API Reference](#api-reference) for a quick look at each option.
 
 ## Installing CallApi
 
@@ -42,6 +42,7 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 ```
 
 ## Docs
+
 [View Documentation website](https://zayne-callapi.vercel.app/)
 
 ## Quick Start

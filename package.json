@@ -47,6 +47,9 @@
 		"interceptor"
 	],
 	"packageManager": "pnpm@9.4.0",
+	"engines": {
+		"node": ">=16.x"
+	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.15.3",
 		"@changesets/cli": "^2.27.5",
