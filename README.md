@@ -176,15 +176,18 @@ callApi("some-url", {
 fetch("url?param1=value1&param2=to%20encode");
 ```
 
-## ✔️ `Content-Type` generation based on `body` content
+## ✔️ Content-Type Generation
 
-`CallApi` sets `Content-Type` automatically depending on your `body` data. Supported data types for this automatic setting include:
+`CallApi` takes care of setting the `Content-Type` for you based on the body content. Here's how it works:
+
+**Automatic Content-Type Setting**: `CallApi` sets the `Content-Type` automatically depending on your body data.
+Data types eligible for this automatic setting include:
 
 - Object
 - Query Strings
 - FormData
 
-If you pass in an `object`, callApi will set `Content-Type` to `application/json`. It will also `JSON.stringify` your body so you don't have to do it yourself.
+**Object/JSON Handling**: If you pass in an object, `CallApi` will set `Content-Type` to `application/json`. It will also `JSON.stringify` your body, so you don't have to do it yourself.
 
 ```js
 callApi.post("some-url", {
@@ -199,9 +202,9 @@ fetch("some-url", {
 });
 ```
 
-If you pass in a string, callApi will set `Content-Type` to `application/x-www-form-urlencoded`.
+**Query String Handling**: If you pass in a string, `CallApi` will set `Content-Type` to `application/x-www-form-urlencoded`.
 
-`CallApi` also contains a `toQueryString` method that can help you convert objects to query strings so you can use this option easily.
+`CallApi` also includes a `toQueryString` method that helps you convert objects to query strings, for extra convenience.
 
 ```js
 import { toQueryString } from "@zayne-labs/callapi";
@@ -219,7 +222,7 @@ fetch("some-url", {
 });
 ```
 
-If you pass in a FormData, callApi will let the native `fetch` function handle the `Content-Type`. Generally, this will use `multipart/form-data` with the default options.
+**FormData Handling**: If you pass in a `FormData`, `callApi` will let the native fetch function handle the `Content-Type`. Generally, this will use `multipart/form-data` with the default options.
 
 ```js
 const data = new FormData(form.elements);
