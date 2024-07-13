@@ -64,6 +64,9 @@ You can see this in action via the image below:
 callApi("some-url");
 
 callApi.cancel("some-url");
+
+// With reason
+callApi.cancel("some-url", "Cancelled due to some reason");
 ```
 
 ### Using `AbortController`:
@@ -103,7 +106,7 @@ fetch("url?param1=value1&param2=to%20encode");
 -  Query Strings
 -  FormData
 
--  **Object/JSON Handling**: If you pass in an object, `CallApi` will set `Content-Type` to `application/json`. It will also `JSON.stringify` your body, so you don't have to do it yourself.
+-  **Object/JSON Handling**: If you pass in an object, `CallApi` will set `Content-Type` to `application/json` for you. It will also handle `JSON.stringify` process for you (although you can always pass in a custom stringifier/serializer if you want), so you don't have to do it yourself.
 
 ```js copy
 callApi.post("some-url", {
@@ -118,9 +121,9 @@ fetch("some-url", {
 });
 ```
 
--  **Query String Handling**: If you pass in a string, `CallApi` will set `Content-Type` to `application/x-www-form-urlencoded`.
+-  **Query String Handling**: If you pass in a string, `CallApi` will ensure the `Content-Type` is set to `application/x-www-form-urlencoded` for you.
 
-`CallApi` also includes a `toQueryString` method that helps you convert objects to query strings, for extra convenience.
+   `CallApi` also includes a `toQueryString` method that helps you convert objects to query strings, for extra convenience.
 
 ```js copy
 import { toQueryString } from "@zayne-labs/callapi";

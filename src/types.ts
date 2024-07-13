@@ -7,9 +7,9 @@ export type $RequestOptions = Pick<FetchConfig, (typeof fetchSpecificKeys)[numbe
 export type $BaseRequestOptions = Omit<$RequestOptions, "body">;
 
 export type ExtraOptions<
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
 > = {
 	/** Optional body of the request, can be a object or any other supported body type. */
 	body?: Record<string, unknown> | RequestInit["body"];
@@ -42,7 +42,7 @@ export type ExtraOptions<
 	/**
 	 * @description Custom function to validate the response data.
 	 */
-	responseValidator?: (data: TBaseData) => TBaseData;
+	responseValidator?: (data: TData) => TData;
 
 	/**
 	 * @description Custom function to serialize the body object into a string.
@@ -59,7 +59,7 @@ export type ExtraOptions<
 	 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
 	 * @default "all"
 	 */
-	resultMode?: TBaseResultMode;
+	resultMode?: TResultMode;
 
 	/**
 	 * @description If true, cancels previous unfinished requests to the same URL.
@@ -88,7 +88,7 @@ export type ExtraOptions<
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
 	 */
-	throwOnError?: boolean | ((error?: Error | HTTPError<TBaseErrorData>) => boolean);
+	throwOnError?: boolean | ((error?: Error | HTTPError<TErrorData>) => boolean);
 
 	/**
 	 * @description Expected response type, affects how response is parsed
@@ -158,10 +158,10 @@ export type ExtraOptions<
 	}) => void | Promise<void>;
 
 	/** @description Interceptor to be called when a successful response is received from the api. */
-	onResponse?: (responseContext: ResponseContext<TBaseData>) => void | Promise<void>;
+	onResponse?: (responseContext: ResponseContext<TData>) => void | Promise<void>;
 
 	/** @description Interceptor to be called when an error response is received from the api. */
-	onResponseError?: (responseErrorContext: ResponseErrorContext<TBaseErrorData>) => void | Promise<void>;
+	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => void | Promise<void>;
 };
 
 export type ResponseContext<TData> = {

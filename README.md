@@ -45,8 +45,6 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 </script>
 ```
 
-
-
 ## Quick Start
 
 You can use callApi just like a normal `fetch` function. The only difference is you don't have to write a `response.json` or `response.text`, you could just destructure the data and error directly.
@@ -138,11 +136,11 @@ For extra convenience with typescript, visit the [Typescript section](#usage-wit
 
 **Key takeaways**:
 
-- Automatic Cancellation: When multiple requests are made to the same URL in quick succession, `callApi` automatically cancels any pending previous requests, allowing only the latest request to proceed.
-- Race Condition Prevention: This mechanism eliminates race conditions that can occur when rapid, successive API calls are made, such as during fast typing in a search input, button clicks, etc.
-- Ideal for React Hooks: This feature is particularly useful when `callApi` is used within React's useEffect hook or similar scenarios where component updates might trigger multiple API calls.
-- Configurable: If you prefer to handle request management differently, you can disable this feature by setting `{ cancelRedundantRequests: false }` in the fetch options. No pressure 👌.
-- Manual Cancellation: You can manually cancel ongoing requests to a specific URL using the cancel method attached to `callApi`. You can also pass an abort controller signal to `callApi` (just like with fetch) as an option and abort the request when you want to.
+- *Automatic Cancellation*: When multiple requests are made to the same URL in quick succession, `callApi` automatically cancels any pending previous requests, allowing only the latest request to proceed.
+- *Race Condition Prevention*: This mechanism eliminates race conditions that can occur when rapid, successive API calls are made, such as during fast typing in a search input, button clicks, etc.
+- *Ideal for React Hooks*: This feature is particularly useful when `callApi` is used within React's useEffect hook or similar scenarios where component updates might trigger multiple API calls.
+- *Configurable*: If you prefer to handle request management differently, you can disable this feature by setting `{ cancelRedundantRequests: false }` in the fetch options. No pressure 👌.
+- *Manual Cancellation*: You can manually cancel ongoing requests to a specific URL using the cancel method attached to `callApi`. You can also pass an abort controller signal to `callApi` (just like with fetch) as an option and abort the request when you want to.
 
 Using `callApi.cancel`:
 
@@ -150,6 +148,9 @@ Using `callApi.cancel`:
 callApi("some-url");
 
 callApi.cancel("some-url");
+
+// With reason
+callApi.cancel("some-url", "Cancelled due to some reason")
 ```
 
 Using `AbortController`:
@@ -189,7 +190,7 @@ Data types eligible for this automatic setting include:
 - Query Strings
 - FormData
 
-**Object/JSON Handling**: If you pass in an object, `CallApi` will set `Content-Type` to `application/json`. It will also `JSON.stringify` your body, so you don't have to do it yourself.
+**Object/JSON Handling**: If you pass in an object, `CallApi` will set `Content-Type` to `application/json` for you. It will also handle `JSON.stringify` process for you (although you can always pass in a custom stringifier/serializer if you want), so you don't have to do it yourself.
 
 ```js
 callApi.post("some-url", {
@@ -204,7 +205,7 @@ fetch("some-url", {
 });
 ```
 
-**Query String Handling**: If you pass in a string, `CallApi` will set `Content-Type` to `application/x-www-form-urlencoded`.
+**Query String Handling**: If you pass in a string, `CallApi` will ensure the `Content-Type` is set to `application/x-www-form-urlencoded` for you.
 
 `CallApi` also includes a `toQueryString` method that helps you convert objects to query strings, for extra convenience.
 

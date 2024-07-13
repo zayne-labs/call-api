@@ -238,7 +238,9 @@ export const createFetchClient = <
 
 	callApi.create = createFetchClient;
 
-	callApi.cancel = (url: string) => abortControllerStore.get(url)?.abort();
+	callApi.cancel = (url: string, reason?: unknown) => {
+		reason ? abortControllerStore.get(url)?.abort(reason) : abortControllerStore.get(url)?.abort();
+	};
 
 	return callApi;
 };
