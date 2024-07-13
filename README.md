@@ -141,7 +141,7 @@ For extra convenience with typescript, visit the [Typescript section](#usage-wit
 - Automatic Cancellation: When multiple requests are made to the same URL in quick succession, `callApi` automatically cancels any pending previous requests, allowing only the latest request to proceed.
 - Race Condition Prevention: This mechanism eliminates race conditions that can occur when rapid, successive API calls are made, such as during fast typing in a search input, button clicks, etc.
 - Ideal for React Hooks: This feature is particularly useful when `callApi` is used within React's useEffect hook or similar scenarios where component updates might trigger multiple API calls.
-- Configurable: If you prefer to handle request management differently, you can disable this feature by setting { cancelRedundantRequests: false } in the fetch options. No pressure 👌.
+- Configurable: If you prefer to handle request management differently, you can disable this feature by setting `{ cancelRedundantRequests: false }` in the fetch options. No pressure 👌.
 - Manual Cancellation: You can manually cancel requests to a specific URL using the cancel method attached to `callApi`. You can also pass an abort controller signal to `callApi` (just like with fetch) as an option and abort the request when you want to.
 
 Using `callApi.cancel`:
