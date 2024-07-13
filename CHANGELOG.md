@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.4.3
+
+### Patch Changes
+
+-  19ac795: lil change to merge util
+
 ## 0.4.2
 
 ### Patch Changes
