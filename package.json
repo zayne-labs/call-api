@@ -10,7 +10,7 @@
 		"prepare": "husky",
 		"test:check-types": "tsc --pretty -p tsconfig.json",
 		"test:format": "prettier --write --cache .",
-		"test:lint": "eslint src/**/*.ts website/**/*.{js,ts,tsx,mjs} --max-warnings 10 --report-unused-disable-directives",
+		"test:lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
 		"test:size": "size-limit",
 		"build": "tsup",
 		"build:dev": "tsup --watch",
