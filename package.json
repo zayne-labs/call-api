@@ -8,7 +8,7 @@
 	"types": "./dist/esm/index.d.ts",
 	"scripts": {
 		"prepare": "husky",
-		"test:check-types": "tsc --pretty -p tsconfig.json",
+		"test:check-types": "tsc --pretty --incremental -p tsconfig.json",
 		"test:format": "prettier --write --cache .",
 		"test:lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
 		"test:size": "size-limit",

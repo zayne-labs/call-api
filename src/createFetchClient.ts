@@ -73,7 +73,10 @@ export const createFetchClient = <
 		const prevFetchController = abortControllerStore.get(url);
 
 		if (prevFetchController && options.cancelRedundantRequests) {
-			const reason = new DOMException("Cancelled the previous unfinished request", "AbortError");
+			const reason = new DOMException(
+				`Automatic cancelation of the previous unfinished request to this same url: ${url}`,
+				"AbortError"
+			);
 			prevFetchController.abort(reason);
 		}
 
@@ -193,17 +196,15 @@ export const createFetchClient = <
 			if (error instanceof DOMException && error.name === "TimeoutError") {
 				const message = `Request timed out after ${options.timeout}ms`;
 
-				console.info(`%cTimeoutError: ${message}`, "color: red; font-weight: 500; font-size: 14px;");
-				console.trace("TimeoutError");
+				console.error(`${error.name}:`, message);
 
 				return resolveErrorResult({ message });
 			}
 
 			if (error instanceof DOMException && error.name === "AbortError") {
-				const message = `Request was cancelled`;
+				const message = `Request aborted due to ${error.message}`;
 
-				console.info(`%cAbortError: ${message}`, "color: red; font-weight: 500; font-size: 14px;");
-				console.trace("AbortError");
+				console.error(`${error.name}:`, message);
 
 				return resolveErrorResult({ message });
 			}
