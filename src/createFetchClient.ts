@@ -202,7 +202,7 @@ export const createFetchClient = <
 			if (error instanceof DOMException && error.name === "AbortError") {
 				const message = `Request was cancelled`;
 
-				console.info(`%AbortError: ${message}`, "color: red; font-weight: 500; font-size: 14px;");
+				console.info(`%cAbortError: ${message}`, "color: red; font-weight: 500; font-size: 14px;");
 				console.trace("AbortError");
 
 				return resolveErrorResult({ message });
