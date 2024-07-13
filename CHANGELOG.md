@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.4.4
+
+### Patch Changes
+
+-  7d732a1: Improvements to AbortError messages
+
 ## 0.4.3
 
 ### Patch Changes
