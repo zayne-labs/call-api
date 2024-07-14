@@ -88,8 +88,8 @@ export const createFetchClient = <
 
 		const combinedSignal = AbortSignal.any([
 			newFetchController.signal,
-			timeoutSignal ?? newFetchController.signal,
-			signal ?? newFetchController.signal,
+			...(timeoutSignal ? [timeoutSignal] : []),
+			...(signal ? [signal] : []),
 		]);
 
 		const requestInit = {
