@@ -3,14 +3,14 @@
 import type { AnyNumber, AnyString } from "./type-helpers";
 import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils";
 
-export type $RequestOptions = Pick<FetchConfig, (typeof fetchSpecificKeys)[number]>;
-export type $BaseRequestOptions = Omit<$RequestOptions, "body">;
+export interface $RequestOptions extends Pick<FetchConfig, (typeof fetchSpecificKeys)[number]> {}
+export interface $BaseRequestOptions extends Omit<$RequestOptions, "body"> {}
 
-export type ExtraOptions<
+export interface ExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> = {
+> {
 	/** Optional body of the request, can be a object or any other supported body type. */
 	body?: Record<string, unknown> | RequestInit["body"];
 
@@ -162,7 +162,7 @@ export type ExtraOptions<
 
 	/** @description Interceptor to be called when an error response is received from the api. */
 	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => void | Promise<void>;
-};
+}
 
 export type ResponseContext<TData> = {
 	_: {
@@ -187,11 +187,11 @@ export interface FetchConfig<
 	TResultMode extends ResultModeUnion = undefined,
 > extends Omit<RequestInit, "method" | "body">, ExtraOptions<TData, TErrorData, TResultMode> {}
 
-export interface BaseConfig<
+export type BaseConfig<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = undefined,
-> extends FetchConfig<TBaseData, TBaseErrorData, TBaseResultMode> {}
+> = FetchConfig<TBaseData, TBaseErrorData, TBaseResultMode>;
 
 type ApiSuccessVariant<TData> = {
 	data: TData;

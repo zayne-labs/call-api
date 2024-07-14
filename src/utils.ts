@@ -10,8 +10,8 @@ import type {
 } from "./types";
 
 type ToQueryStringFn = {
-	(params: Required<ExtraOptions>["query"]): string;
 	(params: ExtraOptions["query"]): string | null;
+	(params: Required<ExtraOptions>["query"]): string;
 };
 
 export const toQueryString: ToQueryStringFn = (params) => {

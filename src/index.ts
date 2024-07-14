@@ -1,9 +1,9 @@
 export { callApi, createFetchClient } from "./createFetchClient";
 
 export type {
-	FetchConfig,
 	$RequestOptions,
 	ExtraOptions,
+	FetchConfig,
 	ResponseContext,
 	ResponseErrorContext,
 } from "./types";
