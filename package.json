@@ -48,7 +48,7 @@
 	],
 	"packageManager": "pnpm@9.5.0",
 	"engines": {
-		"node": ">=16.x"
+		"node": ">=18.17.x"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.15.3",
