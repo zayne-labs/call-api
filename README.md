@@ -8,7 +8,7 @@ It takes in a url and a request options object, just like fetch, but with some a
 
 ## Docs
 
-[View Documentation website](https://zayne-callapi.vercel.app/)
+[View Documentation website](https://zayne-callapi.netlify.app/)
 
 ## Installing CallApi
 
