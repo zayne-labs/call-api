@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.5.0
+
+### Minor Changes
+
+-  6ec8f12: Add cloneResponse Option to callApi
+
 ## 0.4.7
 
 ### Patch Changes
