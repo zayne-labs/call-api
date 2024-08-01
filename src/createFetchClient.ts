@@ -65,7 +65,6 @@ export const createFetchClient = <
 			retryCodes: defaultRetryCodes,
 			retryMethods: defaultRetryMethods,
 			defaultErrorMessage: "Failed to fetch data from server!",
-			cancelRedundantRequests: true,
 			...baseExtraOptions,
 			...extraOptions,
 		} satisfies ExtraOptions;
@@ -157,10 +156,17 @@ export const createFetchClient = <
 
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(
-					response.clone(),
+					options.cloneResponse ? response.clone() : response,
 					options.responseType,
 					options.responseParser
 				);
+
+				await options.onResponseError?.({
+					response: options.cloneResponse ? response.clone() : response,
+					errorData,
+					request: requestInit,
+					options,
+				});
 
 				// == Pushing all error handling responsibilities to the catch block
 				throw new HTTPError({
@@ -171,7 +177,7 @@ export const createFetchClient = <
 			}
 
 			const successData = await getResponseData<TData>(
-				response.clone(),
+				options.cloneResponse ? response.clone() : response,
 				options.responseType,
 				options.responseParser
 			);
@@ -181,8 +187,8 @@ export const createFetchClient = <
 				: successData;
 
 			await options.onResponse?.({
-				// == Workaround as opposed to using the spread operator, as it doesn't work on the response object. So using Object.assign instead on a clone of the response object.
-				response: Object.assign(response.clone(), { data: validSuccessData }),
+				response: options.cloneResponse ? response.clone() : response,
+				data: validSuccessData,
 				request: requestInit,
 				options,
 			});
@@ -211,12 +217,6 @@ export const createFetchClient = <
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				const { errorData, response } = error;
-
-				await options.onResponseError?.({
-					response: Object.assign(response.clone(), { errorData }),
-					request: requestInit,
-					options,
-				});
 
 				return resolveErrorResult({
 					errorData,

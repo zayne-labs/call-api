@@ -67,6 +67,18 @@ export interface ExtraOptions<
 	 */
 	cancelRedundantRequests?: boolean;
 
+	// /**
+	//  * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
+	//  *
+	//  * - If set to "none", deduplication is disabled.
+	//  *
+	//  * - If set to "defer", no new requests to the same URL will be allowed through, until the previous one is completed.
+	//  *
+	//  * - If set to "cancel"(default), the previous pending request to the same URL will be cancelled and lets the new request through.
+	//  * @default "cancel"
+	//  */
+	// dedupeStrategy?: "none" | "defer" | "cancel";
+
 	/**
 	 * @description Base URL to be prepended to all request URLs
 	 */
@@ -82,6 +94,12 @@ export interface ExtraOptions<
 	 * @default "Failed to fetch data from server!"
 	 */
 	defaultErrorMessage?: string;
+
+	/**
+	 * @description Whether to clone the response, so response.json and the like can used in the interceptors.
+	 * @default false
+	 */
+	cloneResponse?: boolean;
 
 	/**
 	 * If true or the function returns true, throws errors instead of returning them
@@ -166,7 +184,8 @@ export interface ExtraOptions<
 
 export type ResponseContext<TData> = {
 	_: {
-		response: Response & { data: TData };
+		response: Response;
+		data: TData;
 		request: $RequestOptions;
 		options: ExtraOptions;
 	};
@@ -174,7 +193,8 @@ export type ResponseContext<TData> = {
 
 export type ResponseErrorContext<TErrorData> = {
 	_: {
-		response: Response & { errorData: TErrorData };
+		response: Response;
+		errorData: TErrorData;
 		request: $RequestOptions;
 		options: ExtraOptions;
 	};
