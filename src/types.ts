@@ -42,7 +42,7 @@ export interface ExtraOptions<
 	/**
 	 * @description Custom function to validate the response data.
 	 */
-	responseValidator?: (data: TData) => TData;
+	responseValidator?: (data: unknown) => TData;
 
 	/**
 	 * @description Custom function to serialize the body object into a string.
