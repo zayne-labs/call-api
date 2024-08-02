@@ -64,7 +64,7 @@ await callApi("/api", {
 });
 ```
 
-#### **`onRequestError({ error, request, options})`**
+#### **`onRequestError({ error, request, options })`**
 
 `onRequestError` is invoked when an error occurs during the fetch request and it fails. It provides access to the error object, request details, and fetch options, allowing you to handle errors gracefully or perform custom error handling logic.
 
@@ -72,33 +72,32 @@ await callApi("/api", {
 await callApi("/api", {
 	onRequestError: ({ request, options, error }) => {
 		// Log error
-		console.log("[fetch request error]", request, error);
+		console.log("fetch request error", request, error);
 	},
 });
 ```
 
-#### **`onResponse({ response, request, options })`**
+#### **`onResponse({ response, request, options, data })`**
 
-`onResponse` is invoked when a successful response is received. It provides access to the response, request details and fetch options.
-
-The response object here contains all regular fetch response properties, plus a `data` property, which contains the parsed response body.
+`onResponse` is invoked when a successful response is received. It provides access to the parsed response body in the `data` property, the response object, request details and fetch options.
 
 ```js copy
 await callApi("/api", {
-	onResponse: ({ request, response, options }) => {
+	onResponse: ({ request, response, options, data }) => {
 		// Log response
-		console.log(request, response.status, response.data);
+		console.log(request, response.status, data);
 
 		// Do other stuff
 	},
 });
 ```
 
-#### **`onResponseError({ request, options, response })`**
+#### **`onResponseError({ request, options, response, errorData })`**
 
-`onResponseError` is invoked when an error response or a status code >= 400 is received from the api. It provides access to the response object, request details, and fetch options used.
+`onResponseError` is invoked when an error response or a status code >= 400 is received from the api. It provides access to the parsed response body in the `errorData` property, the response object, request details, and fetch options used.
 
-The response object here contains all regular fetch response properties, plus an `errorData` property, which contains the parsed response error json response, if the server returns one.
+The response object here contains all regular fetch response properties,
+`errorData` property, which contains the parsed response error json response, if the server returns one.
 
 ##### Note for `onRequestError` Interceptor:
 
@@ -113,9 +112,9 @@ Essentially, it triggers only for HTTP error responses returned by the API. It d
 
 ```js
 const callAnotherApi = callApi.create({
-	onResponseError: ({ response, request, options }) => {
+	onResponseError: ({ response, request, options, errorData }) => {
 		// Log error response
-		console.log(request, response.status, response.errorData);
+		console.log(request, response.status, errorData);
 
 		// Perform action on various error conditions
 		if (response.status === 401) {
@@ -126,8 +125,8 @@ const callAnotherApi = callApi.create({
 			toast.error("Too may requests!");
 		}
 
-		if (response.status === 403 && response.errorData?.message === "2FA is required") {
-			toast.error(response.errorData?.message, {
+		if (response.status === 403 && errorData?.message === "2FA is required") {
+			toast.error(errorData?.message, {
 				description: "Please authenticate to continue",
 			});
 		}
@@ -227,7 +226,7 @@ const callMainApi = callApi.create({
 
 const { data, error } = useQuery({
 	queryKey: ["todos"],
-	/* CallApi will throw on errors here, and also return only data, 
+	/* CallApi will throw on errors here, and also return only data,
     which react query is interested in */
 	queryFn: () => callMainApi("todos"),
 });
