@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.5.1
+
+### Patch Changes
+
+-  cad5d81: fixed a bug in fetch creator
+
 ## 0.5.0
 
 ### Minor Changes
