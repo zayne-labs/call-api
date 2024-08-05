@@ -65,6 +65,7 @@ export const createFetchClient = <
 			retryCodes: defaultRetryCodes,
 			retryMethods: defaultRetryMethods,
 			defaultErrorMessage: "Failed to fetch data from server!",
+			cancelRedundantRequests: true,
 			...baseExtraOptions,
 			...extraOptions,
 		} satisfies ExtraOptions;
@@ -161,13 +162,6 @@ export const createFetchClient = <
 					options.responseParser
 				);
 
-				await options.onResponseError?.({
-					response: options.cloneResponse ? response.clone() : response,
-					errorData,
-					request: requestInit,
-					options,
-				});
-
 				// == Pushing all error handling responsibilities to the catch block
 				throw new HTTPError({
 					errorData,
@@ -187,8 +181,8 @@ export const createFetchClient = <
 				: successData;
 
 			await options.onResponse?.({
-				response: options.cloneResponse ? response.clone() : response,
 				data: validSuccessData,
+				response: options.cloneResponse ? response.clone() : response,
 				request: requestInit,
 				options,
 			});
@@ -217,6 +211,13 @@ export const createFetchClient = <
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				const { errorData, response } = error;
+
+				await options.onResponseError?.({
+					errorData,
+					response: options.cloneResponse ? response.clone() : response,
+					request: requestInit,
+					options,
+				});
 
 				return resolveErrorResult({
 					errorData,
