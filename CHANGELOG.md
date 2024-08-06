@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.5.2
+
+### Patch Changes
+
+-  5aaa7b5: fix success response returning errorInfo instead error
+
 ## 0.5.1
 
 ### Patch Changes
