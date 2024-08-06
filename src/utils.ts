@@ -161,7 +161,7 @@ export const resolveSuccessResult = <CallApiResult>(info: data): CallApiResult =
 
 	const apiDetails = {
 		data: successData,
-		errorInfo: null,
+		error: null,
 		response,
 	};
 
@@ -171,7 +171,7 @@ export const resolveSuccessResult = <CallApiResult>(info: data): CallApiResult =
 
 	return {
 		onlySuccess: apiDetails.data,
-		onlyError: apiDetails.errorInfo,
+		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
 	}[options.resultMode] as CallApiResult;
 };
