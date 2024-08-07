@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.5.3
+
+### Patch Changes
+
+-  0d83e43: removed manual headers handling for only formData
+
 ## 0.5.2
 
 ### Patch Changes
