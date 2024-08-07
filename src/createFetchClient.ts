@@ -1,4 +1,4 @@
-import { isFormData, isObject, isString } from "./typeof";
+import { isObject, isString } from "./typeof";
 import type {
 	$RequestOptions,
 	BaseConfig,
@@ -109,9 +109,6 @@ export const createFetchClient = <
 							...(isObject(body) && {
 								"Content-Type": "application/json",
 								Accept: "application/json",
-							}),
-							...(isFormData(body) && {
-								"Content-Type": "multipart/form-data",
 							}),
 							...(isString(body) && {
 								"Content-Type": "application/x-www-form-urlencoded",
