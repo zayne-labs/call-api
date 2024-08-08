@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.5.4
+
+### Patch Changes
+
+-  eebc2a8: create isQueryString Utility, update docs
+
 ## 0.5.3
 
 ### Patch Changes
