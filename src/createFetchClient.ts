@@ -1,4 +1,4 @@
-import { isObject, isString } from "./typeof";
+import { isObject, isQueryString, isString } from "./typeof";
 import type {
 	$RequestOptions,
 	BaseConfig,
@@ -110,7 +110,7 @@ export const createFetchClient = <
 								"Content-Type": "application/json",
 								Accept: "application/json",
 							}),
-							...(isString(body) && {
+							...(isQueryString(body) && {
 								"Content-Type": "application/x-www-form-urlencoded",
 							}),
 							...(isString(options.auth) && {

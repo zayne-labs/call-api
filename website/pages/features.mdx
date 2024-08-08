@@ -121,9 +121,9 @@ fetch("some-url", {
 });
 ```
 
--  **Query String Handling**: If you pass in a string, `CallApi` will ensure the `Content-Type` is set to `application/x-www-form-urlencoded` for you.
+-  **Query String Handling**: If you pass in a query string, `CallApi` will ensure the `Content-Type` is set to `application/x-www-form-urlencoded` for you.
 
-   `CallApi` also includes a `toQueryString` method that helps you convert objects to query strings, for extra convenience.
+   `CallApi` also provides a `toQueryString` utility that helps you convert objects to query strings, for extra convenience.
 
 ```js copy
 import { toQueryString } from "@zayne-labs/callapi";
