@@ -46,7 +46,7 @@
 		"retry",
 		"interceptor"
 	],
-	"packageManager": "pnpm@9.5.0",
+	"packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf",
 	"engines": {
 		"node": ">=18.17.x"
 	},
@@ -66,6 +66,7 @@
 		"lint-staged": "^15.2.7",
 		"prettier": "^3.3.3",
 		"size-limit": "^11.1.4",
+		"terser": "^5.31.5",
 		"tsup": "^8.1.0",
 		"typescript": "5.5.3",
 		"typescript-eslint": "^7.16.0"

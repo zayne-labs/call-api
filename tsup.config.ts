@@ -1,12 +1,14 @@
 import { type Options, defineConfig } from "tsup";
 
 export default defineConfig((options) => {
+	const isProd = !options.watch;
+
 	const commonOptions = {
 		clean: true, // clean up dist folder,
 		dts: true,
-		minify: !options.watch,
+		minify: isProd ? "terser" : false,
 		tsconfig: "tsconfig.json",
-		sourcemap: !options.watch,
+		sourcemap: isProd,
 	} satisfies Options;
 
 	return [
@@ -15,6 +17,7 @@ export default defineConfig((options) => {
 			format: ["esm"],
 			entry: ["src/index.ts", "src/createFetchClient.ts", "src/utils.ts", "src/typeof.ts"],
 			target: "esnext",
+			platform: "browser",
 			outDir: "./dist/esm",
 			// bundle: false,
 			skipNodeModulesBundle: true, // skip building deps for node_modules, simply use them as is
@@ -25,6 +28,7 @@ export default defineConfig((options) => {
 			...commonOptions,
 			entry: ["src/index.ts"],
 			format: ["cjs"],
+			platform: "neutral",
 			outDir: "./dist/cjs",
 		},
 	];
