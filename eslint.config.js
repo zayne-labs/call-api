@@ -1,5 +1,3 @@
-/* eslint-disable unicorn/no-abusive-eslint-disable */
-/* eslint-disable */
 import eslintBase from "@eslint/js";
 import eslintImportX from "eslint-plugin-import-x";
 import eslintJsdoc from "eslint-plugin-jsdoc";
@@ -8,6 +6,7 @@ import eslintUnicorn from "eslint-plugin-unicorn";
 import globals from "globals";
 import tsEslint from "typescript-eslint";
 
+// eslint-disable-next-line jsdoc/check-tag-names
 /** @type {import('typescript-eslint').ConfigWithExtends[]} */
 
 const eslintConfigArray = [
@@ -230,14 +229,22 @@ const eslintConfigArray = [
 	},
 
 	// == Typescript Eslint Rules
-	...tsEslint.configs.strictTypeChecked,
-	...tsEslint.configs.stylisticTypeChecked,
+	...tsEslint.configs.strictTypeChecked.map((config) => ({ ...config, files: ["**/*.ts"] })),
+	...tsEslint.configs.stylisticTypeChecked.map((config) => ({ ...config, files: ["**/*.ts"] })),
 	{
 		languageOptions: {
+			parser: tsEslint.parser,
 			parserOptions: {
-				project: "tsconfig.eslint.json",
+				projectService: {
+					allowDefaultProject: ["*.js", ".size-limit.ts"],
+					defaultProject: "./tsconfig.eslint.json",
+				},
 				tsconfigRootDir: import.meta.dirname,
 			},
+		},
+
+		plugins: {
+			"@typescript-eslint": tsEslint.plugin,
 		},
 		rules: {
 			"@typescript-eslint/no-unused-expressions": [
@@ -271,6 +278,7 @@ const eslintConfigArray = [
 			"@typescript-eslint/dot-notation": "error",
 			"@typescript-eslint/no-shadow": "error",
 			"@typescript-eslint/prefer-nullish-coalescing": ["error", { ignoreConditionalTests: true }],
+			"@typescript-eslint/no-unnecessary-type-parameters": "off",
 		},
 	},
 
@@ -289,7 +297,7 @@ const eslintConfigArray = [
 		plugins: { "import-x": eslintImportX },
 		rules: {
 			...eslintImportX.configs.recommended.rules,
-			// "import-x/extensions": ["error", "never", { ignorePackages: true }],
+			"import-x/extensions": ["error", "never", { ignorePackages: true }],
 			"import-x/no-extraneous-dependencies": ["error", { devDependencies: true }],
 			"import-x/prefer-default-export": "off",
 			"import-x/no-cycle": ["error", { ignoreExternal: true, maxDepth: 3 }],
@@ -297,10 +305,10 @@ const eslintConfigArray = [
 			"import-x/export": "error",
 			"import-x/no-named-as-default": "error",
 			"import-x/namespace": "off",
-			"import-x/prefer-default-export": "off",
 			"import-x/no-named-as-default-member": "error",
 			"import-x/no-mutable-exports": "error",
 			"import-x/first": "error",
+			"import-x/no-import-module-exports": "error",
 			"import-x/no-duplicates": "error",
 			"import-x/newline-after-import": "error",
 			"import-x/no-absolute-path": "error",

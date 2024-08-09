@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-empty-interface */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import type { AnyNumber, AnyString } from "./type-helpers";
 import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils";
