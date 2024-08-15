@@ -6,6 +6,7 @@ export type {
 	FetchConfig,
 	ResponseContext,
 	ResponseErrorContext,
+	ErrorContext,
 } from "./types";
 
 export { HTTPError, isHTTPError, isHTTPErrorInstance, toQueryString } from "./utils";

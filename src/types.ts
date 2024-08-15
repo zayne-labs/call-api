@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type { AnyNumber, AnyString } from "./type-helpers";
+import type { AnyNumber, AnyString, Prettify } from "./type-helpers";
 import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils";
 
 export interface $RequestOptions extends Pick<FetchConfig, (typeof fetchSpecificKeys)[number]> {}
@@ -180,37 +180,56 @@ export interface ExtraOptions<
 
 	/** @description Interceptor to be called when an error response is received from the api. */
 	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => void | Promise<void>;
+
+	/**
+	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
+	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
+	 */
+	onError?: (anyErrorContext: ErrorContext<TErrorData>) => void | Promise<void>;
 }
 
-export type ResponseContext<TData> = {
-	_: {
-		response: Response;
-		data: TData;
-		request: $RequestOptions;
-		options: ExtraOptions;
-	};
-}["_"];
+export type ResponseContext<TData> = Prettify<{
+	data: TData;
+	response: Response;
+	request: $RequestOptions;
+	options: ExtraOptions;
+}>;
 
-export type ResponseErrorContext<TErrorData> = {
-	_: {
-		response: Response;
-		errorData: TErrorData;
-		request: $RequestOptions;
-		options: ExtraOptions;
-	};
-}["_"];
+export type ResponseErrorContext<TErrorData> = Prettify<{
+	errorData: TErrorData;
+	response: Response;
+	request: $RequestOptions;
+	options: ExtraOptions;
+}>;
+
+export type ErrorContext<TErrorData> = Prettify<
+	| {
+			errorData?: TErrorData;
+			error: null;
+			response: Response;
+			request: $RequestOptions;
+			options: ExtraOptions;
+	  }
+	| {
+			error: Error;
+			errorData?: null;
+			response: null;
+			request: $RequestOptions;
+			options: ExtraOptions;
+	  }
+>;
 
 // prettier-ignore
 export interface FetchConfig<
 	TData = unknown,
 	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = undefined,
+	TResultMode extends ResultModeUnion = "all",
 > extends Omit<RequestInit, "method" | "body">, ExtraOptions<TData, TErrorData, TResultMode> {}
 
 export type BaseConfig<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = undefined,
+	TBaseResultMode extends ResultModeUnion = "all",
 > = FetchConfig<TBaseData, TBaseErrorData, TBaseResultMode>;
 
 type ApiSuccessVariant<TData> = {
@@ -252,13 +271,13 @@ type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 
 // == Using this double Immediately Indexed Mapped type to get a union of the keys of the object while still showing the full type signature on hover
 export type ResultModeUnion = {
-	_: { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined;
+	_: { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap];
 }["_"];
 
-export type GetCallApiResult<TData, TErrorData, TResultMode> =
-	TResultMode extends NonNullable<ResultModeUnion>
-		? ResultModeMap<TData, TErrorData>[TResultMode]
-		: ResultModeMap<TData, TErrorData>["all"];
+export type GetCallApiResult<TData, TErrorData, TResultMode extends ResultModeUnion> = ResultModeMap<
+	TData,
+	TErrorData
+>[TResultMode];
 
 export type PossibleErrorObject =
 	| {

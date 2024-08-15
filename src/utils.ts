@@ -16,7 +16,8 @@ type ToQueryStringFn = {
 
 export const toQueryString: ToQueryStringFn = (params) => {
 	if (!params) {
-		console.error("No query params provided");
+		console.error("toQueryString:", "No query params provided!");
+
 		return null as never;
 	}
 
@@ -177,7 +178,10 @@ export const resolveSuccessResult = <CallApiResult>(info: data): CallApiResult =
 };
 
 // == Using curring here so error and options are not required to be passed every time, instead to be captured once by way of closure
-export const $resolveErrorResult = <CallApiResult>($info: { error?: unknown; options: ExtraOptions }) => {
+export const getResolveErrorResultFn = <CallApiResult>($info: {
+	error?: unknown;
+	options: ExtraOptions;
+}) => {
 	const { error, options } = $info;
 
 	type ErrorInfo = {

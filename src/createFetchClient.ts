@@ -9,10 +9,10 @@ import type {
 	ResultModeUnion,
 } from "./types";
 import {
-	$resolveErrorResult,
 	HTTPError,
 	defaultRetryCodes,
 	defaultRetryMethods,
+	getResolveErrorResultFn,
 	getResponseData,
 	isHTTPErrorInstance,
 	mergeUrlWithParams,
@@ -25,7 +25,7 @@ import {
 export const createFetchClient = <
 	TBaseData,
 	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = undefined,
+	TBaseResultMode extends ResultModeUnion = "all",
 >(
 	baseConfig?: BaseConfig<TBaseData, TBaseErrorData, TBaseResultMode>
 ) => {
@@ -188,7 +188,7 @@ export const createFetchClient = <
 
 			// == Exhaustive Error handling
 		} catch (error) {
-			const resolveErrorResult = $resolveErrorResult<CallApiResult>({ error, options });
+			const resolveErrorResult = getResolveErrorResultFn<CallApiResult>({ error, options });
 
 			if (error instanceof DOMException && error.name === "TimeoutError") {
 				const message = `Request timed out after ${options.timeout}ms`;
@@ -209,12 +209,23 @@ export const createFetchClient = <
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				const { errorData, response } = error;
 
-				await options.onResponseError?.({
-					errorData,
-					response: options.cloneResponse ? response.clone() : response,
-					request: requestInit,
-					options,
-				});
+				void (await Promise.allSettled([
+					options.onResponseError?.({
+						errorData,
+						response: options.cloneResponse ? response.clone() : response,
+						request: requestInit,
+						options,
+					}),
+
+					// == Also call the onError interceptor
+					options.onError?.({
+						errorData,
+						response,
+						error: null,
+						options,
+						request: requestInit,
+					}),
+				]));
 
 				return resolveErrorResult({
 					errorData,
@@ -223,8 +234,19 @@ export const createFetchClient = <
 				});
 			}
 
-			// == At this point only the request errors exist, so the request error interceptor is called
-			await options.onRequestError?.({ request: requestInit, error: error as Error, options });
+			void (await Promise.allSettled([
+				// == At this point only the request errors exist, so the request error interceptor is called
+				options.onRequestError?.({ request: requestInit, error: error as Error, options }),
+
+				// == Also call the onError interceptor
+				options.onError?.({
+					request: requestInit,
+					error: error as Error,
+					options,
+					errorData: null,
+					response: null,
+				}),
+			]));
 
 			return resolveErrorResult();
 
