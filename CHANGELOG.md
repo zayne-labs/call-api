@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.6.0
+
+### Minor Changes
+
+-  37a6d8e: added a new interceptor that runs both onResponse and onRequestErrors
+
 ## 0.5.4
 
 ### Patch Changes
