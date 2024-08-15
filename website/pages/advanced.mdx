@@ -143,11 +143,11 @@ const callAnotherApi = callApi.create({
 `onError` is invoked both on request and response errors.
 It is basically a combination of `onRequestError` and `onResponseError` in that it provides access to:
 
--  The `errorData` (if the error a response error from api, else it's set to null)
--  The response object (f the error is a response error from api, else it's set to null)
--  The `error` object (if the error is a request error, else it's set to null)
--  The request details
--  And finally the fetch options used
+-  The `errorData` (if the error a response error from api, else it's set to null).
+-  The response object (f the error is a response error from api, else it's set to null).
+-  The `error` object (if the error is a request error, else it's set to null).
+-  The request details.
+-  And finally the fetch options used.
 
 ```js copy
 await callApi("/api", {
