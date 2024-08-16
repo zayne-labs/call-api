@@ -25,7 +25,7 @@ import {
 export const createFetchClient = <
 	TBaseData,
 	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = "all",
+	TBaseResultMode extends ResultModeUnion = undefined,
 >(
 	baseConfig?: BaseConfig<TBaseData, TBaseErrorData, TBaseResultMode>
 ) => {

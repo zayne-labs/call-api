@@ -8,5 +8,3 @@ export type {
 	ResponseErrorContext,
 	ErrorContext,
 } from "./types";
-
-export { HTTPError, isHTTPError, isHTTPErrorInstance, toQueryString } from "./utils";

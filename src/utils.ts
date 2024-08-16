@@ -166,7 +166,7 @@ export const resolveSuccessResult = <CallApiResult>(info: data): CallApiResult =
 		response,
 	};
 
-	if (options.resultMode === undefined || options.resultMode === "all") {
+	if (!options.resultMode || options.resultMode === "all") {
 		return apiDetails as CallApiResult;
 	}
 

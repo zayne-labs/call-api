@@ -271,13 +271,13 @@ type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 
 // == Using this double Immediately Indexed Mapped type to get a union of the keys of the object while still showing the full type signature on hover
 export type ResultModeUnion = {
-	_: { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap];
+	_: { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined;
 }["_"];
 
-export type GetCallApiResult<TData, TErrorData, TResultMode extends ResultModeUnion> = ResultModeMap<
-	TData,
-	TErrorData
->[TResultMode];
+export type GetCallApiResult<TData, TErrorData, TResultMode> =
+	TResultMode extends NonNullable<ResultModeUnion>
+		? ResultModeMap<TData, TErrorData>[TResultMode]
+		: ResultModeMap<TData, TErrorData>["all"];
 
 export type PossibleErrorObject =
 	| {
