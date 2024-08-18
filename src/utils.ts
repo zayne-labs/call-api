@@ -9,8 +9,11 @@ import type {
 	PossibleErrorObject,
 } from "./types";
 
+// prettier-ignore
+export const getRequestKey = <TConfig extends Record<string, unknown>>(url: string, config?: TConfig) => `${url} | ${JSON.stringify(config ?? {})}`;
+
 type ToQueryStringFn = {
-	(params: ExtraOptions["query"]): string | null;
+	(params: ExtraOptions["query"]): null | string;
 	(params: Required<ExtraOptions>["query"]): string;
 };
 
@@ -83,7 +86,10 @@ export const fetchSpecificKeys = [
 	"referrerPolicy",
 ] satisfies Array<keyof FetchConfig>;
 
-const omitKeys = <TObject extends Record<string, unknown>, const TOmitArray extends Array<keyof TObject>>(
+export const omitKeys = <
+	TObject extends Record<string, unknown>,
+	const TOmitArray extends Array<keyof TObject>,
+>(
 	initialObject: TObject,
 	keysToOmit: TOmitArray
 ) => {
@@ -122,6 +128,9 @@ export const handleResponseType = <TResponse>(
 	response: Response,
 	parser?: Required<ExtraOptions>["responseParser"]
 ) => ({
+	arrayBuffer: () => response.arrayBuffer() as Promise<TResponse>,
+	blob: () => response.blob() as Promise<TResponse>,
+	formData: () => response.formData() as Promise<TResponse>,
 	json: async () => {
 		if (parser) {
 			return parser(await response.text());
@@ -129,9 +138,6 @@ export const handleResponseType = <TResponse>(
 
 		return response.json() as Promise<TResponse>;
 	},
-	arrayBuffer: () => response.arrayBuffer() as Promise<TResponse>,
-	blob: () => response.blob() as Promise<TResponse>,
-	formData: () => response.formData() as Promise<TResponse>,
 	text: () => response.text() as Promise<TResponse>,
 });
 
@@ -150,9 +156,9 @@ export const getResponseData = <TResponse>(
 };
 
 type data = {
-	successData: unknown;
 	options: ExtraOptions;
 	response: Response;
+	successData: unknown;
 };
 
 // == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
@@ -171,9 +177,9 @@ export const resolveSuccessResult = <CallApiResult>(info: data): CallApiResult =
 	}
 
 	return {
-		onlySuccess: apiDetails.data,
 		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
+		onlySuccess: apiDetails.data,
 	}[options.resultMode] as CallApiResult;
 };
 
@@ -185,9 +191,9 @@ export const getResolveErrorResultFn = <CallApiResult>($info: {
 	const { error, options } = $info;
 
 	type ErrorInfo = {
-		response?: Response;
 		errorData?: unknown;
 		message?: string;
+		response?: Response;
 	};
 
 	const resolveErrorResult = (info: ErrorInfo = {}): CallApiResult => {
@@ -204,9 +210,9 @@ export const getResolveErrorResultFn = <CallApiResult>($info: {
 		return {
 			data: null,
 			error: {
-				name: (error as PossibleErrorObject)?.name ?? "UnknownError",
 				errorData: errorData ?? error,
 				message: message ?? (error as PossibleErrorObject)?.message ?? options.defaultErrorMessage,
+				name: (error as PossibleErrorObject)?.name ?? "UnknownError",
 			},
 			response: response ?? null,
 		} as CallApiResult;
@@ -220,9 +226,9 @@ export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["erro
 };
 
 type ErrorDetails<TErrorResponse> = {
+	defaultErrorMessage: string;
 	errorData: TErrorResponse;
 	response: Response;
-	defaultErrorMessage: string;
 };
 
 type ErrorOptions = {
@@ -230,15 +236,15 @@ type ErrorOptions = {
 };
 
 export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
-	response: ErrorDetails<TErrorResponse>["response"];
 	errorData: ErrorDetails<TErrorResponse>["errorData"];
+	isHTTPError = true;
 
 	override name = "HTTPError" as const;
 
-	isHTTPError = true;
+	response: ErrorDetails<TErrorResponse>["response"];
 
 	constructor(errorDetails: ErrorDetails<TErrorResponse>, errorOptions?: ErrorOptions) {
-		const { defaultErrorMessage, response, errorData } = errorDetails;
+		const { defaultErrorMessage, errorData, response } = errorDetails;
 
 		super((errorData as { message?: string }).message ?? defaultErrorMessage, errorOptions);
 

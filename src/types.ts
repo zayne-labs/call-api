@@ -11,38 +11,27 @@ export interface ExtraOptions<
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 > {
-	/** Optional body of the request, can be a object or any other supported body type. */
-	body?: Record<string, unknown> | RequestInit["body"];
-
-	/**
-	 * @description HTTP method for the request.
-	 * @default "GET"
-	 */
-	method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE" | AnyString;
-
-	/**
-	 * @description Query parameters to append to the URL.
-	 */
-	query?: Record<string, string | number | boolean>;
-
 	/**
 	 * @description Authorization header value.
 	 */
 	auth?:
-		| string
 		| {
 				bearer: string;
 				token?: never;
 		  }
 		| {
-				token: string;
 				bearer?: never;
-		  };
+				token: string;
+		  }
+		| string;
 
 	/**
-	 * @description Custom function to validate the response data.
+	 * @description Base URL to be prepended to all request URLs
 	 */
-	responseValidator?: (data: unknown) => TData;
+	baseURL?: string;
+
+	/** Optional body of the request, can be a object or any other supported body type. */
+	body?: Record<string, unknown> | RequestInit["body"];
 
 	/**
 	 * @description Custom function to serialize the body object into a string.
@@ -50,50 +39,10 @@ export interface ExtraOptions<
 	bodySerializer?: (bodyData: Record<string, unknown>) => string;
 
 	/**
-	 * @description Custom function to parse the response string into a object.
-	 */
-	responseParser?: (responseString: string) => Record<string, unknown>;
-
-	/**
-	 * @description Mode of the result, can influence how results are handled or returned.
-	 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
-	 * @default "all"
-	 */
-	resultMode?: TResultMode;
-
-	/**
 	 * @description If true, cancels previous unfinished requests to the same URL.
 	 * @default true
 	 */
 	cancelRedundantRequests?: boolean;
-
-	// /**
-	//  * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
-	//  *
-	//  * - If set to "none", deduplication is disabled.
-	//  *
-	//  * - If set to "defer", no new requests to the same URL will be allowed through, until the previous one is completed.
-	//  *
-	//  * - If set to "cancel"(default), the previous pending request to the same URL will be cancelled and lets the new request through.
-	//  * @default "cancel"
-	//  */
-	// dedupeStrategy?: "none" | "defer" | "cancel";
-
-	/**
-	 * @description Base URL to be prepended to all request URLs
-	 */
-	baseURL?: string;
-
-	/**
-	 * @description Request timeout in milliseconds
-	 */
-	timeout?: number;
-
-	/**
-	 * @description Default error message to use if none is provided from a response.
-	 * @default "Failed to fetch data from server!"
-	 */
-	defaultErrorMessage?: string;
 
 	/**
 	 * @description Whether to clone the response, so response.json and the like can used in the interceptors.
@@ -102,41 +51,10 @@ export interface ExtraOptions<
 	cloneResponse?: boolean;
 
 	/**
-	 * If true or the function returns true, throws errors instead of returning them
-	 * The function is passed the error object and can be used to conditionally throw the error
-	 * @default false
+	 * @description Default error message to use if none is provided from a response.
+	 * @default "Failed to fetch data from server!"
 	 */
-	throwOnError?: boolean | ((error?: Error | HTTPError<TErrorData>) => boolean);
-
-	/**
-	 * @description Expected response type, affects how response is parsed
-	 * @default "json"
-	 */
-	responseType?: keyof ReturnType<typeof handleResponseType>;
-
-	/**
-	 * @description Number of retry attempts for failed requests
-	 * @default 0
-	 */
-	retries?: number;
-
-	/**
-	 * @description Delay between retries in milliseconds
-	 * @default 500
-	 */
-	retryDelay?: number;
-
-	/**
-	 * @description HTTP status codes that trigger a retry
-	 * @default [409, 425, 429, 500, 502, 503, 504]
-	 */
-	retryCodes?: Array<409 | 425 | 429 | 500 | 502 | 503 | 504 | AnyNumber>;
-
-	/**
-	 * HTTP methods that are allowed to retry
-	 * @default ["GET", "POST"]
-	 */
-	retryMethods?: Array<"GET" | "POST" | AnyString>;
+	defaultErrorMessage?: string;
 
 	/**
 	 * @description an optional field you can fill with additional information,
@@ -162,60 +80,142 @@ export interface ExtraOptions<
 	 */
 	meta?: Record<string, unknown>;
 
-	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
-	onRequest?: (requestContext: {
-		request: $RequestOptions;
-		options: ExtraOptions;
-	}) => void | Promise<void>;
+	/**
+	 * @description HTTP method for the request.
+	 * @default "GET"
+	 */
+	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
 
-	/** @description Interceptor to be called when an error occurs during the fetch request. */
-	onRequestError?: (requestErrorContext: {
-		error: Error;
-		request: $RequestOptions;
-		options: ExtraOptions;
-	}) => void | Promise<void>;
-
-	/** @description Interceptor to be called when a successful response is received from the api. */
-	onResponse?: (responseContext: ResponseContext<TData>) => void | Promise<void>;
-
-	/** @description Interceptor to be called when an error response is received from the api. */
-	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => void | Promise<void>;
+	// /**
+	//  * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
+	//  *
+	//  * - If set to "none", deduplication is disabled.
+	//  *
+	//  * - If set to "defer", no new requests to the same URL will be allowed through, until the previous one is completed.
+	//  *
+	//  * - If set to "cancel"(default), the previous pending request to the same URL will be cancelled and lets the new request through.
+	//  * @default "cancel"
+	//  */
+	// dedupeStrategy?: "none" | "defer" | "cancel";
 
 	/**
 	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
-	onError?: (anyErrorContext: ErrorContext<TErrorData>) => void | Promise<void>;
+	onError?: (anyErrorContext: ErrorContext<TErrorData>) => Promise<void> | void;
+
+	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
+	onRequest?: (requestContext: {
+		options: ExtraOptions;
+		request: $RequestOptions;
+	}) => Promise<void> | void;
+
+	/** @description Interceptor to be called when an error occurs during the fetch request. */
+	onRequestError?: (requestErrorContext: {
+		error: Error;
+		options: ExtraOptions;
+		request: $RequestOptions;
+	}) => Promise<void> | void;
+
+	/** @description Interceptor to be called when a successful response is received from the api. */
+	onResponse?: (responseContext: ResponseContext<TData>) => Promise<void> | void;
+
+	/** @description Interceptor to be called when an error response is received from the api. */
+	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => Promise<void> | void;
+
+	/**
+	 * @description Query parameters to append to the URL.
+	 */
+	query?: Record<string, boolean | number | string>;
+
+	/**
+	 * @description Custom function to parse the response string into a object.
+	 */
+	responseParser?: (responseString: string) => Record<string, unknown>;
+
+	/**
+	 * @description Expected response type, affects how response is parsed
+	 * @default "json"
+	 */
+	responseType?: keyof ReturnType<typeof handleResponseType>;
+
+	/**
+	 * @description Custom function to validate the response data.
+	 */
+	responseValidator?: (data: unknown) => TData;
+
+	/**
+	 * @description Mode of the result, can influence how results are handled or returned.
+	 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
+	 * @default "all"
+	 */
+	resultMode?: TResultMode;
+
+	/**
+	 * @description Number of retry attempts for failed requests
+	 * @default 0
+	 */
+	retries?: number;
+
+	/**
+	 * @description HTTP status codes that trigger a retry
+	 * @default [409, 425, 429, 500, 502, 503, 504]
+	 */
+	retryCodes?: Array<409 | 425 | 429 | 500 | 502 | 503 | 504 | AnyNumber>;
+
+	/**
+	 * @description Delay between retries in milliseconds
+	 * @default 500
+	 */
+	retryDelay?: number;
+
+	/**
+	 * HTTP methods that are allowed to retry
+	 * @default ["GET", "POST"]
+	 */
+	retryMethods?: Array<"GET" | "POST" | AnyString>;
+
+	/**
+	 * If true or the function returns true, throws errors instead of returning them
+	 * The function is passed the error object and can be used to conditionally throw the error
+	 * @default false
+	 */
+	throwOnError?: ((error?: Error | HTTPError<TErrorData>) => boolean) | boolean;
+
+	/**
+	 * @description Request timeout in milliseconds
+	 */
+	timeout?: number;
 }
 
 export type ResponseContext<TData> = Prettify<{
 	data: TData;
-	response: Response;
-	request: $RequestOptions;
 	options: ExtraOptions;
+	request: $RequestOptions;
+	response: Response;
 }>;
 
 export type ResponseErrorContext<TErrorData> = Prettify<{
 	errorData: TErrorData;
-	response: Response;
-	request: $RequestOptions;
 	options: ExtraOptions;
+	request: $RequestOptions;
+	response: Response;
 }>;
 
 export type ErrorContext<TErrorData> = Prettify<
 	| {
-			errorData?: TErrorData;
-			error: null;
-			response: Response;
-			request: $RequestOptions;
-			options: ExtraOptions;
-	  }
-	| {
 			error: Error;
 			errorData?: null;
-			response: null;
-			request: $RequestOptions;
 			options: ExtraOptions;
+			request: $RequestOptions;
+			response: null;
+	  }
+	| {
+			error: null;
+			errorData?: TErrorData;
+			options: ExtraOptions;
+			request: $RequestOptions;
+			response: Response;
 	  }
 >;
 
@@ -224,7 +224,7 @@ export interface FetchConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = "all",
-> extends Omit<RequestInit, "method" | "body">, ExtraOptions<TData, TErrorData, TResultMode> {}
+> extends Omit<RequestInit, "body" | "method">, ExtraOptions<TData, TErrorData, TResultMode> {}
 
 export type BaseConfig<
 	TBaseData = unknown,
@@ -239,34 +239,34 @@ type ApiSuccessVariant<TData> = {
 };
 
 type PossibleErrorNames = {
-	_: "AbortError" | "TimeoutError" | "SyntaxError" | "TypeError" | "Error" | "UnknownError";
+	_: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | "UnknownError";
 }["_"];
 
 export type ApiErrorVariant<TErrorData> =
 	| {
 			data: null;
 			error: {
-				name: "HTTPError";
-				errorData: TErrorData;
+				errorData: Error;
 				message: string;
+				name: PossibleErrorNames;
 			};
-			response: Response;
+			response: null;
 	  }
 	| {
 			data: null;
 			error: {
-				name: PossibleErrorNames;
-				errorData: Error;
+				errorData: TErrorData;
 				message: string;
+				name: "HTTPError";
 			};
-			response: null;
+			response: Response;
 	  };
 
 type ResultModeMap<TData = unknown, TErrorData = unknown> = {
-	all: ApiSuccessVariant<TData> | ApiErrorVariant<TErrorData>;
-	onlySuccess: ApiSuccessVariant<TData>["data"];
+	all: ApiErrorVariant<TErrorData> | ApiSuccessVariant<TData>;
 	onlyError: ApiErrorVariant<TErrorData>["error"];
 	onlyResponse: Response;
+	onlySuccess: ApiSuccessVariant<TData>["data"];
 };
 
 // == Using this double Immediately Indexed Mapped type to get a union of the keys of the object while still showing the full type signature on hover
@@ -281,7 +281,7 @@ export type GetCallApiResult<TData, TErrorData, TResultMode> =
 
 export type PossibleErrorObject =
 	| {
-			name?: PossibleErrorNames;
 			message?: string;
+			name?: PossibleErrorNames;
 	  }
 	| undefined;

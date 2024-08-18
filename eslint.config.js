@@ -1,17 +1,20 @@
-import eslintBase from "@eslint/js";
+/// <reference path="./eslint-typegen.d.ts" />
+
+import eslintJs from "@eslint/js";
+import eslintStylistic from "@stylistic/eslint-plugin";
 import eslintImportX from "eslint-plugin-import-x";
 import eslintJsdoc from "eslint-plugin-jsdoc";
-import eslintSonarjs from "eslint-plugin-sonarjs";
+import eslintPerfectionist from "eslint-plugin-perfectionist";
+import eslintSonarJs from "eslint-plugin-sonarjs";
 import eslintUnicorn from "eslint-plugin-unicorn";
+import typegen from "eslint-typegen";
 import globals from "globals";
 import tsEslint from "typescript-eslint";
 
-// eslint-disable-next-line jsdoc/check-tag-names
-/** @type {import('typescript-eslint').ConfigWithExtends[]} */
-
-const eslintConfigArray = [
+const eslintConfigArray = typegen([
 	// == Global Options
-	{ ignores: ["dist/**", "node_modules/**", "build/**"] },
+	{ ignores: ["dist/**", "build/**"], name: "zayne/defaults/ignores" },
+
 	{
 		languageOptions: {
 			globals: {
@@ -19,132 +22,34 @@ const eslintConfigArray = [
 				...globals.node,
 			},
 		},
+		name: "zayne/defaults/languageOptions",
 	},
 
 	// == Base Eslint Rules
-	eslintBase.configs.recommended,
+	{ ...eslintJs.configs.recommended, name: "eslint/recommended" },
 	{
+		name: "zayne/eslint",
 		rules: {
-			"no-return-assign": ["error", "except-parens"],
-			"prefer-arrow-callback": [
-				"error",
-				{
-					allowNamedFunctions: true,
-				},
-			],
-			"no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
-			"no-console": ["error", { allow: ["warn", "error", "info", "trace"] }],
-			"constructor-super": "error",
-			"no-class-assign": "error",
-			//FIXME - JsOnly -  disallow modifying variables that are declared using const
-			"no-const-assign": "error",
-			"no-dupe-class-members": "error",
-			"no-restricted-exports": [
-				"error",
-				{
-					restrictedNamedExports: [
-						"default", // use `export default` to provide a default export
-						"then", // this will cause tons of confusion when your module is dynamically `import()`ed, and will break in most node ESM versions
-					],
-				},
-			],
-			"no-this-before-super": "error",
-			"no-useless-computed-key": "error",
-			"no-useless-constructor": "error",
-			"no-useless-rename": [
-				"error",
-				{ ignoreDestructuring: false, ignoreImport: false, ignoreExport: false },
-			],
-			"no-var": "error",
-			"no-unsafe-optional-chaining": ["error", { disallowArithmeticOperators: true }],
-			"no-unsafe-negation": "error",
-			"no-unsafe-finally": "error",
-			"no-unreachable-loop": [
-				"error",
-				{
-					ignore: [], // WhileStatement, DoWhileStatement, ForStatement, ForInStatement, ForOfStatement
-				},
-			],
-			// disallow irregular whitespace outside of strings and comments
-			"no-irregular-whitespace": "error",
-			"no-invalid-regexp": "error",
-			"getter-return": ["error", { allowImplicit: true }],
-			"no-constant-condition": "warn",
-			"no-empty": "error",
-			"no-func-assign": "error",
-			"no-await-in-loop": "error",
-			"no-cond-assign": ["error", "always"],
-			"no-duplicate-case": "error",
-			"no-unreachable": "error",
-			"no-unexpected-multiline": "error",
-			"no-template-curly-in-string": "error",
-			"no-sparse-arrays": "error",
-			"object-shorthand": ["error", "always", { ignoreConstructors: false, avoidQuotes: true }],
-			"prefer-const": ["error", { destructuring: "any", ignoreReadBeforeAssign: true }],
-			"prefer-destructuring": [
-				"error",
-				{
-					VariableDeclarator: {
-						array: false,
-						object: true,
-					},
-					AssignmentExpression: {
-						array: true,
-						object: false,
-					},
-				},
-				{
-					enforceForRenamedProperties: false,
-				},
-			],
-			"prefer-rest-params": "error",
-			"prefer-spread": "error",
-			"prefer-template": "error",
-			"symbol-description": "error",
-			"no-restricted-imports": ["off", { paths: [], patterns: [] }],
-			"no-restricted-globals": [
-				"error",
-				{
-					name: "isFinite",
-					message:
-						"Use Number.isFinite instead https://github.com/airbnb/javascript#standard-library--isfinite",
-				},
-				{
-					name: "isNaN",
-					message:
-						"Use Number.isNaN instead https://github.com/airbnb/javascript#standard-library--isnan",
-				},
-			],
-			"no-shadow-restricted-names": "error",
-			"no-undef": "error",
-			"no-undef-init": "error",
 			"array-callback-return": ["error", { allowImplicit: true }],
-			"class-methods-use-this": [
-				"error",
-				{
-					exceptMethods: [],
-				},
-			],
-			complexity: ["warn", 35],
-			// specify curly brace conventions for all control statements
-			// https://eslint.org/docs/rules/curly
-			curly: ["error", "multi-line"], // multiline
+			"class-methods-use-this": "error",
+			complexity: ["warn", 25],
+			curly: ["error", "multi-line"],
 			"default-case": ["error", { commentPattern: "^no default$" }],
 			"default-case-last": "error",
-			// enforces consistent newlines before or after dots
-			// https://eslint.org/docs/rules/dot-location
+			"default-param-last": "error",
 			eqeqeq: ["error", "always", { null: "ignore" }],
 			"grouped-accessor-pairs": "error",
+			"logical-assignment-operators": "warn",
+			"max-depth": ["error", 2],
 			"no-alert": "warn",
-			"no-case-declarations": "error",
+			"no-await-in-loop": "error",
+			"no-console": ["error", { allow: ["warn", "error", "info", "trace"] }],
+			"no-constant-condition": "warn",
 			"no-constructor-return": "error",
 			"no-else-return": ["error", { allowElseIf: false }],
-			"no-empty-function": ["error", { allow: ["arrowFunctions", "functions", "methods"] }],
-			"no-empty-pattern": "error",
 			"no-extend-native": "error",
 			"no-extra-bind": "error",
-			"no-fallthrough": "error",
-			"no-global-assign": ["error", { exceptions: [] }],
+			"no-implicit-coercion": "warn",
 			"no-lone-blocks": "error",
 			"no-loop-func": "error",
 			"no-new": "error",
@@ -153,7 +58,6 @@ const eslintConfigArray = [
 			"no-param-reassign": [
 				"error",
 				{
-					props: true,
 					ignorePropertyModificationsFor: [
 						"acc", // for reduce accumulators
 						"accumulator", // for reduce accumulators
@@ -167,86 +71,147 @@ const eslintConfigArray = [
 						"$scope", // for Angular 1 scopes
 						"staticContext", // for ReactRouter context
 					],
+					props: true,
 				},
 			],
+			"no-restricted-exports": [
+				"error",
+				{
+					restrictedNamedExports: [
+						"default", // use `export default` to provide a default export
+						"then", // this will cause tons of confusion when your module is dynamically `import()`ed, and will break in most node ESM versions
+					],
+				},
+			],
+			"no-restricted-globals": [
+				"error",
+				{
+					message:
+						"Use Number.isFinite instead https://github.com/airbnb/javascript#standard-library--isfinite",
+					name: "isFinite",
+				},
+				{
+					message:
+						"Use Number.isNaN instead https://github.com/airbnb/javascript#standard-library--isnan",
+					name: "isNaN",
+				},
+			],
+			"no-restricted-imports": ["off", { paths: [], patterns: [] }],
 			"no-restricted-properties": [
 				"error",
 				{
+					message: "arguments.callee is deprecated",
 					object: "arguments",
 					property: "callee",
-					message: "arguments.callee is deprecated",
 				},
 				{
+					message: "Please use Number.isFinite instead",
 					object: "global",
 					property: "isFinite",
-					message: "Please use Number.isFinite instead",
 				},
 				{
+					message: "Please use Number.isFinite instead",
 					object: "self",
 					property: "isFinite",
-					message: "Please use Number.isFinite instead",
 				},
 				{
+					message: "Please use Number.isFinite instead",
 					object: "window",
 					property: "isFinite",
-					message: "Please use Number.isFinite instead",
 				},
 				{
+					message: "Please use Number.isNaN instead",
 					object: "global",
 					property: "isNaN",
-					message: "Please use Number.isNaN instead",
 				},
 				{
+					message: "Please use Number.isNaN instead",
 					object: "self",
 					property: "isNaN",
-					message: "Please use Number.isNaN instead",
 				},
 				{
+					message: "Please use Number.isNaN instead",
 					object: "window",
 					property: "isNaN",
-					message: "Please use Number.isNaN instead",
 				},
 				{
+					message: "Use the exponentiation operator (**) instead.",
 					object: "Math",
 					property: "pow",
-					message: "Use the exponentiation operator (**) instead.",
 				},
 			],
+			"no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
+			"no-return-assign": ["error", "except-parens"],
 			"no-script-url": "error",
-			"no-self-assign": ["error", { props: true }],
 			"no-self-compare": "error",
 			"no-sequences": "error",
-			"no-useless-catch": "error",
+			"no-template-curly-in-string": "error",
+			"no-undef-init": "error",
+			"no-unmodified-loop-condition": "error",
+			"no-unneeded-ternary": "warn",
+			"no-unreachable-loop": "error",
+			"no-unused-vars": "warn",
+			"no-useless-computed-key": "error",
 			"no-useless-concat": "error",
-			"no-useless-escape": "error",
+			"no-useless-constructor": "error",
+			"no-useless-rename": [
+				"error",
+				{ ignoreDestructuring: false, ignoreExport: false, ignoreImport: false },
+			],
 			"no-useless-return": "error",
-			"prefer-promise-reject-errors": ["error", { allowEmptyReject: true }],
+			"object-shorthand": ["error", "always", { avoidQuotes: true, ignoreConstructors: false }],
+			"operator-assignment": "warn",
+			"prefer-arrow-callback": ["error", { allowNamedFunctions: true }],
 			"prefer-object-has-own": "error",
+			"prefer-object-spread": "warn",
 			"prefer-regex-literals": ["error", { disallowRedundantWrapping: true }],
+			"prefer-template": "error",
 			radix: "error",
+			"symbol-description": "error",
 			"vars-on-top": "error",
 		},
 	},
 
 	// == Typescript Eslint Rules
-	...tsEslint.configs.strictTypeChecked.map((config) => ({ ...config, files: ["**/*.ts"] })),
-	...tsEslint.configs.stylisticTypeChecked.map((config) => ({ ...config, files: ["**/*.ts"] })),
+	// == Typescript Eslint Rules
+	...tsEslint.configs.strictTypeChecked.map((config) => ({ ...config, files: ["**/*.ts", "**/*.tsx"] })),
+	...tsEslint.configs.stylisticTypeChecked.map((config) => ({
+		...config,
+		files: ["**/*.ts", "**/*.tsx"],
+	})),
 	{
+		files: ["**/*.ts", "**/*.tsx"],
 		languageOptions: {
 			parser: tsEslint.parser,
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ["*.js", ".size-limit.ts"],
-					defaultProject: "./tsconfig.eslint.json",
+					allowDefaultProject: ["*.js"],
+					defaultProject: "tsconfig.eslint.json",
 				},
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},
+		name: "zayne/@typescript-eslint",
 
 		plugins: {
 			"@typescript-eslint": tsEslint.plugin,
 		},
+
 		rules: {
+			"@typescript-eslint/array-type": ["error", { default: "array-simple" }],
+			"@typescript-eslint/consistent-type-definitions": ["error", "type"],
+			"@typescript-eslint/default-param-last": "error",
+			"@typescript-eslint/dot-notation": "error",
+			"@typescript-eslint/member-ordering": "error",
+			"@typescript-eslint/method-signature-style": ["error", "property"],
+			"@typescript-eslint/no-confusing-void-expression": "off",
+			"@typescript-eslint/no-empty-function": [
+				"error",
+				{ allow: ["arrowFunctions", "functions", "methods"] },
+			],
+			"@typescript-eslint/no-import-type-side-effects": "error",
+			"@typescript-eslint/no-shadow": "error",
+			"@typescript-eslint/no-unnecessary-type-parameters": "off",
 			"@typescript-eslint/no-unused-expressions": [
 				"error",
 				{
@@ -254,105 +219,223 @@ const eslintConfigArray = [
 					allowTernary: true,
 				},
 			],
-			"@typescript-eslint/no-import-type-side-effects": "error",
 			"@typescript-eslint/no-unused-vars": ["warn", { ignoreRestSiblings: true }],
-			"@typescript-eslint/array-type": ["error", { default: "array-simple" }],
-			"@typescript-eslint/consistent-type-definitions": ["error", "type"],
-			"@typescript-eslint/no-useless-constructor": "error",
-			"@typescript-eslint/member-ordering": "error",
-			"@typescript-eslint/no-confusing-void-expression": "off",
-			"@typescript-eslint/non-nullable-type-assertion-style": "off",
 			"@typescript-eslint/no-use-before-define": "off",
-			"@typescript-eslint/method-signature-style": ["error", "property"],
+			"@typescript-eslint/no-useless-constructor": "error",
+			"@typescript-eslint/non-nullable-type-assertion-style": "off",
+			"@typescript-eslint/prefer-nullish-coalescing": ["error", { ignoreConditionalTests: true }],
+			"@typescript-eslint/require-await": "error",
 			"@typescript-eslint/restrict-template-expressions": [
 				"error",
-				{ allowNumber: true, allowNullish: true, allowBoolean: true },
+				{ allowBoolean: true, allowNullish: true, allowNumber: true },
 			],
-			"@typescript-eslint/default-param-last": "error",
 			"@typescript-eslint/return-await": ["error", "in-try-catch"],
-			"@typescript-eslint/require-await": "error",
-			"@typescript-eslint/no-empty-function": [
-				"error",
-				{ allow: ["arrowFunctions", "functions", "methods"] },
+		},
+	},
+
+	// == Stylistic Rules
+	{
+		name: "zayne/@stylistic",
+		plugins: { "@stylistic": eslintStylistic },
+		rules: {
+			"@stylistic/jsx-self-closing-comp": "error",
+			"@stylistic/no-floating-decimal": "error",
+			"@stylistic/spaced-comment": [
+				"warn",
+				...eslintStylistic.configs["recommended-flat"].rules["@stylistic/spaced-comment"].filter(
+					(item) => item !== "error"
+				),
 			],
-			"@typescript-eslint/dot-notation": "error",
-			"@typescript-eslint/no-shadow": "error",
-			"@typescript-eslint/prefer-nullish-coalescing": ["error", { ignoreConditionalTests: true }],
-			"@typescript-eslint/no-unnecessary-type-parameters": "off",
+		},
+	},
+
+	// == Perfectionist Rules
+	{
+		name: "zayne/perfectionist/alphabetical",
+		plugins: { perfectionist: eslintPerfectionist },
+		rules: {
+			"perfectionist/sort-array-includes": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-astro-attributes": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-classes": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-interfaces": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			// "perfectionist/sort-intersection-types": [
+			// 	"warn",
+			// 	{
+			// 		order: "asc",
+			// 		type: "alphabetical",
+			// 	},
+			// ],
+			"perfectionist/sort-jsx-props": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-maps": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-object-types": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-objects": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-svelte-attributes": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-switch-case": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-union-types": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-variable-declarations": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+			"perfectionist/sort-vue-attributes": [
+				"warn",
+				{
+					order: "asc",
+					type: "alphabetical",
+				},
+			],
+		},
+	},
+
+	// == Import rules
+	{
+		languageOptions: {
+			parserOptions: eslintImportX.configs.react.parserOptions,
+		},
+		name: "zayne/import-x",
+		plugins: { "import-x": eslintImportX },
+
+		rules: {
+			...eslintImportX.configs.recommended.rules,
+			...eslintImportX.configs.typescript.rules,
+			"import-x/export": "error",
+			"import-x/extensions": ["error", "never", { ignorePackages: true }],
+			"import-x/first": "error",
+			"import-x/namespace": "off",
+			"import-x/newline-after-import": "error",
+			"import-x/no-absolute-path": "error",
+			"import-x/no-cycle": ["error", { ignoreExternal: true, maxDepth: 3 }],
+			"import-x/no-duplicates": "error",
+			"import-x/no-extraneous-dependencies": ["error", { devDependencies: true }],
+			"import-x/no-mutable-exports": "error",
+			"import-x/no-named-as-default": "error",
+			"import-x/no-named-as-default-member": "error",
+			"import-x/no-named-default": "error",
+			"import-x/no-relative-packages": "error",
+			"import-x/no-self-import": "error",
+			"import-x/no-unresolved": "off",
+			"import-x/no-useless-path-segments": ["error", { commonjs: true }],
+			"import-x/prefer-default-export": "off",
+		},
+		settings: {
+			...eslintImportX.configs.typescript.settings,
+			...eslintImportX.configs.react.settings,
 		},
 	},
 
 	// == Jsdoc rules
 	eslintJsdoc.configs["flat/recommended-typescript"],
 	{
+		name: "zayne/jsdoc",
 		plugins: { jsdoc: eslintJsdoc },
 		rules: {
 			"jsdoc/require-description": "warn",
 		},
 	},
 
-	// == Import rules
-	eslintImportX.configs.typescript,
-	{
-		plugins: { "import-x": eslintImportX },
-		rules: {
-			...eslintImportX.configs.recommended.rules,
-			"import-x/extensions": ["error", "never", { ignorePackages: true }],
-			"import-x/no-extraneous-dependencies": ["error", { devDependencies: true }],
-			"import-x/prefer-default-export": "off",
-			"import-x/no-cycle": ["error", { ignoreExternal: true, maxDepth: 3 }],
-			"import-x/no-unresolved": "off",
-			"import-x/export": "error",
-			"import-x/no-named-as-default": "error",
-			"import-x/namespace": "off",
-			"import-x/no-named-as-default-member": "error",
-			"import-x/no-mutable-exports": "error",
-			"import-x/first": "error",
-			"import-x/no-import-module-exports": "error",
-			"import-x/no-duplicates": "error",
-			"import-x/newline-after-import": "error",
-			"import-x/no-absolute-path": "error",
-			"import-x/no-named-default": "error",
-			"import-x/no-self-import": "error",
-			"import-x/no-useless-path-segments": ["error", { commonjs: true }],
-			"import-x/no-relative-packages": "error",
-		},
-	},
-
 	// == Unicorn rules
 	eslintUnicorn.configs["flat/recommended"],
 	{
+		name: "zayne/unicorn",
 		rules: {
-			"unicorn/no-null": "off",
 			"unicorn/filename-case": [
 				"warn",
 				{
 					cases: {
 						camelCase: true,
-						pascalCase: true,
 						kebabCase: true,
+						pascalCase: true,
 					},
 				},
 			],
-			"unicorn/no-negated-condition": "off",
-			"unicorn/prevent-abbreviations": "off",
 			"unicorn/new-for-builtins": "off",
-			"unicorn/numeric-separators-style": "off",
-			"unicorn/no-array-reduce": "off",
 			"unicorn/no-array-for-each": "off",
+			"unicorn/no-array-reduce": "off",
+			"unicorn/no-negated-condition": "off",
+			"unicorn/no-null": "off",
 			"unicorn/no-useless-undefined": ["error", { checkArguments: true }],
+			"unicorn/numeric-separators-style": "off",
+			"unicorn/prevent-abbreviations": "off",
 		},
 	},
 
 	// == Sonarjs Rules
-	eslintSonarjs.configs.recommended,
+	{ ...eslintSonarJs.configs.recommended, name: "sonarjs/recommended" },
 	{
+		name: "zayne/sonarjs",
 		rules: {
-			"sonarjs/prefer-immediate-return": "off",
-			"sonarjs/cognitive-complexity": "off",
 			"sonarjs/no-duplicate-string": "off",
+			"sonarjs/prefer-immediate-return": "off",
 		},
 	},
-];
+]);
 
 export default eslintConfigArray;

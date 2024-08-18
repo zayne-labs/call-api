@@ -1,4 +1,5 @@
 {
 	"typescript.tsdk": "node_modules\\typescript\\lib",
-	"cSpell.words": ["treeshake"]
+	"cSpell.words": ["treeshake"],
+	"arrayIndexInlay.enabled": false
 }

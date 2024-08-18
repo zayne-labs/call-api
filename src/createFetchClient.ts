@@ -12,11 +12,13 @@ import {
 	HTTPError,
 	defaultRetryCodes,
 	defaultRetryMethods,
+	getRequestKey,
 	getResolveErrorResultFn,
 	getResponseData,
 	isHTTPErrorInstance,
 	mergeUrlWithParams,
 	objectifyHeaders,
+	omitKeys,
 	resolveSuccessResult,
 	splitConfig,
 	waitUntil,
@@ -34,8 +36,8 @@ export const createFetchClient = <
 	const [baseFetchConfig, baseExtraOptions] = splitConfig(baseConfig ?? {});
 
 	const {
-		headers: baseHeaders,
 		body: baseBody,
+		headers: baseHeaders,
 		signal: baseSignal,
 		...restOfBaseFetchConfig
 	} = baseFetchConfig;
@@ -53,62 +55,34 @@ export const createFetchClient = <
 
 		const [fetchConfig, extraOptions] = splitConfig(config ?? {});
 
-		const { signal = baseSignal, body = baseBody, headers, ...restOfFetchConfig } = fetchConfig;
+		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
-		// == Default Options
+		// == Default Extra Options
 		const options = {
-			bodySerializer: JSON.stringify,
-			responseType: "json",
 			baseURL: "",
-			retries: 0,
-			retryDelay: 0,
-			retryCodes: defaultRetryCodes,
-			retryMethods: defaultRetryMethods,
-			defaultErrorMessage: "Failed to fetch data from server!",
+			bodySerializer: JSON.stringify,
 			cancelRedundantRequests: true,
+			defaultErrorMessage: "Failed to fetch data from server!",
+			responseType: "json",
+			retries: 0,
+			retryCodes: defaultRetryCodes,
+			retryDelay: 0,
+			retryMethods: defaultRetryMethods,
 			...baseExtraOptions,
 			...extraOptions,
 		} satisfies ExtraOptions;
 
-		const prevFetchController = abortControllerStore.get(url);
-
-		if (prevFetchController && options.cancelRedundantRequests) {
-			const reason = new DOMException(
-				`Automatic cancelation of the previous unfinished request to this same url: ${url}`,
-				"AbortError"
-			);
-			prevFetchController.abort(reason);
-		}
-
-		const newFetchController = new AbortController();
-
-		abortControllerStore.set(url, newFetchController);
-
-		const timeoutSignal = options.timeout ? AbortSignal.timeout(options.timeout) : null;
-
-		const combinedSignal = AbortSignal.any([
-			newFetchController.signal,
-			...(timeoutSignal ? [timeoutSignal] : []),
-			...(signal ? [signal] : []),
-		]);
-
-		const requestInit = {
-			signal: combinedSignal,
-
-			method: "GET",
-
+		// == Default Fetch Config
+		const defaultFetchOptions = {
 			body: isObject(body) ? options.bodySerializer(body) : body,
 
-			// == Return undefined if the following conditions are not met (so that native fetch would auto set the correct headers):
-			// - headers are provided
-			// - The body is an object
 			// - The auth option is provided
 			headers:
 				baseHeaders || headers || options.auth || isObject(body)
 					? {
 							...(isObject(body) && {
-								"Content-Type": "application/json",
 								Accept: "application/json",
+								"Content-Type": "application/json",
 							}),
 							...(isQueryString(body) && {
 								"Content-Type": "application/x-www-form-urlencoded",
@@ -127,12 +101,56 @@ export const createFetchClient = <
 						}
 					: undefined,
 
+			// == Return undefined if the following conditions are not met (so that native fetch would auto set the correct headers):
+			// - headers are provided
+			// - The body is an object
+			method: "GET",
+
 			...restOfBaseFetchConfig,
 			...restOfFetchConfig,
 		} satisfies $RequestOptions;
 
+		const requestKey = getRequestKey(
+			url,
+			omitKeys({ ...defaultFetchOptions, ...options }, [
+				"onRequest",
+				"onResponse",
+				"onResponseError",
+				"onError",
+				"onRequestError",
+			])
+		);
+
+		const prevFetchController = abortControllerStore.get(requestKey);
+
+		if (prevFetchController && options.cancelRedundantRequests) {
+			const reason = new DOMException(
+				`Automatic cancelation of the previous unfinished request to the same url, with the same fetch options: ${url}`,
+				"AbortError"
+			);
+
+			prevFetchController.abort(reason);
+		}
+
+		const newFetchController = new AbortController();
+
+		abortControllerStore.set(requestKey, newFetchController);
+
+		const timeoutSignal = options.timeout ? AbortSignal.timeout(options.timeout) : null;
+
+		const combinedSignal = AbortSignal.any([
+			newFetchController.signal,
+			...(timeoutSignal ? [timeoutSignal] : []),
+			...(signal ? [signal] : []),
+		]);
+
+		const requestInit = {
+			signal: combinedSignal,
+			...defaultFetchOptions,
+		} satisfies $RequestOptions;
+
 		try {
-			await options.onRequest?.({ request: requestInit, options });
+			await options.onRequest?.({ options, request: requestInit });
 
 			const response = await fetch(
 				`${options.baseURL}${mergeUrlWithParams(url, options.query)}`,
@@ -161,9 +179,9 @@ export const createFetchClient = <
 
 				// == Pushing all error handling responsibilities to the catch block
 				throw new HTTPError({
+					defaultErrorMessage: options.defaultErrorMessage,
 					errorData,
 					response,
-					defaultErrorMessage: options.defaultErrorMessage,
 				});
 			}
 
@@ -179,12 +197,12 @@ export const createFetchClient = <
 
 			await options.onResponse?.({
 				data: validSuccessData,
-				response: options.cloneResponse ? response.clone() : response,
-				request: requestInit,
 				options,
+				request: requestInit,
+				response: options.cloneResponse ? response.clone() : response,
 			});
 
-			return resolveSuccessResult<CallApiResult>({ successData: validSuccessData, response, options });
+			return resolveSuccessResult<CallApiResult>({ options, response, successData: validSuccessData });
 
 			// == Exhaustive Error handling
 		} catch (error) {
@@ -212,18 +230,18 @@ export const createFetchClient = <
 				void (await Promise.allSettled([
 					options.onResponseError?.({
 						errorData,
-						response: options.cloneResponse ? response.clone() : response,
-						request: requestInit,
 						options,
+						request: requestInit,
+						response: options.cloneResponse ? response.clone() : response,
 					}),
 
 					// == Also call the onError interceptor
 					options.onError?.({
-						errorData,
-						response,
 						error: null,
+						errorData,
 						options,
 						request: requestInit,
+						response,
 					}),
 				]));
 
@@ -236,14 +254,14 @@ export const createFetchClient = <
 
 			void (await Promise.allSettled([
 				// == At this point only the request errors exist, so the request error interceptor is called
-				options.onRequestError?.({ request: requestInit, error: error as Error, options }),
+				options.onRequestError?.({ error: error as Error, options, request: requestInit }),
 
 				// == Also call the onError interceptor
 				options.onError?.({
-					request: requestInit,
 					error: error as Error,
-					options,
 					errorData: null,
+					options,
+					request: requestInit,
 					response: null,
 				}),
 			]));
@@ -252,15 +270,11 @@ export const createFetchClient = <
 
 			// == Removing the now unneeded AbortController from store
 		} finally {
-			abortControllerStore.delete(url);
+			abortControllerStore.delete(requestKey);
 		}
 	};
 
 	callApi.create = createFetchClient;
-
-	callApi.cancel = (url: string, reason?: unknown) => {
-		reason ? abortControllerStore.get(url)?.abort(reason) : abortControllerStore.get(url)?.abort();
-	};
 
 	return callApi;
 };
