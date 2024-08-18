@@ -1,5 +1,16 @@
 # @zayne-labs/callapi
 
+## 0.7.0
+
+### Minor Changes
+
+-  2df4132: feat: made requestKey to be a combination of options and url
+   ![BREAKING] - removed cancel property from callApi
+
+### Patch Changes
+
+-  5ec6d9b: improve types
+
 ## 0.6.0
 
 ### Minor Changes
