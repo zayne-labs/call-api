@@ -29,6 +29,10 @@
 	"files": [
 		"dist"
 	],
+	"size-limit": {
+		"path": "./src/index.ts",
+		"limit": "2 kb"
+	},
 	"sideEffects": false,
 	"repository": "ryan-zayne/callApi",
 	"homepage": "https://github.com/ryan-zayne/callApi#readme",
