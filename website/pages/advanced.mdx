@@ -305,7 +305,7 @@ console.log(data);
 -  `CallApi` provides a type guard that allows you to differentiate between an HTTPError and a standard js error. It also helps narrow down the discriminated union type of the error object.
 
 ```js
-import { isHTTPError } from "@zayne-labs/callapi";
+import { isHTTPError } from "@zayne-labs/callapi/utils";
 
 const { data, error } = await callMainApi("some-url", {
 	body: { message: "Good game" },

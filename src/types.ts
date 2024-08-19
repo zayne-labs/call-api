@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import type { AnyNumber, AnyString, Prettify } from "./type-helpers";
-import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils";
+import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils/utils";
 
 export interface $RequestOptions extends Pick<FetchConfig, (typeof fetchSpecificKeys)[number]> {}
 export interface $BaseRequestOptions extends Omit<$RequestOptions, "body"> {}

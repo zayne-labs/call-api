@@ -22,7 +22,7 @@ import {
 	resolveSuccessResult,
 	splitConfig,
 	waitUntil,
-} from "./utils";
+} from "./utils/utils";
 
 export const createFetchClient = <
 	TBaseData,

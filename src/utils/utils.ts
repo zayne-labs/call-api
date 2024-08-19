@@ -1,4 +1,4 @@
-import { isArray, isFunction, isObject } from "./typeof";
+import { isArray, isFunction, isObject } from "../typeof";
 import type {
 	$BaseRequestOptions,
 	$RequestOptions,
@@ -7,7 +7,7 @@ import type {
 	ExtraOptions,
 	FetchConfig,
 	PossibleErrorObject,
-} from "./types";
+} from "../types";
 
 // prettier-ignore
 export const getRequestKey = <TConfig extends Record<string, unknown>>(url: string, config?: TConfig) => `${url} | ${JSON.stringify(config ?? {})}`;

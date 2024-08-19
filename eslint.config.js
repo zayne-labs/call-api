@@ -184,10 +184,11 @@ const eslintConfigArray = typegen([
 		languageOptions: {
 			parser: tsEslint.parser,
 			parserOptions: {
-				projectService: {
-					allowDefaultProject: ["*.js"],
-					defaultProject: "tsconfig.eslint.json",
-				},
+				project: "tsconfig.eslint.json",
+				// projectService: {
+				// 	allowDefaultProject: ["*.js", ""],
+				// 	defaultProject: "tsconfig.eslint.json",
+				// },
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},

@@ -12,27 +12,31 @@
 		"test:format": "prettier --write --cache .",
 		"test:lint": "eslint src/**/*.ts --max-warnings 10 --report-unused-disable-directives",
 		"test:size": "size-limit",
+		"test:release": "pkg-pr-new publish",
 		"build": "tsup",
 		"build:dev": "tsup --watch",
 		"version-package": "changeset version",
-		"release": "changeset publish"
+		"release": "changeset publish --access public"
 	},
 	"exports": {
 		".": {
 			"import": "./dist/esm/index.js",
 			"require": "./dist/cjs/index.cjs"
+		},
+		"./utils": {
+			"import": "./dist/esm/utils/index.js",
+			"require": "./dist/cjs/utils/index.cjs"
 		}
-	},
-	"publishConfig": {
-		"access": "public"
 	},
 	"files": [
 		"dist"
 	],
-	"size-limit": {
-		"path": "./src/index.ts",
-		"limit": "2 kb"
-	},
+	"size-limit": [
+		{
+			"path": "./src/index.ts",
+			"limit": "2 kb"
+		}
+	],
 	"sideEffects": false,
 	"repository": "ryan-zayne/callApi",
 	"homepage": "https://github.com/ryan-zayne/callApi#readme",
@@ -58,6 +62,7 @@
 		"@arethetypeswrong/cli": "^0.15.4",
 		"@changesets/cli": "^2.27.7",
 		"@eslint/js": "^9.9.0",
+		"@size-limit/esbuild-why": "^11.1.4",
 		"@size-limit/preset-small-lib": "^11.1.4",
 		"@stylistic/eslint-plugin": "^2.6.4",
 		"@zayne-labs/tsconfig": "^0.1.1",
@@ -71,6 +76,7 @@
 		"globals": "^15.9.0",
 		"husky": "^9.1.4",
 		"lint-staged": "^15.2.9",
+		"pkg-pr-new": "^0.0.20",
 		"prettier": "^3.3.3",
 		"size-limit": "^11.1.4",
 		"terser": "^5.31.6",
