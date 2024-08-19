@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.7.1
+
+### Patch Changes
+
+-  61bb5a9: update bundling and exports
+
 ## 0.7.0
 
 ### Minor Changes
