@@ -2,13 +2,12 @@ import { useRouter } from "next/router";
 import { type DocsThemeConfig, useConfig } from "nextra-theme-docs";
 
 const config: DocsThemeConfig = {
-	logo: (
-		<div className="flex items-center gap-4">
-			<p className="text-lg font-bold text-primary md:text-xl ">CallApi</p>
-		</div>
-	),
-	project: {
-		link: "https://github.com/zayne-labs/callapi",
+	docsRepositoryBase: "https://github.com/zayne-labs/callapi",
+	footer: {
+		component: () => {
+			return <></>;
+		},
+		text: "CallApi docs",
 	},
 	head: () => {
 		const { asPath, defaultLocale, locale, pathname } = useRouter();
@@ -27,21 +26,22 @@ const config: DocsThemeConfig = {
 								pathname.replaceAll("/", "").slice(1)
 							} - CallApi`}
 				</title>
-				<meta name="description" content="CallApi Docs - Documrentation for CallApi" />
-				<meta property="og:url" content={url} />
+				<meta content="CallApi Docs - Documrentation for CallApi" name="description" />
+				<meta content={url} property="og:url" />
 				{/* eslint-disable @typescript-eslint/no-unsafe-member-access */}
 				{/* eslint-disable @typescript-eslint/no-unsafe-assignment */}
-				<meta property="og:title" content={frontMatter.title || "CallApi"} />
-				<meta property="og:description" content={frontMatter.description || "CallApi docs"} />
+				<meta content={frontMatter.title || "CallApi"} property="og:title" />
+				<meta content={frontMatter.description || "CallApi docs"} property="og:description" />
 			</>
 		);
 	},
-	docsRepositoryBase: "https://github.com/zayne-labs/callapi",
-	footer: {
-		text: "CallApi docs",
-		component: () => {
-			return <></>;
-		},
+	logo: (
+		<div className="flex items-center gap-4">
+			<p className="text-lg font-bold text-primary md:text-xl ">CallApi</p>
+		</div>
+	),
+	project: {
+		link: "https://github.com/zayne-labs/callapi",
 	},
 };
 

@@ -1,5 +1,6 @@
 dist
 pnpm-lock.yaml
 package.json
+eslint-typegen.d.ts
 *.md
 *.tsbuildinfo

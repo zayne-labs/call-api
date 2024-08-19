@@ -1,5 +1,5 @@
 export default {
-	"*.{js,ts}": ["pnpm test:format", "pnpm test:lint"],
-	"*.ts": () => "pnpm test:check-types",
+	"*.{js,ts,jsx,tsx}": ["pnpm test:lint", "pnpm test:format"],
 	"*.{json,yaml}": "pnpm test:format",
+	"*.{ts,tsx}": () => "pnpm test:check-types",
 };
