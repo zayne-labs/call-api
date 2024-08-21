@@ -293,6 +293,7 @@ const eslintConfigArray = typegen([
 			"perfectionist/sort-jsx-props": [
 				"warn",
 				{
+					// ignorePattern: ["src"],
 					order: "asc",
 					type: "alphabetical",
 				},

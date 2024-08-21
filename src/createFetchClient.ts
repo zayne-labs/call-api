@@ -125,7 +125,7 @@ export const createFetchClient = <
 
 		if (prevFetchController && options.cancelRedundantRequests) {
 			const reason = new DOMException(
-				`Automatic cancelation of the previous unfinished request to the same url, with the same fetch options: ${url}`,
+				`Request aborted as another request to this same endpoint: ${url}, with the same request options was initiated.`,
 				"AbortError"
 			);
 

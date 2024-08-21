@@ -30,8 +30,8 @@ const config: DocsThemeConfig = {
 				<meta content={url} property="og:url" />
 				{/* eslint-disable @typescript-eslint/no-unsafe-member-access */}
 				{/* eslint-disable @typescript-eslint/no-unsafe-assignment */}
-				<meta content={frontMatter.title || "CallApi"} property="og:title" />
-				<meta content={frontMatter.description || "CallApi docs"} property="og:description" />
+				<meta content={frontMatter.title ?? "CallApi"} property="og:title" />
+				<meta content={frontMatter.description ?? "CallApi docs"} property="og:description" />
 			</>
 		);
 	},
