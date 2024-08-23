@@ -21,7 +21,14 @@ const eslintConfigArray = typegen([
 				...globals.browser,
 				...globals.node,
 			},
+
+			parser: tsEslint.parser,
+			parserOptions: {
+				project: "tsconfig.eslint.json",
+				tsconfigRootDir: import.meta.dirname,
+			},
 		},
+
 		name: "zayne/defaults/languageOptions",
 	},
 
@@ -181,17 +188,6 @@ const eslintConfigArray = typegen([
 	})),
 	{
 		files: ["**/*.ts", "**/*.tsx"],
-		languageOptions: {
-			parser: tsEslint.parser,
-			parserOptions: {
-				project: "tsconfig.eslint.json",
-				// projectService: {
-				// 	allowDefaultProject: ["*.js", ""],
-				// 	defaultProject: "tsconfig.eslint.json",
-				// },
-				tsconfigRootDir: import.meta.dirname,
-			},
-		},
 		name: "zayne/@typescript-eslint",
 
 		plugins: {

@@ -102,7 +102,7 @@ export interface ExtraOptions<
 	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
-	onError?: (anyErrorContext: ErrorContext<TErrorData>) => Promise<void> | void;
+	onError?: (errorContext: ErrorContext<TErrorData>) => Promise<void> | void;
 
 	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
 	onRequest?: (requestContext: {
@@ -202,7 +202,7 @@ export type ResponseErrorContext<TErrorData> = Prettify<{
 	response: Response;
 }>;
 
-export type ErrorContext<TErrorData> = Prettify<
+export type ErrorContext<TErrorData> =
 	| {
 			error: Error;
 			errorData?: null;
@@ -216,8 +216,7 @@ export type ErrorContext<TErrorData> = Prettify<
 			options: ExtraOptions;
 			request: $RequestOptions;
 			response: Response;
-	  }
->;
+	  };
 
 // prettier-ignore
 export interface FetchConfig<
@@ -238,9 +237,13 @@ type ApiSuccessVariant<TData> = {
 	response: Response;
 };
 
-type PossibleErrorNames = {
-	_: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | "UnknownError";
-}["_"];
+type PossibleErrorNames =
+	| "AbortError"
+	| "Error"
+	| "SyntaxError"
+	| "TimeoutError"
+	| "TypeError"
+	| "UnknownError";
 
 export type ApiErrorVariant<TErrorData> =
 	| {

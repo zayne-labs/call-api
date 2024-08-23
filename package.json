@@ -12,9 +12,11 @@
 		"test:format": "prettier --write --cache .",
 		"test:lint": "eslint src/**/*.ts --cache --max-warnings 10 --report-unused-disable-directives ",
 		"test:size": "size-limit",
+		"test:publint": "publint --strict .",
+		"test:attw": "attw --pack . --exclude-entrypoints utils",
 		"test:release": "pkg-pr-new publish",
-		"build": "tsup && publint --strict",
-		"build:dev": "tsup --watch && publint --strict",
+		"build": "concurrently --group --prefix-colors \"#7da4f8.bold,yellow.bold\" --names TSUP,PUBLINT \"pnpm tsup\" 'pnpm:test:publint'",
+		"build:dev": "concurrently --prefix-colors \"#7da4f8.bold,yellow.bold\" --names TSUP,PUBLINT,ATTW  \"pnpm tsup --watch\"' 'pnpm:test:publint' 'pnpm:test:attw'",
 		"version-package": "changeset version",
 		"release": "changeset publish"
 	},
