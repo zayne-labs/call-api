@@ -2,21 +2,22 @@ name: Changesets Release and Publish
 on:
    push:
       branches: main
-   #  workflow_run:
-   #     workflows: [Lint and Type]
-   #     branches: [main]
-   #     types: [completed]
+   workflow_run:
+      workflows: Lint and Type
+      types: completed
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
    contents: write
    pull-requests: write
+   id-token: write
 
 jobs:
    release:
-      # if: ${{ github.event.workflow_run.conclusion == 'success' }}
       runs-on: ubuntu-latest
+      if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'skipped' }}
+
       timeout-minutes: 15
       strategy:
          matrix:

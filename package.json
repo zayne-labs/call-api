@@ -18,7 +18,7 @@
 		"build": "tsup",
 		"build:dev": "concurrently --prefix-colors \"yellow.bold,#7da4f8.bold,magenta\"   --names PUBLINT,TSUP,ATTW   'pnpm:test:publint' \"pnpm build --watch\" 'pnpm:test:attw'",
 		"version-package": "changeset version",
-		"release": "changeset publish --provenance"
+		"release": "changeset publish"
 	},
 	"exports": {
 		".": {
@@ -59,7 +59,9 @@
 		"typescript-eslint": "^8.1.0"
 	},
 	"publishConfig": {
-		"access": "public"
+		"access": "public",
+		"registry": "https://registry.npmjs.org/",
+		"provenance": true
 	},
 	"files": [
 		"dist"
