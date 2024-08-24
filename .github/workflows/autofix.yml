@@ -29,9 +29,9 @@ jobs:
               node-version: ${{ matrix.node-version }}
               cache: "pnpm"
 
-         - name: Install dependencies and Format files
+         - name: Install prettier and Format files
            run: |
-              pnpm install --dev --frozen-lockfile
+              pnpm install prettier --frozen-lockfile
               pnpm test:format
 
          - uses: autofix-ci/action@dd55f44df8f7cdb7a6bf74c78677eb8acd40cd0a
