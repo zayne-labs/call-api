@@ -1,21 +1,16 @@
-name: Changesets Release and Publish
+name: Test (pkg.pr.new) - Release and Publish
 on:
+   pull_request:
    push:
       branches: main
+      tags: ["!**"]
    workflow_run:
       workflows: [Lint and Type]
       branches: main
       types: completed
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
-permissions:
-   contents: write
-   pull-requests: write
-   id-token: write
-
 jobs:
-   release:
+   test-release:
       runs-on: ubuntu-latest
       timeout-minutes: 15
       strategy:
@@ -26,10 +21,6 @@ jobs:
       steps:
          - name: Checkout repo
            uses: actions/checkout@v4
-           with:
-              # This makes Actions fetch all Git history so that Changesets
-              # can generate changelogs with the correct commits.
-              fetch-depth: 0
 
          - name: Setup pnpm
            uses: pnpm/action-setup@v4
@@ -47,16 +38,8 @@ jobs:
               pnpm install --frozen-lockfile
               pnpm build
 
-         - name: Create Release Pull Request or Publish to npm
-           uses: changesets/action@v1
-           with:
-              commit: "ci: update package version"
-              title: "ci: update package version"
-              publish: pnpm release
-
-           env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+         - name: Deploy and test release via pkg.pr.new
+           run: pnpm test:release
 
    on--workflow-failure:
       runs-on: ubuntu-latest
