@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.7.2
+
+### Patch Changes
+
+-  eb3fecf: a few bug fixes
+
 ## 0.7.1
 
 ### Patch Changes
