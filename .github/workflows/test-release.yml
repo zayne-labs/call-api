@@ -1,4 +1,4 @@
-name: Publish and Test every commit
+name: Publish every commit to pkg.pr.new
 on:
    pull_request:
    push:
@@ -34,4 +34,5 @@ jobs:
               pnpm install --frozen-lockfile
               pnpm build
 
-         - run: pnpm test:release
+         - name: Deploy and test release via pkg.pr.new
+           run: pnpm test:release
