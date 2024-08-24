@@ -8,7 +8,7 @@ on:
       types: completed
 
 concurrency:
-   group: publish
+   group: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
    contents: write
@@ -17,6 +17,7 @@ permissions:
 
 jobs:
    release:
+      needs: Lint and Type
       runs-on: ubuntu-latest
       timeout-minutes: 15
       strategy:

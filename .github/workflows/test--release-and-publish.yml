@@ -10,9 +10,10 @@ on:
       types: completed
 
 concurrency:
-   group: publish
+   group: publish-${{ github.workflow }}
 
 jobs:
+   needs: Lint and Type
    test-release:
       runs-on: ubuntu-latest
       timeout-minutes: 15
