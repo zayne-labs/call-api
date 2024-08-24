@@ -227,7 +227,7 @@ export const createFetchClient = <
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				const { errorData, response } = error;
 
-				void (await Promise.allSettled([
+				void (await Promise.all([
 					options.onResponseError?.({
 						errorData,
 						options,
@@ -252,7 +252,7 @@ export const createFetchClient = <
 				});
 			}
 
-			void (await Promise.allSettled([
+			void (await Promise.all([
 				// == At this point only the request errors exist, so the request error interceptor is called
 				options.onRequestError?.({ error: error as Error, options, request: requestInit }),
 
