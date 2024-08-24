@@ -2,7 +2,7 @@ name: Publish and Test every commit
 on:
    pull_request:
    push:
-      branches: [main]
+      branches: main
       branches-ignore:
          - "changesets-release/**"
       tags:

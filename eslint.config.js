@@ -188,6 +188,7 @@ const eslintConfigArray = typegen([
 	})),
 	{
 		files: ["**/*.ts", "**/*.tsx"],
+
 		name: "zayne/@typescript-eslint",
 
 		plugins: {

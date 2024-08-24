@@ -3,7 +3,7 @@ name: Lint and Type
 on:
    pull_request:
    push:
-      branches: [main]
+      branches: main
       branches-ignore:
          - "changesets-release/**"
 

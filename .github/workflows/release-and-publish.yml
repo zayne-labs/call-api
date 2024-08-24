@@ -1,8 +1,7 @@
 name: Changesets Release and Publish
 on:
    push:
-      branches:
-         - main
+      branches: main
    #  workflow_run:
    #     workflows: [Lint and Type]
    #     branches: [main]
