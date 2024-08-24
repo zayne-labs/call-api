@@ -38,6 +38,7 @@
 		"@size-limit/preset-small-lib": "^11.1.4",
 		"@stylistic/eslint-plugin": "^2.6.4",
 		"@zayne-labs/tsconfig": "^0.1.1",
+		"concurrently": "^8.2.2",
 		"eslint": "^9.9.0",
 		"eslint-plugin-import-x": "^3.1.0",
 		"eslint-plugin-jsdoc": "^50.2.2",
