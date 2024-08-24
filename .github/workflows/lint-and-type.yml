@@ -8,9 +8,7 @@ on:
 permissions:
    contents: read
 
-concurrency:
-   group: before-publish-${{ github.ref }}
-   cancel-in-progress: false
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
    build:

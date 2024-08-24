@@ -1,4 +1,4 @@
-name: Test (pkg.pr.new) - Release and Publish
+name: Test - Release and Publish
 on:
    pull_request:
    push:
@@ -9,9 +9,7 @@ on:
       branches: main
       types: completed
 
-concurrency:
-   group: before-publish-${{ github.ref }}
-   cancel-in-progress: false
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
    test-release:
@@ -45,13 +43,13 @@ jobs:
          - name: Deploy and test release via pkg.pr.new
            run: pnpm test:release
 
-   on--workflow-failure:
-      runs-on: ubuntu-latest
-      timeout-minutes: 15
+   #  on--workflow-failure:
+   #     runs-on: ubuntu-latest
+   #     timeout-minutes: 15
 
-      if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-      steps:
-         - run: |
-              echo "Triggering Workflow: ${{ github.event_name }} failed woefully"
-              echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
-              echo "Workflow run status: ${{ github.event.workflow_run.status }}"
+   #     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+   #     steps:
+   #        - run: |
+   #             echo "Triggering Workflow: ${{ github.event_name }} failed woefully"
+   #             echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
+   #             echo "Workflow run status: ${{ github.event.workflow_run.status }}"
