@@ -10,7 +10,8 @@ on:
       types: completed
 
 concurrency:
-   group: publish-${{ github.workflow }}
+   group: before-publish-${{ github.ref }}
+   cancel-in-progress: false
 
 jobs:
    needs: Lint and Type

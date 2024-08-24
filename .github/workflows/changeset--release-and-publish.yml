@@ -8,7 +8,8 @@ on:
       types: completed
 
 concurrency:
-   group: ${{ github.workflow }}-${{ github.ref }}
+   group: before-publish-${{ github.ref }}
+   cancel-in-progress: false
 
 permissions:
    contents: write
