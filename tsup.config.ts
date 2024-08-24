@@ -7,7 +7,7 @@ export default defineConfig((options) => {
 		clean: true, // clean up dist folder,
 		dts: true,
 		minify: isProduction ? "terser" : false,
-		name: "callapi",
+		name: "",
 		sourcemap: isProduction,
 		tsconfig: "tsconfig.json",
 	} satisfies Options;

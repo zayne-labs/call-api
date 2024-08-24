@@ -16,9 +16,9 @@
 		"test:attw": "attw --pack . --exclude-entrypoints utils",
 		"test:release": "pkg-pr-new publish",
 		"build": "tsup",
-		"build:dev": "concurrently --prefix-colors \"#7da4f8.bold,yellow.bold\" --names TSUP,PUBLINT,ATTW  \"pnpm tsup --watch\"' 'pnpm:test:publint' 'pnpm:test:attw'",
+		"build:dev": "concurrently --prefix-colors \"yellow.bold,#7da4f8.bold,magenta\"   --names PUBLINT,TSUP,ATTW   'pnpm:test:publint' \"pnpm build --watch\" 'pnpm:test:attw'",
 		"version-package": "changeset version",
-		"release": "changeset publish"
+		"release": "changeset publish --provenance"
 	},
 	"exports": {
 		".": {
