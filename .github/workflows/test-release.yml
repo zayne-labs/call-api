@@ -2,17 +2,22 @@ name: Publish every commit to pkg.pr.new
 on:
    pull_request:
    push:
-      branches: [main, "!changeset-release/**"]
-      tags:
-         - "!**"
+      branches: main
+      tags: ["!**"]
+   workflow_run:
+      workflows: [Lint and Type]
+      branches: main
+      types: completed
 
 jobs:
-   build:
+   test-release:
       runs-on: ubuntu-latest
+      timeout-minutes: 15
       strategy:
          matrix:
-            node-version: [20.x]
+            node-version: 20.x
 
+      if: ${{ github.event.workflow_run.conclusion != 'failure' }}
       steps:
          - name: Checkout repo
            uses: actions/checkout@v4
@@ -20,7 +25,7 @@ jobs:
          - name: Setup pnpm
            uses: pnpm/action-setup@v4
            with:
-              version: 9.7.0
+              version: 9.8.0
 
          - name: Setup Node.js 20.x
            uses: actions/setup-node@v4
@@ -35,3 +40,14 @@ jobs:
 
          - name: Deploy and test release via pkg.pr.new
            run: pnpm test:release
+
+   on--workflow-failure:
+      runs-on: ubuntu-latest
+      timeout-minutes: 15
+
+      if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+      steps:
+         - run: |
+              echo "Triggering Workflow: ${{ github.event_name }} failed woefully"
+              echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
+              echo "Workflow run status: ${{ github.event.workflow_run.status }}"

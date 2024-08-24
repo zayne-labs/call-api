@@ -5,7 +5,7 @@ on:
    workflow_run:
       workflows: [Lint and Type]
       branches: main
-      types: [completed]
+      types: completed
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -16,21 +16,14 @@ permissions:
 
 jobs:
    release:
-      if: ${{ github.event.workflow_run.conclusion != 'failure' }}
-
       runs-on: ubuntu-latest
       timeout-minutes: 15
       strategy:
          matrix:
-            node-version: [20.x]
+            node-version: 20.x
 
+      if: ${{ github.event.workflow_run.conclusion != 'failure' }}
       steps:
-         - name: Debug
-           run: |
-              echo "Event name: ${{ github.event_name }}"
-              echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
-              echo "Workflow run status: ${{ github.event.workflow_run.status }}"
-
          - name: Checkout repo
            uses: actions/checkout@v4
            with:
@@ -41,7 +34,7 @@ jobs:
          - name: Setup pnpm
            uses: pnpm/action-setup@v4
            with:
-              version: 9.7.0
+              version: 9.8.0
 
          - name: Setup Node.js 20.x
            uses: actions/setup-node@v4
@@ -65,8 +58,10 @@ jobs:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-   on-failure:
+   on--workflow-failure:
       runs-on: ubuntu-latest
+      timeout-minutes: 15
+
       if: ${{ github.event.workflow_run.conclusion == 'failure' }}
       steps:
          - run: |
