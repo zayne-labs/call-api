@@ -1,5 +1,12 @@
 # @zayne-labs/callapi
 
+## 0.7.3
+
+### Patch Changes
+
+-  bfb97aa: update with provenance
+-  3de7baf: add provenance tag to publish command
+
 ## 0.7.2
 
 ### Patch Changes
