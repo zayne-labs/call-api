@@ -18,7 +18,6 @@ permissions:
 
 jobs:
    release:
-      needs: Lint and Type
       runs-on: ubuntu-latest
       timeout-minutes: 15
       strategy:
