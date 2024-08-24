@@ -27,8 +27,11 @@ jobs:
            uses: actions/setup-node@v4
            with:
               node-version: ${{ matrix.node-version }}
+              cache: "pnpm"
 
          - name: Format files
-           run: pnpx prettier --write .
+           run: |
+              pnpm add -D prettier
+              pnpm test:format
 
          - uses: autofix-ci/action@dd55f44df8f7cdb7a6bf74c78677eb8acd40cd0a

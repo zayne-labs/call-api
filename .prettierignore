@@ -4,3 +4,4 @@ package.json
 eslint-typegen.d.ts
 *.md
 *.tsbuildinfo
+.next
