@@ -3,7 +3,7 @@ on:
    push:
       branches: main
    workflow_run:
-      workflows: ["Lint and Type"]
+      workflows: Lint and Type
       types: completed
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -14,6 +14,14 @@ permissions:
    id-token: write
 
 jobs:
+  debug: if: always()  # Remove the condition temporarily
+    steps:
+      - name: Debug Information
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "Workflow run status: ${{ github.event.workflow_run.status }}"
+
    release:
       runs-on: ubuntu-latest
       if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'skipped' }}
