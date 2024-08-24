@@ -3,7 +3,7 @@ on:
    pull_request:
    push:
       branches: main
-      branches-ignore: changeset-release/**
+      # branches-ignore: changeset-release/**
       tags:
          - "!**"
 
