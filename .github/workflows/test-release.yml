@@ -2,8 +2,7 @@ name: Publish every commit to pkg.pr.new
 on:
    pull_request:
    push:
-      branches: main
-      # branches-ignore: changeset-release/**
+      branches: [main, "!changeset-release/**"]
       tags:
          - "!**"
 

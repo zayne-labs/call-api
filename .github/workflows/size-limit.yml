@@ -3,8 +3,7 @@ name: Size Limit
 on:
    pull_request:
    push:
-      branches: main
-      # branches-ignore: changeset-release/**
+      branches: [main, "!changeset-release/**"]
 
 permissions:
    contents: read
