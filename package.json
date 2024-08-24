@@ -9,8 +9,8 @@
 	"scripts": {
 		"prepare": "husky",
 		"test:check-types": "tsc --pretty --incremental -p tsconfig.json",
-		"test:format": "prettier --write .",
-		"test:lint": "eslint src/**/*.ts --cache --max-warnings 10 --report-unused-disable-directives ",
+		"test:format": "prettier --cache --write .",
+		"test:lint": "eslint . --cache --max-warnings 0 --report-unused-disable-directives",
 		"test:size": "size-limit",
 		"test:publint": "publint --strict .",
 		"test:attw": "attw --pack . --exclude-entrypoints utils",
