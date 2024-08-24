@@ -8,6 +8,9 @@ on:
 permissions:
    contents: read
 
+concurrency:
+   group: publish
+
 jobs:
    build:
       runs-on: ubuntu-latest

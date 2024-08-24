@@ -7,7 +7,8 @@ on:
       branches: main
       types: completed
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+concurrency:
+   group: publish
 
 permissions:
    contents: write
@@ -22,7 +23,7 @@ jobs:
          matrix:
             node-version: [20.x]
 
-      if: ${{ github.event.workflow_run.conclusion != 'failure' }}
+      if: ${{ github.event.workflow_run.conclusion == 'success' }}
       steps:
          - name: Checkout repo
            uses: actions/checkout@v4
