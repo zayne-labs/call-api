@@ -3,7 +3,7 @@ name: Size Limit
 on:
    pull_request:
    push:
-      branches: [main, "!changeset-release/**"]
+      branches: main
 
 permissions:
    contents: read
