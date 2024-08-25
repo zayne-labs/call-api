@@ -4,6 +4,14 @@
 
 ### Patch Changes
 
+-  52493b1: retrying failed deployment
+-  8cdd379: fix ci
+-  c78dea9: update with provenance
+
+## 0.7.3
+
+### Patch Changes
+
 -  bfb97aa: update with provenance
 -  3de7baf: add provenance tag to publish command
 
