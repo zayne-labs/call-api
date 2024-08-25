@@ -73,10 +73,10 @@
 		}
 	],
 	"sideEffects": false,
-	"repository": "ryan-zayne/callApi",
-	"homepage": "https://github.com/ryan-zayne/callApi#readme",
+	"repository": "zayne-labs/CallApi",
+	"homepage": "https://github.com/zayne-labs/CallApi#readme",
 	"bugs": {
-		"url": "https://github.com/ryan-zayne/callApi/issues"
+		"url": "https://github.com/zayne-labs/CallApi/issues"
 	},
 	"license": "MIT",
 	"author": "Ryan Zayne",
