@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { type DocsThemeConfig, useConfig } from "nextra-theme-docs";
 
 const config: DocsThemeConfig = {
-	docsRepositoryBase: "https://github.com/zayne-labs/callapi",
+	docsRepositoryBase: "https://github.com/zayne-labs/callApi",
 	footer: {
 		component: () => {
 			return <></>;
@@ -41,7 +41,7 @@ const config: DocsThemeConfig = {
 		</div>
 	),
 	project: {
-		link: "https://github.com/zayne-labs/callapi",
+		link: "https://github.com/zayne-labs/callApi",
 	},
 };
 
