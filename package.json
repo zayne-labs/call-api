@@ -3,6 +3,16 @@
 	"version": "0.7.3",
 	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/zayne-labs/callApi.git"
+	},
+	"homepage": "https://github.com/zayne-labs/callApi#readme",
+	"bugs": {
+		"url": "https://github.com/zayne-labs/callApi/issues"
+	},
+	"license": "MIT",
+	"author": "Ryan Zayne",
 	"main": "./dist/esm/index.js",
 	"module": "./dist/esm/index.js",
 	"types": "./dist/esm/index.d.ts",
@@ -73,16 +83,6 @@
 		}
 	],
 	"sideEffects": false,
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/zayne-labs/callApi.git"
-	},
-	"homepage": "https://github.com/zayne-labs/callApi#readme",
-	"bugs": {
-		"url": "https://github.com/zayne-labs/callApi/issues"
-	},
-	"license": "MIT",
-	"author": "Ryan Zayne",
 	"keywords": [
 		"fetch",
 		"api",
