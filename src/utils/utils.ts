@@ -28,6 +28,10 @@ export const toQueryString: ToQueryStringFn = (params) => {
 };
 
 export const mergeUrlWithParams = (url: string, query: ExtraOptions["query"]): string => {
+	if (!query) {
+		return url;
+	}
+
 	const paramsString = toQueryString(query);
 
 	if (paramsString === null) {
