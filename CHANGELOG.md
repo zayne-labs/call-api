@@ -1,5 +1,12 @@
 # @zayne-labs/callapi
 
+## 0.7.5
+
+### Patch Changes
+
+-  0111f54: revert null check
+-  4eb6978: fix params error message
+
 ## 0.7.4
 
 ### Patch Changes
