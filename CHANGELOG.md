@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.7.4
+
+### Patch Changes
+
+-  45ac33b: handled null cases for empty objects in query params
+
 ## 0.7.3
 
 ### Patch Changes
