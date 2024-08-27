@@ -34,6 +34,10 @@ export const mergeUrlWithParams = (url: string, query: ExtraOptions["query"]): s
 
 	const paramsString = toQueryString(query);
 
+	if (paramsString === "") {
+		return url;
+	}
+
 	if (url.endsWith("?")) {
 		return `${url}${paramsString}`;
 	}
