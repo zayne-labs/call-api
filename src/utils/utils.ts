@@ -18,7 +18,7 @@ type ToQueryStringFn = {
 };
 
 export const toQueryString: ToQueryStringFn = (params) => {
-	if (!params || Object.keys(params).length === 0) {
+	if (!params) {
 		console.error("toQueryString:", "No query params provided!");
 
 		return null as never;
@@ -33,10 +33,6 @@ export const mergeUrlWithParams = (url: string, query: ExtraOptions["query"]): s
 	}
 
 	const paramsString = toQueryString(query);
-
-	if (paramsString === null) {
-		return url;
-	}
 
 	if (url.endsWith("?")) {
 		return `${url}${paramsString}`;
