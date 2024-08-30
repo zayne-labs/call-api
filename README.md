@@ -10,7 +10,7 @@ It takes in a url and a request options object, just like fetch, but with some a
 
 [View Documentation website](https://zayne-callapi.netlify.app)
 
-## Installing CallApi
+## Installing `CallApi`
 
 ### Through npm (recommended)
 
@@ -28,7 +28,7 @@ Then you can use it by importing it in your JavaScript file.
 import { callApi } from "@zayne-labs/callapi";
 ```
 
-### Using `callApi` without `npm`
+### Using `CallApi` without `npm`
 
 You can import callApi directly into JavaScript through a CDN.
 
