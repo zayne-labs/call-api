@@ -1,4 +1,3 @@
-import { isArray, isFunction, isObject } from "../typeof";
 import type {
 	$BaseRequestOptions,
 	$RequestOptions,
@@ -8,6 +7,7 @@ import type {
 	FetchConfig,
 	PossibleErrorObject,
 } from "../types";
+import { isArray, isFunction, isObject } from "./typeof";
 
 // prettier-ignore
 export const getRequestKey = <TConfig extends Record<string, unknown>>(url: string, config?: TConfig) => `${url} | ${JSON.stringify(config ?? {})}`;
@@ -159,7 +159,7 @@ export const getResponseData = <TResponse>(
 	return RESPONSE_TYPE_LOOKUP[responseType]();
 };
 
-type data = {
+type SuccessInfo = {
 	options: ExtraOptions;
 	response: Response;
 	successData: unknown;
@@ -167,7 +167,7 @@ type data = {
 
 // == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
 // LINK - See https://www.zhenghao.io/posts/type-functions for more info
-export const resolveSuccessResult = <CallApiResult>(info: data): CallApiResult => {
+export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiResult => {
 	const { options, response, successData } = info;
 
 	const apiDetails = {
@@ -188,20 +188,14 @@ export const resolveSuccessResult = <CallApiResult>(info: data): CallApiResult =
 };
 
 // == Using curring here so error and options are not required to be passed every time, instead to be captured once by way of closure
-export const getResolveErrorResultFn = <CallApiResult>($info: {
+export const getResolveErrorResultFn = <CallApiResult>(initInfo: {
 	error?: unknown;
 	options: ExtraOptions;
 }) => {
-	const { error, options } = $info;
+	const { error, options } = initInfo;
 
-	type ErrorInfo = {
-		errorData?: unknown;
-		message?: string;
-		response?: Response;
-	};
-
-	const resolveErrorResult = (info: ErrorInfo = {}): CallApiResult => {
-		const { errorData, message, response } = info;
+	const resolveErrorResult = (errorInfo: Partial<HTTPError<unknown>> = {}): CallApiResult => {
+		const { errorData, message, response } = errorInfo;
 
 		const shouldThrowOnError = isFunction(options.throwOnError)
 			? options.throwOnError(error as Error)

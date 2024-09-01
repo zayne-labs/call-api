@@ -1,13 +1,12 @@
-import { isObject, isQueryString, isString } from "./typeof";
 import type {
 	$RequestOptions,
 	BaseConfig,
 	ExtraOptions,
 	FetchConfig,
 	GetCallApiResult,
-	PossibleErrorObject,
 	ResultModeUnion,
 } from "./types";
+import { isObject, isQueryString } from "./utils/typeof";
 import {
 	HTTPError,
 	defaultRetryCodes,
@@ -87,7 +86,7 @@ export const createFetchClient = <
 							...(isQueryString(body) && {
 								"Content-Type": "application/x-www-form-urlencoded",
 							}),
-							...(isString(options.auth) && {
+							...(!isObject(options.auth) && {
 								Authorization: `Bearer ${options.auth}`,
 							}),
 							...(isObject(options.auth) && {
@@ -245,11 +244,7 @@ export const createFetchClient = <
 					}),
 				]));
 
-				return resolveErrorResult({
-					errorData,
-					message: (errorData as PossibleErrorObject)?.message,
-					response,
-				});
+				return resolveErrorResult(error);
 			}
 
 			void (await Promise.all([

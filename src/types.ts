@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type { AnyNumber, AnyString, Prettify } from "./type-helpers";
+import type { AnyNumber, AnyString, Prettify } from "./utils/type-helpers";
 import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils/utils";
 
 export interface $RequestOptions extends Pick<FetchConfig, (typeof fetchSpecificKeys)[number]> {}
@@ -237,13 +237,9 @@ type ApiSuccessVariant<TData> = {
 	response: Response;
 };
 
-type PossibleErrorNames =
-	| "AbortError"
-	| "Error"
-	| "SyntaxError"
-	| "TimeoutError"
-	| "TypeError"
-	| "UnknownError";
+type PossibleErrorNames = {
+	_: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | "UnknownError";
+}["_"];
 
 export type ApiErrorVariant<TErrorData> =
 	| {

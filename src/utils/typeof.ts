@@ -11,7 +11,5 @@ export const isObject = <TObject extends Record<string, unknown>>(value: unknown
 export const isFunction = <TFunction extends AnyFunction>(value: unknown): value is TFunction =>
 	typeof value === "function";
 
-export const isString = (value: unknown) => typeof value === "string";
-
 export const isQueryString = (value: unknown): value is string =>
 	typeof value === "string" && value.includes("=");
