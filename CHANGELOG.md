@@ -1,5 +1,12 @@
 # @zayne-labs/callapi
 
+## 0.7.6
+
+### Patch Changes
+
+-  c6e6b12: used isObject over isString for auth option
+-  c6e6b12: simplified a few types
+
 ## 0.7.5
 
 ### Patch Changes
