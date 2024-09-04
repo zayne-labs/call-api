@@ -6,7 +6,7 @@ import type {
 	GetCallApiResult,
 	ResultModeUnion,
 } from "./types";
-import { isObject, isQueryString } from "./utils/typeof";
+import { isObject, isQueryString, isString } from "./utils/typeof";
 import {
 	HTTPError,
 	defaultRetryCodes,
@@ -86,7 +86,7 @@ export const createFetchClient = <
 							...(isQueryString(body) && {
 								"Content-Type": "application/x-www-form-urlencoded",
 							}),
-							...(!isObject(options.auth) && {
+							...((isString(options.auth) || options.auth == null) && {
 								Authorization: `Bearer ${options.auth}`,
 							}),
 							...(isObject(options.auth) && {

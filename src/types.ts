@@ -15,15 +15,16 @@ export interface ExtraOptions<
 	 * @description Authorization header value.
 	 */
 	auth?:
+		| string
 		| {
-				bearer: string;
+				bearer: string | null;
 				token?: never;
 		  }
 		| {
 				bearer?: never;
-				token: string;
+				token: string | null;
 		  }
-		| string;
+		| null;
 
 	/**
 	 * @description Base URL to be prepended to all request URLs

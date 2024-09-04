@@ -13,7 +13,7 @@ import { isArray, isFunction, isObject } from "./typeof";
 export const getRequestKey = <TConfig extends Record<string, unknown>>(url: string, config?: TConfig) => `${url} | ${JSON.stringify(config ?? {})}`;
 
 type ToQueryStringFn = {
-	(params: ExtraOptions["query"]): null | string;
+	(params: ExtraOptions["query"]): string | null;
 	(params: Required<ExtraOptions>["query"]): string;
 };
 

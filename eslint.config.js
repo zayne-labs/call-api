@@ -333,6 +333,20 @@ const eslintConfigArray = typegen([
 			"perfectionist/sort-union-types": [
 				"warn",
 				{
+					groups: [
+						"conditional",
+						"function",
+						"import",
+						"intersection",
+						"keyword",
+						"literal",
+						"named",
+						"object",
+						"operator",
+						"tuple",
+						"union",
+						"nullish",
+					],
 					order: "asc",
 					type: "alphabetical",
 				},
