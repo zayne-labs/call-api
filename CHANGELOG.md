@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.7.7
+
+### Patch Changes
+
+-  75d00c5: allow null as a valid auth value
+
 ## 0.7.6
 
 ### Patch Changes
