@@ -34,8 +34,8 @@ importers:
         specifier: 20.16.5
         version: 20.16.5
       '@zayne-labs/tsconfig':
-        specifier: ^0.0.7
-        version: 0.0.7
+        specifier: ^0.1.0
+        version: 0.1.1
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.20(postcss@8.4.39)
@@ -346,8 +346,8 @@ packages:
       react:
         optional: true
 
-  '@zayne-labs/tsconfig@0.0.7':
-    resolution: {integrity: sha512-mKLwRBlA+LPbXBKg9xoRS/xhzXAN87Y2HGK8I+1HQsPu+CmGobs5uRkXchpm9SBhsOZIjzfZYycDhDmIUM+JFQ==}
+  '@zayne-labs/tsconfig@0.1.1':
+    resolution: {integrity: sha512-pgEbF5tSjuib49tOtUsGSQFBrik+kIiNqvVfSGNIAGdZUyo3lf+2Lnnco4gGi5N7i/hWKjZ0xZLko1Cw/b1npg==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -2149,7 +2149,7 @@ snapshots:
       next: 14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
 
-  '@zayne-labs/tsconfig@0.0.7': {}
+  '@zayne-labs/tsconfig@0.1.1': {}
 
   acorn-jsx@5.3.2(acorn@8.12.1):
     dependencies:
