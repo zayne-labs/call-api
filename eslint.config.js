@@ -5,7 +5,6 @@ import eslintStylistic from "@stylistic/eslint-plugin";
 import eslintImportX from "eslint-plugin-import-x";
 import eslintJsdoc from "eslint-plugin-jsdoc";
 import eslintPerfectionist from "eslint-plugin-perfectionist";
-import eslintSonarJs from "eslint-plugin-sonarjs";
 import eslintUnicorn from "eslint-plugin-unicorn";
 import typegen from "eslint-typegen";
 import globals from "globals";
@@ -13,10 +12,15 @@ import tsEslint from "typescript-eslint";
 
 const eslintConfigArray = typegen([
 	// == Global Options
-	{ ignores: ["dist/**", "build/**"], name: "zayne/defaults/ignores" },
+	{
+		ignores: ["dist/**", "build/**", "eslint-typegen.d.ts", "eslint.config.js"],
+		name: "zayne/defaults/ignores",
+	},
 
 	{
 		languageOptions: {
+			ecmaVersion: "latest",
+
 			globals: {
 				...globals.browser,
 				...globals.node,
@@ -27,12 +31,14 @@ const eslintConfigArray = typegen([
 				project: "tsconfig.eslint.json",
 				tsconfigRootDir: import.meta.dirname,
 			},
+
+			sourceType: "module",
 		},
 
 		name: "zayne/defaults/languageOptions",
 	},
 
-	// == Base Eslint Rules
+	// == Base Eslint Rules (Necessary)
 	{ ...eslintJs.configs.recommended, name: "eslint/recommended" },
 	{
 		name: "zayne/eslint",
@@ -179,8 +185,7 @@ const eslintConfigArray = typegen([
 		},
 	},
 
-	// == Typescript Eslint Rules
-	// == Typescript Eslint Rules
+	// == Typescript Eslint Rules (Critical for code quality)
 	...tsEslint.configs.strictTypeChecked.map((config) => ({ ...config, files: ["**/*.ts", "**/*.tsx"] })),
 	...tsEslint.configs.stylisticTypeChecked.map((config) => ({
 		...config,
@@ -231,7 +236,7 @@ const eslintConfigArray = typegen([
 		},
 	},
 
-	// == Stylistic Rules
+	// == Stylistic Rules (Optional)
 	{
 		name: "zayne/@stylistic",
 		plugins: { "@stylistic": eslintStylistic },
@@ -247,7 +252,7 @@ const eslintConfigArray = typegen([
 		},
 	},
 
-	// == Perfectionist Rules
+	// == Perfectionist Rules (Optional)
 	{
 		name: "zayne/perfectionist/alphabetical",
 		plugins: { perfectionist: eslintPerfectionist },
@@ -335,15 +340,15 @@ const eslintConfigArray = typegen([
 				{
 					groups: [
 						"conditional",
-						"function",
+						"literal",
 						"import",
 						"intersection",
 						"keyword",
-						"literal",
+						"tuple",
 						"named",
 						"object",
+						"function",
 						"operator",
-						"tuple",
 						"union",
 						"nullish",
 					],
@@ -368,19 +373,22 @@ const eslintConfigArray = typegen([
 		},
 	},
 
-	// == Import rules
+	// == Import rules (Important)
 	{
-		languageOptions: {
-			parserOptions: eslintImportX.configs.react.parserOptions,
-		},
+		...eslintImportX.flatConfigs.recommended,
+		...eslintImportX.flatConfigs.typescript,
+		name: "import-x/recommended",
+	},
+	{
 		name: "zayne/import-x",
-		plugins: { "import-x": eslintImportX },
 
 		rules: {
-			...eslintImportX.configs.recommended.rules,
-			...eslintImportX.configs.typescript.rules,
 			"import-x/export": "error",
-			"import-x/extensions": ["error", "never", { ignorePackages: true }],
+			"import-x/extensions": [
+				"error",
+				"never",
+				{ ignorePackages: true, pattern: { png: "always", svg: "always" } },
+			],
 			"import-x/first": "error",
 			"import-x/namespace": "off",
 			"import-x/newline-after-import": "error",
@@ -398,13 +406,9 @@ const eslintConfigArray = typegen([
 			"import-x/no-useless-path-segments": ["error", { commonjs: true }],
 			"import-x/prefer-default-export": "off",
 		},
-		settings: {
-			...eslintImportX.configs.typescript.settings,
-			...eslintImportX.configs.react.settings,
-		},
 	},
 
-	// == Jsdoc rules
+	// == Jsdoc rules (Nice to have)
 	eslintJsdoc.configs["flat/recommended-typescript"],
 	{
 		name: "zayne/jsdoc",
@@ -414,7 +418,7 @@ const eslintConfigArray = typegen([
 		},
 	},
 
-	// == Unicorn rules
+	// == Unicorn rules (Important for code quality)
 	eslintUnicorn.configs["flat/recommended"],
 	{
 		name: "zayne/unicorn",
@@ -437,16 +441,6 @@ const eslintConfigArray = typegen([
 			"unicorn/no-useless-undefined": ["error", { checkArguments: true }],
 			"unicorn/numeric-separators-style": "off",
 			"unicorn/prevent-abbreviations": "off",
-		},
-	},
-
-	// == Sonarjs Rules
-	{ ...eslintSonarJs.configs.recommended, name: "sonarjs/recommended" },
-	{
-		name: "zayne/sonarjs",
-		rules: {
-			"sonarjs/no-duplicate-string": "off",
-			"sonarjs/prefer-immediate-return": "off",
 		},
 	},
 ]);

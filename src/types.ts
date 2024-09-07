@@ -181,7 +181,7 @@ export interface ExtraOptions<
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
 	 */
-	throwOnError?: ((error?: Error | HTTPError<TErrorData>) => boolean) | boolean;
+	throwOnError?: boolean | ((error?: Error | HTTPError<TErrorData>) => boolean);
 
 	/**
 	 * @description Request timeout in milliseconds
