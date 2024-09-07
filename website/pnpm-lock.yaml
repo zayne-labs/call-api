@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@netlify/plugin-nextjs':
         specifier: ^5.5.1
-        version: 5.5.1
+        version: 5.7.0
       '@vercel/analytics':
         specifier: ^1.3.1
         version: 1.3.1(next@14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -169,8 +169,8 @@ packages:
     resolution: {integrity: sha512-C5wRPw9waqL2jk3jEDeJv+f7ScuO3N0a39HVdyFLkwKxHH4Sya4ZbzZsu2JLi6eEqe7RuHipHL6mC7B2OfYZZw==}
     engines: {node: '>= 10'}
 
-  '@netlify/plugin-nextjs@5.5.1':
-    resolution: {integrity: sha512-E0LP4HI6F1Us0va+rCpu9ecJh1GumoH/plQDvAteZv0C4nSP19tn1H+tJUjpVVDsoj6MWIB97ssMh8K0gen1zA==}
+  '@netlify/plugin-nextjs@5.7.0':
+    resolution: {integrity: sha512-HFZBHz70oDmw/5tKXH3F6WX4X01/DgY9etjLXjfDSxYl+AiNKwL+1kePUMp73zMFN5M+TU/TsEaFr38wmE6EVQ==}
     engines: {node: '>=18.0.0'}
 
   '@next/env@14.2.5':
@@ -444,9 +444,6 @@ packages:
   camelcase-css@2.0.1:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
-
-  caniuse-lite@1.0.30001641:
-    resolution: {integrity: sha512-Phv5thgl67bHYo1TtMY/MurjkHhV4EDaCosezRXgZ8jzA/Ub+wjxAvbGvjoFENStinwi5kCyOYV3mi5tOGykwA==}
 
   caniuse-lite@1.0.30001658:
     resolution: {integrity: sha512-N2YVqWbJELVdrnsW5p+apoQyYt51aBMSsBZki1XZEfeBCexcM/sf4xiAHcXQBkuOwJBXtWF7aW1sYX6tKebPHw==}
@@ -1415,9 +1412,6 @@ packages:
   periscopic@3.1.0:
     resolution: {integrity: sha512-vKiQ8RRtkl9P+r/+oefh25C3fhybptkHKCZSPlcXiJux2tJF55GnEj3BVn4A5gKfq9NWWXXrxkHBwVPUfH0opw==}
 
-  picocolors@1.0.1:
-    resolution: {integrity: sha512-anP1Z8qwhkbmu7MFP5iTt+wQKXgwzf7zTyGlcdzabySa9vd0Xt392U0rVmz9poOaBj0uHJKyyo9/upk0HrEQew==}
-
   picocolors@1.1.0:
     resolution: {integrity: sha512-TQ92mBOW0l3LeMeyLV6mzy/kWr8lkd/hp3mTg7wYK7zJhuBStmGMBG0BdeDZS/dZx1IukaX6Bk11zcln25o1Aw==}
 
@@ -2003,7 +1997,7 @@ snapshots:
       '@napi-rs/simple-git-win32-arm64-msvc': 0.1.16
       '@napi-rs/simple-git-win32-x64-msvc': 0.1.16
 
-  '@netlify/plugin-nextjs@5.5.1': {}
+  '@netlify/plugin-nextjs@5.7.0': {}
 
   '@next/env@14.2.5': {}
 
@@ -2230,8 +2224,6 @@ snapshots:
       streamsearch: 1.1.0
 
   camelcase-css@2.0.1: {}
-
-  caniuse-lite@1.0.30001641: {}
 
   caniuse-lite@1.0.30001658: {}
 
@@ -3444,7 +3436,7 @@ snapshots:
       '@next/env': 14.2.5
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001641
+      caniuse-lite: 1.0.30001658
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.3.1
@@ -3585,8 +3577,6 @@ snapshots:
       '@types/estree': 1.0.5
       estree-walker: 3.0.3
       is-reference: 3.0.2
-
-  picocolors@1.0.1: {}
 
   picocolors@1.1.0: {}
 
@@ -3886,7 +3876,7 @@ snapshots:
       micromatch: 4.0.7
       normalize-path: 3.0.0
       object-hash: 3.0.0
-      picocolors: 1.0.1
+      picocolors: 1.1.0
       postcss: 8.4.45
       postcss-import: 15.1.0(postcss@8.4.45)
       postcss-js: 4.0.1(postcss@8.4.45)
