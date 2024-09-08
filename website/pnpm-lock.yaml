@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@netlify/plugin-nextjs':
         specifier: ^5.5.1
-        version: 5.7.0
+        version: 5.7.1
       '@vercel/analytics':
         specifier: ^1.3.1
         version: 1.3.1(next@14.2.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -169,8 +169,8 @@ packages:
     resolution: {integrity: sha512-C5wRPw9waqL2jk3jEDeJv+f7ScuO3N0a39HVdyFLkwKxHH4Sya4ZbzZsu2JLi6eEqe7RuHipHL6mC7B2OfYZZw==}
     engines: {node: '>= 10'}
 
-  '@netlify/plugin-nextjs@5.7.0':
-    resolution: {integrity: sha512-HFZBHz70oDmw/5tKXH3F6WX4X01/DgY9etjLXjfDSxYl+AiNKwL+1kePUMp73zMFN5M+TU/TsEaFr38wmE6EVQ==}
+  '@netlify/plugin-nextjs@5.7.1':
+    resolution: {integrity: sha512-32e2q8VqnyxfJixMypuupuHW+3F0XbP/uGNNB79Vn1asYh/oTbR9XBi4Cxnmgthy9hycaiMHm8SftGI+uWJmQw==}
     engines: {node: '>=18.0.0'}
 
   '@next/env@14.2.7':
@@ -1997,7 +1997,7 @@ snapshots:
       '@napi-rs/simple-git-win32-arm64-msvc': 0.1.16
       '@napi-rs/simple-git-win32-x64-msvc': 0.1.16
 
-  '@netlify/plugin-nextjs@5.7.0': {}
+  '@netlify/plugin-nextjs@5.7.1': {}
 
   '@next/env@14.2.7': {}
 
