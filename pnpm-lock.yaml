@@ -9,88 +9,88 @@ importers:
   .:
     devDependencies:
       '@arethetypeswrong/cli':
-        specifier: ^0.16.1
+        specifier: 0.16.1
         version: 0.16.1
       '@changesets/cli':
-        specifier: ^2.27.8
+        specifier: 2.27.8
         version: 2.27.8
       '@eslint/js':
-        specifier: ^9.10.0
+        specifier: 9.10.0
         version: 9.10.0
       '@size-limit/esbuild-why':
-        specifier: ^11.1.4
+        specifier: 11.1.4
         version: 11.1.4(size-limit@11.1.4)
       '@size-limit/preset-small-lib':
-        specifier: ^11.1.4
+        specifier: 11.1.4
         version: 11.1.4(size-limit@11.1.4)
       '@stylistic/eslint-plugin':
-        specifier: ^2.7.2
+        specifier: 2.7.2
         version: 2.7.2(eslint@9.10.0(jiti@1.21.6))(typescript@5.5.4)
       '@total-typescript/ts-reset':
-        specifier: ^0.6.1
+        specifier: 0.6.1
         version: 0.6.1
       '@types/eslint':
-        specifier: ^9.6.1
+        specifier: 9.6.1
         version: 9.6.1
       '@zayne-labs/tsconfig':
-        specifier: ^0.1.1
+        specifier: 0.1.1
         version: 0.1.1
       concurrently:
-        specifier: ^8.2.2
+        specifier: 8.2.2
         version: 8.2.2
       eslint:
-        specifier: ^9.10.0
+        specifier: 9.10.0
         version: 9.10.0(jiti@1.21.6)
       eslint-import-resolver-typescript:
-        specifier: ^3.6.3
+        specifier: 3.6.3
         version: 3.6.3(@typescript-eslint/parser@8.4.0(eslint@9.10.0(jiti@1.21.6))(typescript@5.5.4))(eslint-plugin-import-x@4.2.1(eslint@9.10.0(jiti@1.21.6))(typescript@5.5.4))(eslint@9.10.0(jiti@1.21.6))
       eslint-plugin-import-x:
-        specifier: ^4.2.1
+        specifier: 4.2.1
         version: 4.2.1(eslint@9.10.0(jiti@1.21.6))(typescript@5.5.4)
       eslint-plugin-jsdoc:
-        specifier: ^50.2.2
+        specifier: 50.2.2
         version: 50.2.2(eslint@9.10.0(jiti@1.21.6))
       eslint-plugin-perfectionist:
-        specifier: ^3.5.0
+        specifier: 3.5.0
         version: 3.5.0(eslint@9.10.0(jiti@1.21.6))(typescript@5.5.4)(vue-eslint-parser@9.4.3(eslint@9.10.0(jiti@1.21.6)))
       eslint-plugin-unicorn:
-        specifier: ^55.0.0
+        specifier: 55.0.0
         version: 55.0.0(eslint@9.10.0(jiti@1.21.6))
       eslint-typegen:
-        specifier: ^0.3.1
+        specifier: 0.3.1
         version: 0.3.1(eslint@9.10.0(jiti@1.21.6))
       globals:
-        specifier: ^15.9.0
+        specifier: 15.9.0
         version: 15.9.0
       husky:
-        specifier: ^9.1.5
+        specifier: 9.1.5
         version: 9.1.5
       lint-staged:
-        specifier: ^15.2.10
+        specifier: 15.2.10
         version: 15.2.10
       pkg-pr-new:
-        specifier: ^0.0.24
+        specifier: 0.0.24
         version: 0.0.24
       prettier:
-        specifier: ^3.3.3
+        specifier: 3.3.3
         version: 3.3.3
       publint:
-        specifier: ^0.2.10
+        specifier: 0.2.10
         version: 0.2.10
       size-limit:
-        specifier: ^11.1.4
+        specifier: 11.1.4
         version: 11.1.4
       terser:
-        specifier: ^5.31.6
+        specifier: 5.31.6
         version: 5.31.6
       tsup:
-        specifier: ^8.2.4
+        specifier: 8.2.4
         version: 8.2.4(jiti@1.21.6)(typescript@5.5.4)(yaml@2.5.1)
       typescript:
         specifier: 5.5.4
         version: 5.5.4
       typescript-eslint:
-        specifier: ^8.4.0
+        specifier: 8.4.0
         version: 8.4.0(eslint@9.10.0(jiti@1.21.6))(typescript@5.5.4)
 
 packages:
