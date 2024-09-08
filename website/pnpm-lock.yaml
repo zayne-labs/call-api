@@ -34,19 +34,19 @@ importers:
         specifier: 20.16.5
         version: 20.16.5
       '@zayne-labs/tsconfig':
-        specifier: ^0.1.0
+        specifier: 0.1.1
         version: 0.1.1
       autoprefixer:
-        specifier: ^10.4.19
+        specifier: 10.4.20
         version: 10.4.20(postcss@8.4.45)
       postcss:
-        specifier: ^8.4.39
+        specifier: 8.4.45
         version: 8.4.45
       tailwindcss:
-        specifier: ^3.4.4
+        specifier: 3.4.4
         version: 3.4.4
       typescript:
-        specifier: ^5.5.3
+        specifier: 5.5.3
         version: 5.5.3
 
 packages:
