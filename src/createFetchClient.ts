@@ -216,9 +216,9 @@ export const createFetchClient = <
 			}
 
 			if (error instanceof DOMException && error.name === "AbortError") {
-				const message = `Request aborted due to ${error.message}`;
+				const { message, name } = error;
 
-				console.error(`${error.name}:`, message);
+				console.error(`${name}:`, message);
 
 				return resolveErrorResult({ message });
 			}

@@ -1,8 +1,9 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"automerge": true,
-	"extends": ["config:best-practices"],
+	"extends": ["config:best-practices", "replacements:all"],
 	"labels": ["dependencies"],
+	"patch": { "enabled": false },
 	"minimumReleaseAge": "7 days",
 	"postUpdateOptions": ["pnpmDedupe"]
 }
