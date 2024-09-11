@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.7.8
+
+### Patch Changes
+
+-  343989e: fix typo in error message for abort
+
 ## 0.7.7
 
 ### Patch Changes
