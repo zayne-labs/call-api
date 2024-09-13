@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 0.7.9
+
+### Patch Changes
+
+-  0061a16: added types for headers
+
 ## 0.7.8
 
 ### Patch Changes
