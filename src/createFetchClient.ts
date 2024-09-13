@@ -4,7 +4,7 @@ import type {
 	ExtraOptions,
 	FetchConfig,
 	GetCallApiResult,
-	ResultModeUnion
+	ResultModeUnion,
 } from "./types";
 import { isObject, isQueryString, isString } from "./utils/typeof";
 import {
