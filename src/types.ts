@@ -223,15 +223,13 @@ export type ResponseErrorContext<TErrorData> = Prettify<{
 
 export type ErrorContext<TErrorData> =
 	| {
-			error: Error;
-			errorData?: null;
+			error: Extract<ErrorObjectUnion, { name: PossibleErrorNames }>;
 			options: ExtraOptions;
 			request: $RequestOptions;
 			response: null;
 	  }
 	| {
-			error: null;
-			errorData?: TErrorData;
+			error: Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;
 			options: ExtraOptions;
 			request: $RequestOptions;
 			response: Response;
@@ -247,23 +245,27 @@ type PossibleErrorNames = {
 	_: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | "UnknownError";
 }["_"];
 
+type ErrorObjectUnion<TErrorData = unknown> =
+	| {
+			errorData: Error;
+			message: string;
+			name: PossibleErrorNames;
+	  }
+	| {
+			errorData: TErrorData;
+			message: string;
+			name: "HTTPError";
+	  };
+
 export type ApiErrorVariant<TErrorData> =
 	| {
 			data: null;
-			error: {
-				errorData: Error;
-				message: string;
-				name: PossibleErrorNames;
-			};
+			error: Extract<ErrorObjectUnion, { name: PossibleErrorNames }>;
 			response: null;
 	  }
 	| {
 			data: null;
-			error: {
-				errorData: TErrorData;
-				message: string;
-				name: "HTTPError";
-			};
+			error: Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;
 			response: Response;
 	  };
 

@@ -4,7 +4,7 @@ import type {
 	ExtraOptions,
 	FetchConfig,
 	GetCallApiResult,
-	ResultModeUnion,
+	ResultModeUnion
 } from "./types";
 import { isObject, isQueryString, isString } from "./utils/typeof";
 import {
@@ -236,8 +236,7 @@ export const createFetchClient = <
 
 					// == Also call the onError interceptor
 					options.onError?.({
-						error: null,
-						errorData,
+						error,
 						options,
 						request: requestInit,
 						response,
@@ -247,21 +246,22 @@ export const createFetchClient = <
 				return resolveErrorResult(error);
 			}
 
+			const errorResult = resolveErrorResult();
+
 			void (await Promise.all([
 				// == At this point only the request errors exist, so the request error interceptor is called
 				options.onRequestError?.({ error: error as Error, options, request: requestInit }),
 
 				// == Also call the onError interceptor
 				options.onError?.({
-					error: error as Error,
-					errorData: null,
+					error: (errorResult as { error: never }).error,
 					options,
 					request: requestInit,
 					response: null,
 				}),
 			]));
 
-			return resolveErrorResult();
+			return errorResult;
 
 			// == Removing the now unneeded AbortController from store
 		} finally {
