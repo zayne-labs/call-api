@@ -1,7 +1,20 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type { AnyNumber, AnyString, Prettify } from "./utils/type-helpers";
+import type { AnyNumber, AnyString, BaseMime, Prettify, ResponseHeader } from "./utils/type-helpers";
 import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils/utils";
+
+// prettier-ignore
+export interface FetchConfig<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends ResultModeUnion = "all",
+> extends Omit<RequestInit, "body" | "headers" | "method">, ExtraOptions<TData, TErrorData, TResultMode> {}
+
+export type BaseConfig<
+	TBaseData = unknown,
+	TBaseErrorData = unknown,
+	TBaseResultMode extends ResultModeUnion = "all",
+> = FetchConfig<TBaseData, TBaseErrorData, TBaseResultMode>;
 
 export interface $RequestOptions extends Pick<FetchConfig, (typeof fetchSpecificKeys)[number]> {}
 export interface $BaseRequestOptions extends Omit<$RequestOptions, "body"> {}
@@ -56,6 +69,11 @@ export interface ExtraOptions<
 	 * @default "Failed to fetch data from server!"
 	 */
 	defaultErrorMessage?: string;
+
+	/**
+	 * @description Headers to be used in the request.
+	 */
+	headers?: Record<"Content-Type", BaseMime> | Record<ResponseHeader, string> | RequestInit["headers"];
 
 	/**
 	 * @description an optional field you can fill with additional information,
@@ -218,19 +236,6 @@ export type ErrorContext<TErrorData> =
 			request: $RequestOptions;
 			response: Response;
 	  };
-
-// prettier-ignore
-export interface FetchConfig<
-	TData = unknown,
-	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = "all",
-> extends Omit<RequestInit, "body" | "method">, ExtraOptions<TData, TErrorData, TResultMode> {}
-
-export type BaseConfig<
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = "all",
-> = FetchConfig<TBaseData, TBaseErrorData, TBaseResultMode>;
 
 type ApiSuccessVariant<TData> = {
 	data: TData;
