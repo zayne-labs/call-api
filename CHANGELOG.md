@@ -1,5 +1,15 @@
 # @zayne-labs/callapi
 
+## 0.8.0
+
+### Minor Changes
+
+-  a620848: reformated onError interceptor's error object to be consistent with the one from callapi
+
+### Patch Changes
+
+-  210abd2: added types for headers
+
 ## 0.7.9
 
 ### Patch Changes
