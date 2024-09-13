@@ -194,8 +194,8 @@ export const getResolveErrorResultFn = <CallApiResult>(initInfo: {
 }) => {
 	const { error, options } = initInfo;
 
-	const resolveErrorResult = (errorInfo: Partial<HTTPError<unknown>> = {}): CallApiResult => {
-		const { errorData, message, response } = errorInfo;
+	const resolveErrorResult = <TErrorData>(errorInfo?: Partial<HTTPError<TErrorData>>): CallApiResult => {
+		const { errorData, message, response } = errorInfo ?? {};
 
 		const shouldThrowOnError = isFunction(options.throwOnError)
 			? options.throwOnError(error as Error)
