@@ -55,6 +55,7 @@ export interface ExtraOptions<
 	/**
 	 * @description If true, cancels previous unfinished requests to the same URL.
 	 * @default true
+	 * @deprecated use dedupeStrategy === "cancel" instead
 	 */
 	cancelRedundantRequests?: boolean;
 
@@ -63,6 +64,17 @@ export interface ExtraOptions<
 	 * @default false
 	 */
 	cloneResponse?: boolean;
+
+	/**
+	 * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
+	 * - If set to "none", deduplication is disabled.
+	 *
+	 * - If set to "cancel"(default), the previous pending request to the same URL will be cancelled and lets the new request through.
+	 *
+	 * - If set to "defer", no new requests to the same URL will be allowed through, until the previous one is completed.
+	 * @default "cancel"
+	 */
+	dedupeStrategy?: "cancel" | "defer" | "none";
 
 	/**
 	 * @description Default error message to use if none is provided from a response.
@@ -104,18 +116,6 @@ export interface ExtraOptions<
 	 * @default "GET"
 	 */
 	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
-
-	// /**
-	//  * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
-	//  *
-	//  * - If set to "none", deduplication is disabled.
-	//  *
-	//  * - If set to "defer", no new requests to the same URL will be allowed through, until the previous one is completed.
-	//  *
-	//  * - If set to "cancel"(default), the previous pending request to the same URL will be cancelled and lets the new request through.
-	//  * @default "cancel"
-	//  */
-	// dedupeStrategy?: "none" | "defer" | "cancel";
 
 	/**
 	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api

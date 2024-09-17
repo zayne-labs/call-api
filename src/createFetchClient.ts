@@ -60,7 +60,7 @@ export const createFetchClient = <
 		const options = {
 			baseURL: "",
 			bodySerializer: JSON.stringify,
-			cancelRedundantRequests: true,
+			dedupeStrategy: "cancel",
 			defaultErrorMessage: "Failed to fetch data from server!",
 			responseType: "json",
 			retries: 0,
@@ -123,7 +123,11 @@ export const createFetchClient = <
 
 		const prevFetchController = abortControllerStore.get(requestKey);
 
-		if (prevFetchController && options.cancelRedundantRequests) {
+		if (
+			prevFetchController &&
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			(options.dedupeStrategy === "cancel" || options.cancelRedundantRequests)
+		) {
 			const reason = new DOMException(
 				`Request aborted as another request to this same endpoint: ${url}, with the same request options was initiated.`,
 				"AbortError"
