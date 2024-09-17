@@ -15,7 +15,7 @@ import {
 	getResolveErrorResultFn,
 	getResponseData,
 	isHTTPErrorInstance,
-	mergeUrlWithParams,
+	mergeUrlWithParamsAndQuery,
 	objectifyHeaders,
 	omitKeys,
 	resolveSuccessResult,
@@ -73,8 +73,14 @@ export const createFetchClient = <
 
 		// == Default Fetch Config
 		const defaultFetchOptions = {
+			method: "GET",
+
+			// eslint-disable-next-line perfectionist/sort-objects
 			body: isObject(body) ? options.bodySerializer(body) : body,
 
+			// == Return undefined if the following conditions are not met (so that native fetch would auto set the correct headers):
+			// - headers are provided
+			// - The body is an object
 			// - The auth option is provided
 			headers:
 				baseHeaders || headers || options.auth || isObject(body)
@@ -99,11 +105,6 @@ export const createFetchClient = <
 							...objectifyHeaders(headers),
 						}
 					: undefined,
-
-			// == Return undefined if the following conditions are not met (so that native fetch would auto set the correct headers):
-			// - headers are provided
-			// - The body is an object
-			method: "GET",
 
 			...restOfBaseFetchConfig,
 			...restOfFetchConfig,
@@ -152,7 +153,7 @@ export const createFetchClient = <
 			await options.onRequest?.({ options, request: requestInit });
 
 			const response = await fetch(
-				`${options.baseURL}${mergeUrlWithParams(url, options.query)}`,
+				`${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`,
 				requestInit
 			);
 

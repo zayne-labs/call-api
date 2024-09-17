@@ -143,9 +143,17 @@ export interface ExtraOptions<
 	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => Promise<void> | void;
 
 	/**
+	 * @description Params to be appended to the URL (i.e: /:id)
+	 */
+	// eslint-disable-next-line perfectionist/sort-union-types
+	params?: Record<string, boolean | number | string> | Array< boolean | number | string>;
+
+	/**
 	 * @description Query parameters to append to the URL.
 	 */
 	query?: Record<string, boolean | number | string>;
+
+
 
 	/**
 	 * @description Custom function to parse the response string into a object.

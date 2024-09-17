@@ -27,26 +27,67 @@ export const toQueryString: ToQueryStringFn = (params) => {
 	return new URLSearchParams(params as Record<string, string>).toString();
 };
 
-export const mergeUrlWithParams = (url: string, query: ExtraOptions["query"]): string => {
+const slash = "/";
+const column = ":";
+const mergeUrlWithParams = (url: string, params: ExtraOptions["params"]) => {
+	if (!params) {
+		return url;
+	}
+
+	let newUrl = url;
+
+	if (isArray(params)) {
+		const matchedParamArray = newUrl
+			.split(slash)
+			.filter((matchedParam) => matchedParam.startsWith(column));
+
+		for (const [index, matchedParam] of matchedParamArray.entries()) {
+			const param = params[index] as string;
+			newUrl = newUrl.replace(matchedParam, param);
+		}
+
+		return newUrl;
+	}
+
+	for (const [key, value] of Object.entries(params)) {
+		newUrl = newUrl.replace(`:${key}`, String(value));
+	}
+
+	return newUrl;
+};
+
+const questionMark = "?";
+const ampersand = "&";
+const mergeUrlWithQuery = (url: string, query: ExtraOptions["query"]): string => {
 	if (!query) {
 		return url;
 	}
 
-	const paramsString = toQueryString(query);
+	const queryString = toQueryString(query);
 
-	if (paramsString === "") {
+	if (queryString?.length === 0) {
 		return url;
 	}
 
-	if (url.endsWith("?")) {
-		return `${url}${paramsString}`;
+	if (url.endsWith(questionMark)) {
+		return `${url}${queryString}`;
 	}
 
-	if (url.includes("?")) {
-		return `${url}&${paramsString}`;
+	if (url.includes(questionMark)) {
+		return `${url}${ampersand}${queryString}`;
 	}
 
-	return `${url}?${paramsString}`;
+	return `${url}${questionMark}${queryString}`;
+};
+
+export const mergeUrlWithParamsAndQuery = (
+	url: string,
+	params: ExtraOptions["params"],
+	query: ExtraOptions["query"]
+) => {
+	const urlWithMergedParams = mergeUrlWithParams(url, params);
+
+	return mergeUrlWithQuery(urlWithMergedParams, query);
 };
 
 export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {

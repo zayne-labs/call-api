@@ -41,34 +41,34 @@
 		}
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "0.16.1",
+		"@arethetypeswrong/cli": "0.16.2",
 		"@changesets/cli": "2.27.8",
 		"@eslint/js": "9.10.0",
-		"@size-limit/esbuild-why": "11.1.4",
-		"@size-limit/preset-small-lib": "11.1.4",
-		"@stylistic/eslint-plugin": "2.7.2",
+		"@size-limit/esbuild-why": "11.1.5",
+		"@size-limit/preset-small-lib": "11.1.5",
+		"@stylistic/eslint-plugin": "2.8.0",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@types/eslint": "9.6.1",
 		"@zayne-labs/tsconfig": "0.1.1",
-		"concurrently": "8.2.2",
+		"concurrently": "9.0.1",
 		"eslint": "9.10.0",
 		"eslint-import-resolver-typescript": "3.6.3",
 		"eslint-plugin-import-x": "4.2.1",
-		"eslint-plugin-jsdoc": "50.2.2",
-		"eslint-plugin-perfectionist": "3.5.0",
+		"eslint-plugin-jsdoc": "50.2.3",
+		"eslint-plugin-perfectionist": "3.6.0",
 		"eslint-plugin-unicorn": "55.0.0",
-		"eslint-typegen": "0.3.1",
+		"eslint-typegen": "0.3.2",
 		"globals": "15.9.0",
-		"husky": "9.1.5",
+		"husky": "9.1.6",
 		"lint-staged": "15.2.10",
 		"pkg-pr-new": "0.0.24",
 		"prettier": "3.3.3",
-		"publint": "0.2.10",
-		"size-limit": "11.1.4",
-		"terser": "5.31.6",
+		"publint": "0.2.11",
+		"size-limit": "11.1.5",
+		"terser": "5.32.0",
 		"tsup": "8.2.4",
-		"typescript": "5.5.4",
-		"typescript-eslint": "8.4.0"
+		"typescript": "5.6.2",
+		"typescript-eslint": "8.6.0"
 	},
 	"publishConfig": {
 		"access": "public",
@@ -94,7 +94,7 @@
 		"retry",
 		"interceptor"
 	],
-	"packageManager": "pnpm@9.9.0",
+	"packageManager": "pnpm@9.10.0",
 	"engines": {
 		"node": ">=18.17.x"
 	}
