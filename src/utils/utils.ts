@@ -1,16 +1,16 @@
 import type {
-	$BaseRequestOptions,
-	$RequestOptions,
 	ApiErrorVariant,
-	BaseConfig,
+	BaseCallApiConfig,
+	BaseRequestOptions,
+	CallApiConfig,
 	ExtraOptions,
-	FetchConfig,
 	PossibleErrorObject,
+	RequestOptions,
 } from "../types";
 import { isArray, isFunction, isObject } from "./typeof";
 
 // prettier-ignore
-export const getRequestKey = <TConfig extends Record<string, unknown>>(url: string, config?: TConfig) => `${url} | ${JSON.stringify(config ?? {})}`;
+export const generateRequestKey = (url: string, config: Record<string, unknown>) => `${url} ${ampersand} ${JSON.stringify(config)}`;
 
 type ToQueryStringFn = {
 	(params: ExtraOptions["query"]): string | null;
@@ -109,10 +109,10 @@ const retryCodesLookup = {
 	504: "Gateway Timeout",
 };
 
-export const defaultRetryCodes: Required<BaseConfig>["retryCodes"] =
+export const defaultRetryCodes: Required<BaseCallApiConfig>["retryCodes"] =
 	Object.keys(retryCodesLookup).map(Number);
 
-export const defaultRetryMethods: Required<BaseConfig>["retryMethods"] = ["GET"];
+export const defaultRetryMethods: Required<BaseCallApiConfig>["retryMethods"] = ["GET"];
 
 export const fetchSpecificKeys = [
 	"body",
@@ -129,7 +129,7 @@ export const fetchSpecificKeys = [
 	"priority",
 	"mode",
 	"referrerPolicy",
-] satisfies Array<keyof FetchConfig>;
+] satisfies Array<keyof CallApiConfig>;
 
 export const omitKeys = <
 	TObject extends Record<string, unknown>,
@@ -164,7 +164,7 @@ const pickKeys = <TObject extends Record<string, unknown>, const TPickArray exte
 
 export const splitConfig = <TObject extends object>(
 	config: TObject
-): ["body" extends keyof TObject ? $RequestOptions : $BaseRequestOptions, ExtraOptions] => [
+): ["body" extends keyof TObject ? RequestOptions : BaseRequestOptions, ExtraOptions] => [
 	pickKeys(config as Record<string, unknown>, fetchSpecificKeys) as never,
 	omitKeys(config as Record<string, unknown>, fetchSpecificKeys) as never,
 ];

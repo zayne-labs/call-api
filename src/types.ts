@@ -4,20 +4,21 @@ import type { AnyNumber, AnyString, BaseMime, Prettify, ResponseHeader } from ".
 import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils/utils";
 
 // prettier-ignore
-export interface FetchConfig<
+export interface CallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = "all",
 > extends Omit<RequestInit, "body" | "headers" | "method">, ExtraOptions<TData, TErrorData, TResultMode> {}
 
-export type BaseConfig<
+export type BaseCallApiConfig<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = "all",
-> = FetchConfig<TBaseData, TBaseErrorData, TBaseResultMode>;
+> = CallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode>;
 
-export interface $RequestOptions extends Pick<FetchConfig, (typeof fetchSpecificKeys)[number]> {}
-export interface $BaseRequestOptions extends Omit<$RequestOptions, "body"> {}
+export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {}
+
+export interface BaseRequestOptions extends Omit<RequestOptions, "body"> {}
 
 export interface ExtraOptions<
 	TData = unknown,
@@ -126,14 +127,14 @@ export interface ExtraOptions<
 	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
 	onRequest?: (requestContext: {
 		options: ExtraOptions;
-		request: $RequestOptions;
+		request: RequestOptions;
 	}) => Promise<void> | void;
 
 	/** @description Interceptor to be called when an error occurs during the fetch request. */
 	onRequestError?: (requestErrorContext: {
 		error: Error;
 		options: ExtraOptions;
-		request: $RequestOptions;
+		request: RequestOptions;
 	}) => Promise<void> | void;
 
 	/** @description Interceptor to be called when a successful response is received from the api. */
@@ -152,6 +153,12 @@ export interface ExtraOptions<
 	 * @description Query parameters to append to the URL.
 	 */
 	query?: Record<string, boolean | number | string>;
+
+	/**
+	 * @description Custom request key to be used to identify a request in the fetch deduplication strategy.
+	 * @default request url + string formed from the request options
+	 */
+	requestKey?: string;
 
 	/**
 	 * @description Custom function to parse the response string into a object.
@@ -216,14 +223,14 @@ export interface ExtraOptions<
 export type ResponseContext<TData> = Prettify<{
 	data: TData;
 	options: ExtraOptions;
-	request: $RequestOptions;
+	request: RequestOptions;
 	response: Response;
 }>;
 
 export type ResponseErrorContext<TErrorData> = Prettify<{
 	errorData: TErrorData;
 	options: ExtraOptions;
-	request: $RequestOptions;
+	request: RequestOptions;
 	response: Response;
 }>;
 
@@ -231,13 +238,13 @@ export type ErrorContext<TErrorData> =
 	| {
 			error: Extract<ErrorObjectUnion, { name: PossibleErrorNames }>;
 			options: ExtraOptions;
-			request: $RequestOptions;
+			request: RequestOptions;
 			response: null;
 	  }
 	| {
 			error: Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;
 			options: ExtraOptions;
-			request: $RequestOptions;
+			request: RequestOptions;
 			response: Response;
 	  };
 

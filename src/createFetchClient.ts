@@ -1,9 +1,9 @@
 import type {
-	$RequestOptions,
-	BaseConfig,
+	BaseCallApiConfig,
+	CallApiConfig,
 	ExtraOptions,
-	FetchConfig,
 	GetCallApiResult,
+	RequestOptions,
 	ResultModeUnion,
 } from "./types";
 import { isObject, isQueryString, isString } from "./utils/typeof";
@@ -11,13 +11,12 @@ import {
 	HTTPError,
 	defaultRetryCodes,
 	defaultRetryMethods,
-	getRequestKey,
+	generateRequestKey,
 	getResolveErrorResultFn,
 	getResponseData,
 	isHTTPErrorInstance,
 	mergeUrlWithParamsAndQuery,
 	objectifyHeaders,
-	omitKeys,
 	resolveSuccessResult,
 	splitConfig,
 	waitUntil,
@@ -28,11 +27,11 @@ export const createFetchClient = <
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = undefined,
 >(
-	baseConfig?: BaseConfig<TBaseData, TBaseErrorData, TBaseResultMode>
+	baseConfig: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
 ) => {
-	const abortControllerStore = new Map<string, AbortController>();
+	const requestInfoCache = new Map<string, { controller: AbortController; response: Response }>();
 
-	const [baseFetchConfig, baseExtraOptions] = splitConfig(baseConfig ?? {});
+	const [baseFetchConfig, baseExtraOptions] = splitConfig(baseConfig);
 
 	const {
 		body: baseBody,
@@ -48,11 +47,11 @@ export const createFetchClient = <
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 	>(
 		url: string,
-		config?: FetchConfig<TData, TErrorData, TResultMode>
+		config: CallApiConfig<TData, TErrorData, TResultMode> = {}
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
 		type CallApiResult = GetCallApiResult<TData, TErrorData, TResultMode>;
 
-		const [fetchConfig, extraOptions] = splitConfig(config ?? {});
+		const [fetchConfig, extraOptions] = splitConfig(config);
 
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
@@ -71,8 +70,8 @@ export const createFetchClient = <
 			...extraOptions,
 		} satisfies ExtraOptions;
 
-		// == Default Fetch Config
-		const defaultFetchOptions = {
+		// == Default Fetch Init
+		const defaultRequestOptions = {
 			method: "GET",
 
 			// eslint-disable-next-line perfectionist/sort-objects
@@ -108,23 +107,27 @@ export const createFetchClient = <
 
 			...restOfBaseFetchConfig,
 			...restOfFetchConfig,
-		} satisfies $RequestOptions;
+		} satisfies RequestOptions;
 
-		const requestKey = getRequestKey(
-			url,
-			omitKeys({ ...defaultFetchOptions, ...options }, [
-				"onRequest",
-				"onResponse",
-				"onResponseError",
-				"onError",
-				"onRequestError",
-			])
-		);
+		// prettier-ignore
+		const requestKey = options.requestKey ?? generateRequestKey(url, { ...defaultRequestOptions, ...options });
 
-		const prevFetchController = abortControllerStore.get(requestKey);
+		const prevRequestInfo = requestInfoCache.get(requestKey);
+
+		// if (
+		// 	prevRequestInfo &&
+		// 	(options.dedupeStrategy === "defer")
+		// ) {
+
+		// 	getResponseData<TData>(
+		// 		options.cloneResponse ? prevRequestInfo.response.clone() : response,
+		// 		options.responseType,
+		// 		options.responseParser
+		// 	);
+		// }
 
 		if (
-			prevFetchController &&
+			prevRequestInfo &&
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			(options.dedupeStrategy === "cancel" || options.cancelRedundantRequests)
 		) {
@@ -133,14 +136,12 @@ export const createFetchClient = <
 				"AbortError"
 			);
 
-			prevFetchController.abort(reason);
+			prevRequestInfo.controller.abort(reason);
 		}
 
-		const newFetchController = new AbortController();
-
-		abortControllerStore.set(requestKey, newFetchController);
-
 		const timeoutSignal = options.timeout ? AbortSignal.timeout(options.timeout) : null;
+
+		const newFetchController = new AbortController();
 
 		const combinedSignal = AbortSignal.any([
 			newFetchController.signal,
@@ -150,8 +151,8 @@ export const createFetchClient = <
 
 		const requestInit = {
 			signal: combinedSignal,
-			...defaultFetchOptions,
-		} satisfies $RequestOptions;
+			...defaultRequestOptions,
+		} satisfies RequestOptions;
 
 		try {
 			await options.onRequest?.({ options, request: requestInit });
@@ -160,6 +161,8 @@ export const createFetchClient = <
 				`${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`,
 				requestInit
 			);
+
+			requestInfoCache.set(requestKey, { controller: newFetchController, response });
 
 			const shouldRetry =
 				!response.ok &&
@@ -270,7 +273,7 @@ export const createFetchClient = <
 
 			// == Removing the now unneeded AbortController from store
 		} finally {
-			abortControllerStore.delete(requestKey);
+			requestInfoCache.delete(requestKey);
 		}
 	};
 
