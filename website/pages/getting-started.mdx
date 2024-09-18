@@ -1,59 +1,57 @@
 # Getting Started
 
+CallApi provides a familiar experience for making HTTP requests, similar to the Fetch API, but with added conveniences for easier response handling.
+
 ## Installation
 
-To install CallApi, you have a couple of options:
+CallApi is available as an NPM package. You can install it using [npm](https://www.npmjs.com/), [Yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or [Bun](https://bun.sh/). You can also use it directly in the browser via a CDN.
 
 ### Using npm (recommended)
 
-First, run this command to install:
+To install CallApi using npm, run the following command:
 
 ```js npm2yarn copy
 npm install @zayne-labs/callapi
 ```
 
-Once that's done, you can import it into your JavaScript file like this:
+Then, import CallApi into your project:
 
-```js filename="app.js"
+```js
 import { callApi } from "@zayne-labs/callapi";
 ```
 
 ### Without npm
 
-If you prefer not to use npm, you can import CallApi directly into your JavaScript files via a CDN.
-
-To do this, you first need to set your `script`'s type to `module`, then import `callApi`.
+To use CallApi without npm, import it directly into your JavaScript files via a CDN by using a script tag with the `type="module"` attribute:
 
 ```html
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi";
+    import { callApi } from "https://esm.run/@zayne-labs/callapi";
 </script>
 ```
 
-You might also want to lock the version you're using. You can do that like this:
+If you want to use a specific version, you can specify it in the URL like this:
 
 ```html
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi@0.3.2";
+    import { callApi } from "https://esm.run/@zayne-labs/callapi@0.7.7";
 </script>
 ```
 
-## Usage
+## Quick Start
 
-**Wondering how to start using CallApi? It's simple!**
-
-You can use `callApi` just like the native `fetch` function. The cool part is that you don't have to handle the response yourself. You can just destructure the data and error directly.
-
--  All the options for the native fetch are supported, so you can use the same syntax to make requests.
+CallApi is designed to work just like the native Fetch API, with some added conveniences to make your life easier. The best part? You don't need to handle the response manually. Instead, you can destructure the result directly, getting access to both the `data` and `error` in one step.
 
 ```js
 const { data, error } = await callApi("url", fetchOptions);
 ```
 
--  You also have access to the response object itself via destructuring:
+You can pass the same request options as you would with the Fetch API, maintaining the familiar syntax you're used to.
+
+In addition to `data` and `error`, you can also access the entire response object if needed:
 
 ```js
 const { data, error, response } = await callApi("url", fetchOptions);
 ```
 
-For additional convenience with autocomplete, check out how to use CallApi with TypeScript in the [TypeScript section](/advanced#usage-with-typescript).
+To make development even smoother, especially with autocompletion and type safety, check out the [TypeScript section](/advanced#usage-with-typescript) for more details on using CallApi with TypeScript.
