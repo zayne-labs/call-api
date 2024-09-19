@@ -33,4 +33,4 @@ jobs:
            run: |
               pnpm install --frozen-lockfile
               pnpm lint:check-types
-              pnpm lint:lint
+              pnpm lint:eslint
