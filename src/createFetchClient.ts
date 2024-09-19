@@ -6,17 +6,17 @@ import type {
 	RequestOptions,
 	ResultModeUnion,
 } from "./types";
-import { isObject, isQueryString, isString } from "./utils/typeof";
+import { isFunction, isObject, isQueryString, isString } from "./utils/typeof";
 import {
 	HTTPError,
 	defaultRetryCodes,
 	defaultRetryMethods,
 	generateRequestKey,
-	getResolveErrorResultFn,
 	getResponseData,
 	isHTTPErrorInstance,
 	mergeUrlWithParamsAndQuery,
 	objectifyHeaders,
+	resolveErrorResult,
 	resolveSuccessResult,
 	splitConfig,
 	waitUntil,
@@ -29,7 +29,10 @@ export const createFetchClient = <
 >(
 	baseConfig: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
 ) => {
-	const requestInfoCache = new Map<string, { controller: AbortController; response: Response }>();
+	const requestInfoCache = new Map<
+		false | string,
+		{ controller: AbortController; responsePromise: Promise<Response> }
+	>();
 
 	const [baseFetchConfig, baseExtraOptions] = splitConfig(baseConfig);
 
@@ -40,7 +43,7 @@ export const createFetchClient = <
 		...restOfBaseFetchConfig
 	} = baseFetchConfig;
 
-	/* eslint-disable complexity */
+	// eslint-disable-next-line complexity
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
@@ -70,7 +73,7 @@ export const createFetchClient = <
 			...extraOptions,
 		} satisfies ExtraOptions;
 
-		// == Default Fetch Init
+		// == Default Request Init
 		const defaultRequestOptions = {
 			method: "GET",
 
@@ -110,27 +113,22 @@ export const createFetchClient = <
 		} satisfies RequestOptions;
 
 		// prettier-ignore
-		const requestKey = options.requestKey ?? generateRequestKey(url, { ...defaultRequestOptions, ...options });
+		const shouldHaveRequestKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
 
-		const prevRequestInfo = requestInfoCache.get(requestKey);
+		// prettier-ignore
+		const requestKey = options.requestKey ?? (shouldHaveRequestKey &&  generateRequestKey(url, { ...defaultRequestOptions, ...options }));
 
-		// if (
-		// 	prevRequestInfo &&
-		// 	(options.dedupeStrategy === "defer")
-		// ) {
+		// == This is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key start at the same time
+		if (requestKey) {
+			await waitUntil(0.1);
+		}
 
-		// 	getResponseData<TData>(
-		// 		options.cloneResponse ? prevRequestInfo.response.clone() : response,
-		// 		options.responseType,
-		// 		options.responseParser
-		// 	);
-		// }
+		// == This ensures cache operations only occur when key is available
+		const requestInfoCacheOrNull = requestKey ? requestInfoCache : null;
 
-		if (
-			prevRequestInfo &&
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			(options.dedupeStrategy === "cancel" || options.cancelRedundantRequests)
-		) {
+		const prevRequestInfo = requestInfoCacheOrNull?.get(requestKey);
+
+		if (prevRequestInfo && options.dedupeStrategy === "cancel") {
 			const reason = new DOMException(
 				`Request aborted as another request to this same endpoint: ${url}, with the same request options was initiated.`,
 				"AbortError"
@@ -139,9 +137,9 @@ export const createFetchClient = <
 			prevRequestInfo.controller.abort(reason);
 		}
 
-		const timeoutSignal = options.timeout ? AbortSignal.timeout(options.timeout) : null;
-
 		const newFetchController = new AbortController();
+
+		const timeoutSignal = options.timeout ? AbortSignal.timeout(options.timeout) : null;
 
 		const combinedSignal = AbortSignal.any([
 			newFetchController.signal,
@@ -157,12 +155,17 @@ export const createFetchClient = <
 		try {
 			await options.onRequest?.({ options, request: requestInit });
 
-			const response = await fetch(
-				`${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`,
-				requestInit
-			);
+			const responsePromise =
+				prevRequestInfo && options.dedupeStrategy === "defer"
+					? prevRequestInfo.responsePromise
+					: fetch(
+							`${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`,
+							requestInit
+						);
 
-			requestInfoCache.set(requestKey, { controller: newFetchController, response });
+			requestInfoCacheOrNull?.set(requestKey, { controller: newFetchController, responsePromise });
+
+			const response = await responsePromise;
 
 			const shouldRetry =
 				!response.ok &&
@@ -177,9 +180,13 @@ export const createFetchClient = <
 				return await callApi(url, { ...config, retries: options.retries - 1 });
 			}
 
+			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.json more than once
+			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+			const shouldCloneResponse = options.cloneResponse || options.dedupeStrategy === "defer";
+
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(
-					options.cloneResponse ? response.clone() : response,
+					shouldCloneResponse ? response.clone() : response,
 					options.responseType,
 					options.responseParser
 				);
@@ -193,7 +200,7 @@ export const createFetchClient = <
 			}
 
 			const successData = await getResponseData<TData>(
-				options.cloneResponse ? response.clone() : response,
+				shouldCloneResponse ? response.clone() : response,
 				options.responseType,
 				options.responseParser
 			);
@@ -213,14 +220,25 @@ export const createFetchClient = <
 
 			// == Exhaustive Error handling
 		} catch (error) {
-			const resolveErrorResult = getResolveErrorResultFn<CallApiResult>({ error, options });
+			const generalErrorResult = resolveErrorResult<CallApiResult>({
+				defaultErrorMessage: options.defaultErrorMessage,
+				error,
+			});
+
+			const shouldThrowOnError = isFunction(options.throwOnError)
+				? options.throwOnError((generalErrorResult as { error: never }).error, options)
+				: options.throwOnError;
+
+			if (shouldThrowOnError) {
+				throw error;
+			}
 
 			if (error instanceof DOMException && error.name === "TimeoutError") {
 				const message = `Request timed out after ${options.timeout}ms`;
 
 				console.error(`${error.name}:`, message);
 
-				return resolveErrorResult({ message });
+				return { ...generalErrorResult, message };
 			}
 
 			if (error instanceof DOMException && error.name === "AbortError") {
@@ -228,7 +246,7 @@ export const createFetchClient = <
 
 				console.error(`${name}:`, message);
 
-				return resolveErrorResult({ message });
+				return generalErrorResult;
 			}
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
@@ -251,10 +269,8 @@ export const createFetchClient = <
 					}),
 				]));
 
-				return resolveErrorResult(error);
+				return generalErrorResult;
 			}
-
-			const errorResult = resolveErrorResult();
 
 			void (await Promise.all([
 				// == At this point only the request errors exist, so the request error interceptor is called
@@ -262,18 +278,18 @@ export const createFetchClient = <
 
 				// == Also call the onError interceptor
 				options.onError?.({
-					error: (errorResult as { error: never }).error,
+					error: (generalErrorResult as { error: never }).error,
 					options,
 					request: requestInit,
 					response: null,
 				}),
 			]));
 
-			return errorResult;
+			return generalErrorResult;
 
 			// == Removing the now unneeded AbortController from store
 		} finally {
-			requestInfoCache.delete(requestKey);
+			requestInfoCacheOrNull?.delete(requestKey);
 		}
 	};
 

@@ -4,10 +4,9 @@ import type {
 	BaseRequestOptions,
 	CallApiConfig,
 	ExtraOptions,
-	PossibleErrorObject,
 	RequestOptions,
 } from "../types";
-import { isArray, isFunction, isObject } from "./typeof";
+import { isArray, isObject } from "./typeof";
 
 // prettier-ignore
 export const generateRequestKey = (url: string, config: Record<string, unknown>) => `${url} ${ampersand} ${JSON.stringify(config)}`;
@@ -229,35 +228,31 @@ export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiR
 };
 
 // == Using curring here so error and options are not required to be passed every time, instead to be captured once by way of closure
-export const getResolveErrorResultFn = <CallApiResult>(initInfo: {
+export const resolveErrorResult = <CallApiResult>(errorInfo: {
+	defaultErrorMessage: ExtraOptions["defaultErrorMessage"];
 	error?: unknown;
-	options: ExtraOptions;
-}) => {
-	const { error, options } = initInfo;
+}): CallApiResult => {
+	const { defaultErrorMessage, error } = errorInfo;
 
-	const resolveErrorResult = <TErrorData>(errorInfo?: Partial<HTTPError<TErrorData>>): CallApiResult => {
-		const { errorData, message, response } = errorInfo ?? {};
-
-		const shouldThrowOnError = isFunction(options.throwOnError)
-			? options.throwOnError(error as Error)
-			: options.throwOnError;
-
-		if (shouldThrowOnError) {
-			throw error;
-		}
+	if (isHTTPErrorInstance(error)) {
+		const { errorData, message = defaultErrorMessage, name, response } = error;
 
 		return {
 			data: null,
-			error: {
-				errorData: errorData ?? error,
-				message: message ?? (error as PossibleErrorObject)?.message ?? options.defaultErrorMessage,
-				name: (error as PossibleErrorObject)?.name ?? "UnknownError",
-			},
-			response: response ?? null,
+			error: { errorData, message, name },
+			response,
 		} as CallApiResult;
-	};
+	}
 
-	return resolveErrorResult;
+	return {
+		data: null,
+		error: {
+			errorData: error,
+			message: (error as Error).message,
+			name: (error as Error).name,
+		},
+		response: null,
+	} as CallApiResult;
 };
 
 export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["error"] | null) => {

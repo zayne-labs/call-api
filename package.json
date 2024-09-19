@@ -17,28 +17,28 @@
 	"module": "./dist/esm/index.js",
 	"types": "./dist/esm/index.d.ts",
 	"scripts": {
-		"prepare": "husky",
-		"test:check-types": "tsc --pretty --incremental -p tsconfig.json",
-		"test:format": "prettier --cache --write .",
-		"test:lint": "eslint src/**/*.ts --cache --max-warnings 0 --report-unused-disable-directives",
-		"test:size": "size-limit",
-		"test:publint": "publint --strict .",
-		"test:attw": "attw --pack . --exclude-entrypoints utils",
-		"test:release": "pkg-pr-new publish",
+		"build:dev": "cross-env NODE_ENV=development tsup",
+		"build:test": "concurrently --prefix-colors \"yellow.bold,#7da4f8.bold,magenta\" --names PUBLINT,TSUP,ATTW 'pnpm:lint:publint' 'pnpm:build:dev' 'pnpm:lint:attw'",
 		"build": "tsup",
-		"build:dev": "concurrently --prefix-colors \"yellow.bold,#7da4f8.bold,magenta\"   --names PUBLINT,TSUP,ATTW   'pnpm:test:publint' \"pnpm build --watch\" 'pnpm:test:attw'",
-		"version-package": "changeset version",
-		"release": "changeset publish"
+		"inspect:eslint-config": "pnpx @eslint/config-inspector@latest --config eslint.config.js",
+		"lint:attw": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
+		"lint:check-types": "tsc --pretty --incremental -p tsconfig.json",
+		"lint:commitlint": "commitlint --edit",
+		"lint:eslint": "eslint src/**/*.ts --cache --max-warnings 0 --report-unused-disable-directives",
+		"lint:format": "prettier --cache --write .",
+		"lint:packages": "pnpm dedupe --check",
+		"lint:publint": "publint --strict .",
+		"lint:size": "size-limit",
+		"prepare": "husky",
+		"release": "changeset publish",
+		"test:release": "pkg-pr-new publish",
+		"version-package": "changeset version"
 	},
 	"exports": {
-		".": {
-			"import": "./dist/esm/index.js",
-			"require": "./dist/cjs/index.cjs"
-		},
-		"./utils": {
-			"import": "./dist/esm/utils/index.js",
-			"require": "./dist/cjs/utils/index.cjs"
-		}
+		".": "./dist/esm/index.js",
+		"./utils": "./dist/esm/utils/index.js",
+		"./legacy": "./dist/cjs/index.cjs",
+		"./legacy/utils": "./dist/cjs/utils/index.cjs"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "0.16.2",
@@ -49,8 +49,10 @@
 		"@stylistic/eslint-plugin": "2.8.0",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@types/eslint": "9.6.1",
+		"@types/node": "^22.5.5",
 		"@zayne-labs/tsconfig": "0.1.1",
 		"concurrently": "9.0.1",
+		"cross-env": "^7.0.3",
 		"eslint": "9.10.0",
 		"eslint-import-resolver-typescript": "3.6.3",
 		"eslint-plugin-import-x": "4.2.1",
@@ -81,7 +83,11 @@
 	"size-limit": [
 		{
 			"path": "./src/index.ts",
-			"limit": "2 kb"
+			"limit": "2.2 kb"
+		},
+		{
+			"path": "./src/utils/index.ts",
+			"limit": "400 b"
 		}
 	],
 	"sideEffects": false,

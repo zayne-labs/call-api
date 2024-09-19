@@ -32,4 +32,4 @@ jobs:
          - name: Install dependencies and run size limit check
            run: |
               pnpm install --frozen-lockfile
-              pnpm test:size
+              pnpm lint:size

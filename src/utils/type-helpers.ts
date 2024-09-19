@@ -9,7 +9,7 @@ export type AnyFunction = (...args: any[]) => any;
 
 export type Prettify<TObject> = { [Key in keyof TObject]: TObject[Key] } & NonNullable<unknown>;
 
-export type ResponseHeader =
+export type CommonRequestHeaders =
 	| "Access-Control-Allow-Credentials"
 	| "Access-Control-Allow-Headers"
 	| "Access-Control-Allow-Methods"
@@ -79,7 +79,7 @@ export type ResponseHeader =
 	| "X-Robots-Tag"
 	| "X-XSS-Protection";
 
-export type BaseMime =
+export type CommonContentTypes =
 	| "application/epub+zip"
 	| "application/gzip"
 	| "application/json"

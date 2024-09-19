@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type { AnyNumber, AnyString, BaseMime, Prettify, ResponseHeader } from "./utils/type-helpers";
-import type { HTTPError, fetchSpecificKeys, handleResponseType } from "./utils/utils";
+import type {
+	AnyNumber,
+	AnyString,
+	CommonContentTypes,
+	CommonRequestHeaders,
+	Prettify,
+} from "./utils/type-helpers";
+import type { fetchSpecificKeys, handleResponseType } from "./utils/utils";
 
 // prettier-ignore
 export interface CallApiConfig<
@@ -56,7 +62,7 @@ export interface ExtraOptions<
 	/**
 	 * @description If true, cancels previous unfinished requests to the same URL.
 	 * @default true
-	 * @deprecated use dedupeStrategy === "cancel" instead
+	 * @deprecated use dedupeStrategy option instead
 	 */
 	cancelRedundantRequests?: boolean;
 
@@ -86,7 +92,10 @@ export interface ExtraOptions<
 	/**
 	 * @description Headers to be used in the request.
 	 */
-	headers?: Record<"Content-Type", BaseMime> | Record<ResponseHeader, string> | RequestInit["headers"];
+	headers?:
+		| Record<"Content-Type", CommonContentTypes>
+		| Record<CommonRequestHeaders, string>
+		| RequestInit["headers"];
 
 	/**
 	 * @description an optional field you can fill with additional information,
@@ -212,7 +221,12 @@ export interface ExtraOptions<
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
 	 */
-	throwOnError?: boolean | ((error?: Error | HTTPError<TErrorData>) => boolean);
+	throwOnError?:
+		| boolean
+		| ((
+				error: ErrorContext<TErrorData>["error"],
+				optionsAndRequest: ExtraOptions & RequestOptions
+		  ) => boolean);
 
 	/**
 	 * @description Request timeout in milliseconds
@@ -255,10 +269,10 @@ type ApiSuccessVariant<TData> = {
 };
 
 type PossibleErrorNames = {
-	_: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | "UnknownError";
+	_: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError";
 }["_"];
 
-type ErrorObjectUnion<TErrorData = unknown> =
+export type ErrorObjectUnion<TErrorData = unknown> =
 	| {
 			errorData: Error;
 			message: string;
@@ -298,10 +312,3 @@ export type GetCallApiResult<TData, TErrorData, TResultMode> =
 	TResultMode extends NonNullable<ResultModeUnion>
 		? ResultModeMap<TData, TErrorData>[TResultMode]
 		: ResultModeMap<TData, TErrorData>["all"];
-
-export type PossibleErrorObject =
-	| {
-			message?: string;
-			name?: PossibleErrorNames;
-	  }
-	| undefined;
