@@ -65,6 +65,7 @@ export const createFetchClient = <
 			dedupeStrategy: "cancel",
 			defaultErrorMessage: "Failed to fetch data from server!",
 			responseType: "json",
+			resultMode: "all",
 			retries: 0,
 			retryCodes: defaultRetryCodes,
 			retryDelay: 0,
@@ -216,13 +217,18 @@ export const createFetchClient = <
 				response: options.cloneResponse ? response.clone() : response,
 			});
 
-			return resolveSuccessResult<CallApiResult>({ options, response, successData: validSuccessData });
+			return resolveSuccessResult<CallApiResult>({
+				response,
+				resultMode: options.resultMode,
+				successData: validSuccessData,
+			});
 
 			// == Exhaustive Error handling
 		} catch (error) {
 			const generalErrorResult = resolveErrorResult<CallApiResult>({
 				defaultErrorMessage: options.defaultErrorMessage,
 				error,
+				resultMode: options.resultMode,
 			});
 
 			const shouldThrowOnError = isFunction(options.throwOnError)

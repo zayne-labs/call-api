@@ -4,7 +4,9 @@ import type {
 	BaseRequestOptions,
 	CallApiConfig,
 	ExtraOptions,
+	PossibleErrorNames,
 	RequestOptions,
+	ResultModeMap,
 } from "../types";
 import { isArray, isObject } from "./typeof";
 
@@ -200,15 +202,15 @@ export const getResponseData = <TResponse>(
 };
 
 type SuccessInfo = {
-	options: ExtraOptions;
 	response: Response;
+	resultMode: ExtraOptions["resultMode"];
 	successData: unknown;
 };
 
 // == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
 // LINK - See https://www.zhenghao.io/posts/type-functions for more info
 export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiResult => {
-	const { options, response, successData } = info;
+	const { response, resultMode, successData } = info;
 
 	const apiDetails = {
 		data: successData,
@@ -216,43 +218,59 @@ export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiR
 		response,
 	};
 
-	if (!options.resultMode || options.resultMode === "all") {
+	if (!resultMode) {
 		return apiDetails as CallApiResult;
 	}
 
 	return {
+		all: apiDetails,
 		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
 		onlySuccess: apiDetails.data,
-	}[options.resultMode] as CallApiResult;
+	}[resultMode] as CallApiResult;
 };
 
-// == Using curring here so error and options are not required to be passed every time, instead to be captured once by way of closure
-export const resolveErrorResult = <CallApiResult>(errorInfo: {
-	defaultErrorMessage: ExtraOptions["defaultErrorMessage"];
+type ErrorInfo = {
+	defaultErrorMessage: Required<ExtraOptions>["defaultErrorMessage"];
 	error?: unknown;
-}): CallApiResult => {
-	const { defaultErrorMessage, error } = errorInfo;
+	resultMode: ExtraOptions["resultMode"];
+};
+
+export const resolveErrorResult = <CallApiResult>(info: ErrorInfo): CallApiResult => {
+	const { defaultErrorMessage, error, resultMode } = info;
+
+	let apiDetails!: ResultModeMap["all"];
 
 	if (isHTTPErrorInstance(error)) {
 		const { errorData, message = defaultErrorMessage, name, response } = error;
 
-		return {
+		apiDetails = {
 			data: null,
 			error: { errorData, message, name },
 			response,
-		} as CallApiResult;
+		};
+	}
+
+	if (error) {
+		const { message, name } = error as Error;
+
+		apiDetails = {
+			data: null,
+			error: { errorData: error as Error, message, name: name as PossibleErrorNames },
+			response: null,
+		};
+	}
+
+	if (!resultMode) {
+		return apiDetails as CallApiResult;
 	}
 
 	return {
-		data: null,
-		error: {
-			errorData: error,
-			message: (error as Error).message,
-			name: (error as Error).name,
-		},
-		response: null,
-	} as CallApiResult;
+		all: apiDetails,
+		onlyError: apiDetails.error,
+		onlyResponse: apiDetails.response,
+		onlySuccess: apiDetails.data,
+	}[resultMode] as CallApiResult;
 };
 
 export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["error"] | null) => {

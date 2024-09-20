@@ -268,7 +268,7 @@ type ApiSuccessVariant<TData> = {
 	response: Response;
 };
 
-type PossibleErrorNames = {
+export type PossibleErrorNames = {
 	_: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError";
 }["_"];
 
@@ -296,7 +296,7 @@ export type ApiErrorVariant<TErrorData> =
 			response: Response;
 	  };
 
-type ResultModeMap<TData = unknown, TErrorData = unknown> = {
+export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 	all: ApiErrorVariant<TErrorData> | ApiSuccessVariant<TData>;
 	onlyError: ApiErrorVariant<TErrorData>["error"];
 	onlyResponse: Response;

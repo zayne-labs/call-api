@@ -1,6 +1,6 @@
 {
 	"name": "@zayne-labs/callapi",
-	"version": "1.0.0-rc-1",
+	"version": "1.0.0-rc-2",
 	"type": "module",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"repository": {
@@ -74,8 +74,7 @@
 	},
 	"publishConfig": {
 		"access": "public",
-		"registry": "https://registry.npmjs.org/",
-		"provenance": true
+		"registry": "https://registry.npmjs.org/"
 	},
 	"files": [
 		"dist"
