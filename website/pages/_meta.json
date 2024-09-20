@@ -1,8 +1,8 @@
 {
 	"index": "Introduction",
-	"getting-started": "Getting Started",
+	"installation": "Installation",
 	"features": "Core Features",
-	"advanced": "Advanced",
+	"advanced": "Advanced Features",
 	"api-reference": "API Reference",
 	"examples": "Examples"
 }
