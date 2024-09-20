@@ -11,16 +11,16 @@ The `error` object contains the following properties:
 1. **`name`**: The type of error (e.g., `'HTTPError'`, `'TypeError'`, `'SyntsaxError'`).
 2. **`message`**: A brief description of what went wrong.
 3. **`errorData`**: The detailed error information, which can either be:
-   - The parsed response from the API if it's an HTTP error.
-   - The original JavaScript error object for non-HTTP errors.
+   -  The parsed response from the API if it's an HTTP error.
+   -  The original JavaScript error object for non-HTTP errors.
 
 For **HTTP errors**, the `name` will be `'HTTPError'`, and `errorData` will contain the API's error response (which could be an object or a string, depending on the server).
 
 ```js copy
 const { data, error } = await callApi("some-url");
 
-console.log(error.name);      // 'HTTPError'
-console.log(error.message);   // '404 Not Found'
+console.log(error.name); // 'HTTPError'
+console.log(error.message); // '404 Not Found'
 console.log(error.errorData); // { error: "Resource not found" }
 ```
 
@@ -29,8 +29,8 @@ For **non-HTTP errors** (like `TypeError` or `SyntaxError`), `name` will reflect
 ```js copy
 const { data, error } = await callApi("some-url");
 
-console.log(error.name);      // 'TypeError'
-console.log(error.message);   // 'Failed to fetch'
+console.log(error.name); // 'TypeError'
+console.log(error.message); // 'Failed to fetch'
 console.log(error.errorData); // The original TypeError object
 ```
 
@@ -55,11 +55,11 @@ This feature is useful in scenarios like search inputs or form submissions where
 
 ### Why This is Useful
 
-- **Automatic Cancellation**: If multiple requests to the same URL happen in quick succession, CallApi cancels any previous requests, ensuring only the latest one is processed.
-- **Eliminates Race Conditions**: This is especially useful when rapid API calls occur, such as during user input in search fields or multiple button clicks.
-- **Seamless with React Hooks**: This feature is perfect for React hooks like `useEffect`, where component updates might trigger frequent API requests.
-- **Configurable**: If you want to manage your requests differently, simply disable this feature by setting `{ cancelRedundantRequests: false }` in your options.
-- **Manual Control**: For even more control, you can manually cancel requests using `AbortController`, just like with the native Fetch API.
+-  **Automatic Cancellation**: If multiple requests to the same URL happen in quick succession, CallApi cancels any previous requests, ensuring only the latest one is processed.
+-  **Eliminates Race Conditions**: This is especially useful when rapid API calls occur, such as during user input in search fields or multiple button clicks.
+-  **Seamless with React Hooks**: This feature is perfect for React hooks like `useEffect`, where component updates might trigger frequent API requests.
+-  **Configurable**: If you want to manage your requests differently, simply disable this feature by setting `{ cancelRedundantRequests: false }` in your options.
+-  **Manual Control**: For even more control, you can manually cancel requests using `AbortController`, just like with the native Fetch API.
 
 ### Manually Cancelling Requests with `AbortController`
 
