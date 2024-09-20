@@ -1,9 +1,22 @@
 # Introduction
 
-CallApi is an extra-lightweight wrapper over the Fetch API that provides convenient options for making HTTP requests while keeping the API familiar with the Fetch API.
+CallApi is an extra-lightweight wrapper around the Fetch API, designed to simplify making HTTP requests. It allows you to use familiar Fetch API syntax while offering additional options for convenience.
 
-It takes in a `url` and a `request` options object, like Fetch API, but with additional options to make your life easier. Check out the [API Reference](/api-reference) for a quick look at each option.
+Just like Fetch, it takes a `url` and a `request` options object, but with added functionality to streamline common tasks. Check out the [API Reference](/api-reference) for a detailed look at each option.
+
+With CallApi, handling responses is effortless. Instead of manually parsing the response, you can destructure both `data` and `error` in a single step, making your code cleaner and more efficient:
+
+```js
+const { data, error } = await callApi("url", fetchOptions);
+```
+
+You can still pass the same request options as you would with Fetch API, ensuring compatibility with your existing code. Additionally, if you need access to the full response, it's available too:
+
+```js
+const { data, error, response } = await callApi("url", fetchOptions);
+```
+
 
 ## Acknowledgements
 
-Special thanks go to **ofetch** by unjs for inspiring some of the features in the library, such as the function-based interceptors and retries. Also, credit goes to the **zl-fetch** fetch wrapper for inspiring a few features in this library.
+Special thanks go to [ofetch by unjs](https://github.com/unjs/ofetch) for inspiring some of the features in the library, such as the function-based interceptors and retries. Also, credit goes to the [zl-fetch fetch wrapper](https://github.com/zellwk/zl-fetch) for inspiring a few features in this library.
