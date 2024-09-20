@@ -6,13 +6,13 @@ Just like Fetch, it takes a `url` and a `request` options object, but with added
 
 With CallApi, handling responses is effortless. Instead of manually parsing the response, you can destructure both `data` and `error` in a single step, making your code cleaner and more efficient:
 
-```js
+```js copy
 const { data, error } = await callApi("url", fetchOptions);
 ```
 
 You can still pass the same request options as you would with Fetch API, ensuring compatibility with your existing code. Additionally, if you need access to the full response, it's available too:
 
-```js
+```js copy
 const { data, error, response } = await callApi("url", fetchOptions);
 ```
 
