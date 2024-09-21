@@ -113,7 +113,7 @@ export const createFetchClient = <
 			// - The body is an object
 			// - The auth option is provided
 			headers:
-				baseHeaders || headers || options.auth || isObject(body)
+				baseHeaders || headers || isObject(body) || options.auth
 					? {
 							...(isObject(body) && {
 								Accept: "application/json",
