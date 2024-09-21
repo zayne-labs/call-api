@@ -1,13 +1,14 @@
 import type {
 	ApiErrorVariant,
 	BaseCallApiConfig,
-	BaseRequestOptions,
+	BaseExtraOptions,
 	CallApiConfig,
 	ExtraOptions,
 	PossibleErrorNames,
 	RequestOptions,
 	ResultModeMap,
 } from "../types";
+import type { AnyFunction } from "./type-helpers";
 import { isArray, isObject } from "./typeof";
 
 // prettier-ignore
@@ -163,12 +164,41 @@ const pickKeys = <TObject extends Record<string, unknown>, const TPickArray exte
 	return updatedObject as Pick<TObject, TPickArray[number]>;
 };
 
-export const splitConfig = <TObject extends object>(
-	config: TObject
-): ["body" extends keyof TObject ? RequestOptions : BaseRequestOptions, ExtraOptions] => [
-	pickKeys(config as Record<string, unknown>, fetchSpecificKeys) as never,
-	omitKeys(config as Record<string, unknown>, fetchSpecificKeys) as never,
-];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const splitBaseConfig = (baseConfig: Record<string, any>) =>
+	[
+		pickKeys(baseConfig, fetchSpecificKeys) as RequestOptions,
+		omitKeys(baseConfig, [...fetchSpecificKeys, "requestKey"] satisfies Array<
+			keyof CallApiConfig
+		>) as BaseExtraOptions,
+	] as const;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const splitConfig = (config: Record<string, any>) =>
+	[
+		pickKeys(config, fetchSpecificKeys) as RequestOptions,
+		omitKeys(config, fetchSpecificKeys) as ExtraOptions,
+	] as const;
+
+export const handleMergeInterceptors = <
+	TBaseInterceptor extends AnyFunction<Promise<void> | void> | Array<AnyFunction<Promise<void> | void>>,
+	TInterceptor extends AnyFunction<Promise<void> | void>,
+>(
+	baseInterceptor: TBaseInterceptor | undefined,
+	interceptor: TInterceptor | undefined
+) => {
+	if (isArray(baseInterceptor)) {
+		const mergedFunction = async (ctx: Record<string, unknown>) => {
+			interceptor && baseInterceptor.push(interceptor);
+
+			void (await Promise.all(baseInterceptor.map((fn) => fn(ctx))));
+		};
+
+		return mergedFunction;
+	}
+
+	return interceptor ?? (baseInterceptor as typeof interceptor);
+};
 
 export const handleResponseType = <TResponse>(
 	response: Response,

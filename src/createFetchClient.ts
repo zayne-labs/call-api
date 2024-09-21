@@ -13,11 +13,13 @@ import {
 	defaultRetryMethods,
 	generateRequestKey,
 	getResponseData,
+	handleMergeInterceptors,
 	isHTTPErrorInstance,
 	mergeUrlWithParamsAndQuery,
 	objectifyHeaders,
 	resolveErrorResult,
 	resolveSuccessResult,
+	splitBaseConfig,
 	splitConfig,
 	waitUntil,
 } from "./utils/utils";
@@ -25,16 +27,11 @@ import {
 export const createFetchClient = <
 	TBaseData,
 	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = undefined,
+	TBaseResultMode extends ResultModeUnion = "all",
 >(
 	baseConfig: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
 ) => {
-	const requestInfoCache = new Map<
-		false | string,
-		{ controller: AbortController; responsePromise: Promise<Response> }
-	>();
-
-	const [baseFetchConfig, baseExtraOptions] = splitConfig(baseConfig);
+	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig);
 
 	const {
 		body: baseBody,
@@ -42,6 +39,20 @@ export const createFetchClient = <
 		signal: baseSignal,
 		...restOfBaseFetchConfig
 	} = baseFetchConfig;
+
+	const {
+		onError: onBaseError,
+		onRequest: onBaseRequest,
+		onRequestError: onBaseRequestError,
+		onResponse: onBaseResponse,
+		onResponseError: onBaseResponseError,
+		...restOfBaseExtraOptions
+	} = baseExtraOptions;
+
+	const requestInfoCache = new Map<
+		false | string,
+		{ controller: AbortController; responsePromise: Promise<Response> }
+	>();
 
 	// eslint-disable-next-line complexity
 	const callApi = async <
@@ -58,20 +69,36 @@ export const createFetchClient = <
 
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
+		// prettier-ignore
+		const {
+			onError,
+			onRequest,
+			onRequestError,
+			onResponse,
+			onResponseError,
+			...restOfExtraOptions
+		} = extraOptions;
+
 		// == Default Extra Options
 		const options = {
 			baseURL: "",
 			bodySerializer: JSON.stringify,
 			dedupeStrategy: "cancel",
 			defaultErrorMessage: "Failed to fetch data from server!",
+			onError: handleMergeInterceptors(onBaseError, onError),
+			onRequest: handleMergeInterceptors(onBaseRequest, onRequest),
+			onRequestError: handleMergeInterceptors(onBaseRequestError, onRequestError),
+			onResponse: handleMergeInterceptors(onBaseResponse, onResponse),
+			onResponseError: handleMergeInterceptors(onBaseResponseError, onResponseError),
 			responseType: "json",
 			resultMode: "all",
 			retries: 0,
 			retryCodes: defaultRetryCodes,
 			retryDelay: 0,
 			retryMethods: defaultRetryMethods,
-			...baseExtraOptions,
-			...extraOptions,
+
+			...restOfBaseExtraOptions,
+			...restOfExtraOptions,
 		} satisfies ExtraOptions;
 
 		// == Default Request Init

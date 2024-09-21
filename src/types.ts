@@ -13,18 +13,17 @@ import type { fetchSpecificKeys, handleResponseType } from "./utils/utils";
 export interface CallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = "all",
+	TResultMode extends ResultModeUnion = ResultModeUnion,
 > extends Omit<RequestInit, "body" | "headers" | "method">, ExtraOptions<TData, TErrorData, TResultMode> {}
 
-export type BaseCallApiConfig<
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = "all",
-> = CallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode>;
+// prettier-ignore
+export interface BaseCallApiConfig<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+> extends Omit<RequestInit, "body" | "headers" | "method">, BaseExtraOptions<TData, TErrorData, TResultMode> {}
 
 export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {}
-
-export interface BaseRequestOptions extends Omit<RequestOptions, "body"> {}
 
 export interface ExtraOptions<
 	TData = unknown,
@@ -127,6 +126,7 @@ export interface ExtraOptions<
 	 */
 	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
 
+	/* eslint-disable perfectionist/sort-union-types */
 	/**
 	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
@@ -155,7 +155,6 @@ export interface ExtraOptions<
 	/**
 	 * @description Params to be appended to the URL (i.e: /:id)
 	 */
-	// eslint-disable-next-line perfectionist/sort-union-types
 	params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
 
 	/**
@@ -232,6 +231,56 @@ export interface ExtraOptions<
 	 * @description Request timeout in milliseconds
 	 */
 	timeout?: number;
+}
+
+export interface BaseExtraOptions<
+	TBaseData = unknown,
+	TBaseErrorData = unknown,
+	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+> extends Omit<
+		ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>,
+		"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "requestKey"
+	> {
+	/* eslint-disable perfectionist/sort-union-types */
+	/**
+	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
+	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
+	 */
+	onError?:
+		| ((errorContext: ErrorContext<TBaseErrorData>) => Promise<void> | void)
+		| Array<(errorContext: ErrorContext<TBaseErrorData>) => Promise<void> | void>;
+
+	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
+	onRequest?:
+		| ((requestContext: { options: ExtraOptions; request: RequestOptions }) => Promise<void> | void)
+		| Array<
+				(requestContext: { options: ExtraOptions; request: RequestOptions }) => Promise<void> | void
+		  >;
+
+	/** @description Interceptor to be called when an error occurs during the fetch request. */
+	onRequestError?:
+		| ((requestErrorContext: {
+				error: Error;
+				options: ExtraOptions;
+				request: RequestOptions;
+		  }) => Promise<void> | void)
+		| Array<
+				(requestErrorContext: {
+					error: Error;
+					options: ExtraOptions;
+					request: RequestOptions;
+				}) => Promise<void> | void
+		  >;
+
+	/** @description Interceptor to be called when a successful response is received from the api. */
+	onResponse?:
+		| ((responseContext: ResponseContext<TBaseData>) => Promise<void> | void)
+		| Array<(responseContext: ResponseContext<TBaseData>) => Promise<void> | void>;
+
+	/** @description Interceptor to be called when an error response is received from the api. */
+	onResponseError?:
+		| ((responseErrorContext: ResponseErrorContext<TBaseErrorData>) => Promise<void> | void)
+		| Array<(responseErrorContext: ResponseErrorContext<TBaseErrorData>) => Promise<void> | void>;
 }
 
 export type ResponseContext<TData> = Prettify<{
