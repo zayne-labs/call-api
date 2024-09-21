@@ -3,9 +3,10 @@
 import type {
 	AnyNumber,
 	AnyString,
+	Awaitable,
 	CommonContentTypes,
 	CommonRequestHeaders,
-	Prettify,
+	Unravel,
 } from "./utils/type-helpers";
 import type { fetchSpecificKeys, handleResponseType } from "./utils/utils";
 
@@ -126,35 +127,32 @@ export interface ExtraOptions<
 	 */
 	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
 
-	/* eslint-disable perfectionist/sort-union-types */
 	/**
 	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
-	onError?: (errorContext: ErrorContext<TErrorData>) => Promise<void> | void;
+	onError?: (errorContext: ErrorContext<TErrorData>) => Awaitable<void>;
 
 	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
-	onRequest?: (requestContext: {
-		options: ExtraOptions;
-		request: RequestOptions;
-	}) => Promise<void> | void;
+	onRequest?: (requestContext: { options: ExtraOptions; request: RequestOptions }) => Awaitable<void>;
 
 	/** @description Interceptor to be called when an error occurs during the fetch request. */
 	onRequestError?: (requestErrorContext: {
 		error: Error;
 		options: ExtraOptions;
 		request: RequestOptions;
-	}) => Promise<void> | void;
+	}) => Awaitable<void>;
 
 	/** @description Interceptor to be called when a successful response is received from the api. */
-	onResponse?: (responseContext: ResponseContext<TData>) => Promise<void> | void;
+	onResponse?: (responseContext: ResponseContext<TData>) => Awaitable<void>;
 
 	/** @description Interceptor to be called when an error response is received from the api. */
-	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => Promise<void> | void;
+	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => Awaitable<void>;
 
 	/**
 	 * @description Params to be appended to the URL (i.e: /:id)
 	 */
+	// eslint-disable-next-line perfectionist/sort-union-types
 	params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
 
 	/**
@@ -247,57 +245,45 @@ export interface BaseExtraOptions<
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
 	onError?:
-		| ((errorContext: ErrorContext<TBaseErrorData>) => Promise<void> | void)
-		| Array<(errorContext: ErrorContext<TBaseErrorData>) => Promise<void> | void>;
+		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onError"]
+		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onError"]>;
 
 	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
 	onRequest?:
-		| ((requestContext: { options: ExtraOptions; request: RequestOptions }) => Promise<void> | void)
-		| Array<
-				(requestContext: { options: ExtraOptions; request: RequestOptions }) => Promise<void> | void
-		  >;
+		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequest"]
+		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequest"]>;
 
 	/** @description Interceptor to be called when an error occurs during the fetch request. */
 	onRequestError?:
-		| ((requestErrorContext: {
-				error: Error;
-				options: ExtraOptions;
-				request: RequestOptions;
-		  }) => Promise<void> | void)
-		| Array<
-				(requestErrorContext: {
-					error: Error;
-					options: ExtraOptions;
-					request: RequestOptions;
-				}) => Promise<void> | void
-		  >;
+		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]
+		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]>;
 
 	/** @description Interceptor to be called when a successful response is received from the api. */
 	onResponse?:
-		| ((responseContext: ResponseContext<TBaseData>) => Promise<void> | void)
-		| Array<(responseContext: ResponseContext<TBaseData>) => Promise<void> | void>;
+		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]
+		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]>;
 
 	/** @description Interceptor to be called when an error response is received from the api. */
 	onResponseError?:
-		| ((responseErrorContext: ResponseErrorContext<TBaseErrorData>) => Promise<void> | void)
-		| Array<(responseErrorContext: ResponseErrorContext<TBaseErrorData>) => Promise<void> | void>;
+		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]
+		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]>;
 }
 
-export type ResponseContext<TData> = Prettify<{
+export type ResponseContext<TData> = Unravel<{
 	data: TData;
 	options: ExtraOptions;
 	request: RequestOptions;
 	response: Response;
 }>;
 
-export type ResponseErrorContext<TErrorData> = Prettify<{
+export type ResponseErrorContext<TErrorData> = Unravel<{
 	errorData: TErrorData;
 	options: ExtraOptions;
 	request: RequestOptions;
 	response: Response;
 }>;
 
-export type ErrorContext<TErrorData> =
+export type ErrorContext<TErrorData> = Unravel<
 	| {
 			error: Extract<ErrorObjectUnion, { name: PossibleErrorNames }>;
 			options: ExtraOptions;
@@ -309,7 +295,8 @@ export type ErrorContext<TErrorData> =
 			options: ExtraOptions;
 			request: RequestOptions;
 			response: Response;
-	  };
+	  }
+>;
 
 type ApiSuccessVariant<TData> = {
 	data: TData;
@@ -317,9 +304,9 @@ type ApiSuccessVariant<TData> = {
 	response: Response;
 };
 
-export type PossibleErrorNames = {
-	_: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError";
-}["_"];
+export type PossibleErrorNames = Unravel<
+	"AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError"
+>;
 
 export type ErrorObjectUnion<TErrorData = unknown> =
 	| {
@@ -352,10 +339,9 @@ export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 	onlySuccess: ApiSuccessVariant<TData>["data"];
 };
 
-// == Using this double Immediately Indexed Mapped type to get a union of the keys of the object while still showing the full type signature on hover
-export type ResultModeUnion = {
-	_: { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined;
-}["_"];
+export type ResultModeUnion = Unravel<
+	{ [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined
+>;
 
 export type GetCallApiResult<TData, TErrorData, TResultMode> =
 	TResultMode extends NonNullable<ResultModeUnion>

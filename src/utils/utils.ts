@@ -8,7 +8,7 @@ import type {
 	RequestOptions,
 	ResultModeMap,
 } from "../types";
-import type { AnyFunction } from "./type-helpers";
+import type { AnyFunction, Awaitable } from "./type-helpers";
 import { isArray, isObject } from "./typeof";
 
 // prettier-ignore
@@ -181,8 +181,8 @@ export const splitConfig = (config: Record<string, any>) =>
 	] as const;
 
 export const handleMergeInterceptors = <
-	TBaseInterceptor extends AnyFunction<Promise<void> | void> | Array<AnyFunction<Promise<void> | void>>,
-	TInterceptor extends AnyFunction<Promise<void> | void>,
+	TBaseInterceptor extends AnyFunction<Awaitable<void>> | Array<AnyFunction<Awaitable<void>>>,
+	TInterceptor extends AnyFunction<Awaitable<void>>,
 >(
 	baseInterceptor: TBaseInterceptor | undefined,
 	interceptor: TInterceptor | undefined

@@ -9,6 +9,11 @@ export type AnyFunction<TResult = any> = (...args: any[]) => TResult;
 
 export type Prettify<TObject> = { [Key in keyof TObject]: TObject[Key] } & NonNullable<unknown>;
 
+// == Using this Immediately Indexed Mapped type helper to help show computed type of anything passed to it instead of just the type name
+export type Unravel<TValue> = { _: TValue }["_"];
+
+export type Awaitable<TValue> = Unravel<Promise<TValue> | TValue>;
+
 export type CommonRequestHeaders =
 	| "Access-Control-Allow-Credentials"
 	| "Access-Control-Allow-Headers"
