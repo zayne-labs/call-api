@@ -50,7 +50,7 @@ export const createFetchClient = <
 	} = baseExtraOptions;
 
 	const requestInfoCache = new Map<
-		false | string,
+		string | null,
 		{ controller: AbortController; responsePromise: Promise<Response> }
 	>();
 
@@ -143,11 +143,12 @@ export const createFetchClient = <
 		// prettier-ignore
 		const shouldHaveRequestKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
 
-		// prettier-ignore
-		const requestKey = options.requestKey ?? (shouldHaveRequestKey &&  generateRequestKey(url, { ...defaultRequestOptions, ...options }));
+		const requestKey =
+			options.requestKey ??
+			(shouldHaveRequestKey ? generateRequestKey(url, { ...defaultRequestOptions, ...options }) : null);
 
 		// == This is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key start at the same time
-		if (requestKey) {
+		if (requestKey != null) {
 			await waitUntil(0.1);
 		}
 
