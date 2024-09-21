@@ -12,5 +12,3 @@ export const isFunction = <TFunction extends AnyFunction>(value: unknown): value
 export const isQueryString = (value: unknown): value is string => isString(value) && value.includes("=");
 
 export const isString = (value: unknown) => typeof value === "string";
-
-
