@@ -210,8 +210,7 @@ export const createFetchClient = <
 			}
 
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.json more than once
-			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-			const shouldCloneResponse = options.cloneResponse || options.dedupeStrategy === "defer";
+			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
 
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(

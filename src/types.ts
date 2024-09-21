@@ -67,7 +67,7 @@ export interface ExtraOptions<
 	cancelRedundantRequests?: boolean;
 
 	/**
-	 * @description Whether to clone the response, so response.json and the like can used in the interceptors.
+	 * @description Whether or not to clone the response, so response.json() and the like, can be read again else where.
 	 * @default false
 	 */
 	cloneResponse?: boolean;
@@ -76,9 +76,9 @@ export interface ExtraOptions<
 	 * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
 	 * - If set to "none", deduplication is disabled.
 	 *
-	 * - If set to "cancel"(default), the previous pending request to the same URL will be cancelled and lets the new request through.
+	 * - If set to "cancel"(default), the previous pending request with the same request key will be cancelled and lets the new request through.
 	 *
-	 * - If set to "defer", no new requests to the same URL will be allowed through, until the previous one is completed.
+	 * - If set to "defer", all new request with the same request key will be share the same response, until the previous one is completed.
 	 * @default "cancel"
 	 */
 	dedupeStrategy?: "cancel" | "defer" | "none";
