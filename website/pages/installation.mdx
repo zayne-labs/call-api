@@ -1,0 +1,35 @@
+# Installation
+
+CallApi can be installed using popular package managers or used directly in the browser through a CDN.
+
+### Using npm (recommended)
+
+To install CallApi using npm, run the following command:
+
+```js npm2yarn copy
+npm install @zayne-labs/callapi
+```
+
+Then, import CallApi into your project:
+
+```js copy
+import { callApi } from "@zayne-labs/callapi";
+```
+
+### Without npm
+
+To use CallApi without npm, import it directly into your JavaScript files via a CDN by using a script tag with the `type="module"` attribute:
+
+```html copy
+<script type="module">
+	import { callApi } from "https://esm.run/@zayne-labs/callapi";
+</script>
+```
+
+If you want to use a specific version, you can specify it in the URL like this:
+
+```html copy
+<script type="module">
+	import { callApi } from "https://esm.run/@zayne-labs/callapi@0.7.7";
+</script>
+```
