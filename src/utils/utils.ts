@@ -189,9 +189,13 @@ export const handleMergeInterceptors = <
 ) => {
 	if (isArray(baseInterceptor)) {
 		const mergedFunction = async (ctx: Record<string, unknown>) => {
-			interceptor && baseInterceptor.push(interceptor);
+			if (!interceptor) return;
 
-			void (await Promise.all(baseInterceptor.map((fn) => fn(ctx))));
+			const interceptorArray = [...baseInterceptor, interceptor] as Array<AnyFunction<Awaitable<void>>>;
+
+			const uniqueInterceptor = [...new Set(interceptorArray)];
+
+			void (await Promise.all(uniqueInterceptor.map((fn) => fn(ctx))));
 		};
 
 		return mergedFunction;
