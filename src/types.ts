@@ -1,3 +1,5 @@
+import type { fetchSpecificKeys, handleResponseType } from "./utils/global";
+
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import type {
@@ -6,9 +8,9 @@ import type {
 	Awaitable,
 	CommonContentTypes,
 	CommonRequestHeaders,
+	Prettify,
 	Unravel,
 } from "./utils/type-helpers";
-import type { fetchSpecificKeys, handleResponseType } from "./utils/utils";
 
 // prettier-ignore
 export interface CallApiConfig<
@@ -25,6 +27,10 @@ export interface BaseCallApiConfig<
 > extends Omit<RequestInit, "body" | "headers" | "method">, BaseExtraOptions<TData, TErrorData, TResultMode> {}
 
 export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {}
+
+export type InterceptorUnion = Unravel<
+	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError"
+>;
 
 export interface ExtraOptions<
 	TData = unknown,
@@ -67,12 +73,6 @@ export interface ExtraOptions<
 	cancelRedundantRequests?: boolean;
 
 	/**
-	 * @description Whether or not to clone the response, so response.json() and the like, can be read again else where.
-	 * @default false
-	 */
-	cloneResponse?: boolean;
-
-	/**
 	 * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
 	 * - If set to "none", deduplication is disabled.
 	 *
@@ -96,6 +96,14 @@ export interface ExtraOptions<
 		| Record<"Content-Type", CommonContentTypes>
 		| Record<CommonRequestHeaders, string>
 		| RequestInit["headers"];
+
+	/**
+	 * @description Defines the mode in which merged interceptors are executed, can be set to "parallel" | "sequential".
+	 * - If set to "parallel", both base and instance interceptors will be executed in parallel.
+	 * - If set to "sequential", the base interceptors will be executed first, and then the instance interceptors will be executed.
+	 * @default "parallel"
+	 */
+	mergedInterceptorsExecutionMode?: "parallel" | "sequential";
 
 	/**
 	 * @description an optional field you can fill with additional information,
@@ -214,6 +222,18 @@ export interface ExtraOptions<
 	retryMethods?: Array<"GET" | "POST" | AnyString>;
 
 	/**
+	 * @description Whether or not to clone the response, so response.json() and the like, can be read again else where.
+	 * @default false
+	 */
+	shouldCloneResponse?: boolean;
+
+	/**
+	 * @description Whether or not to merge the base interceptors with the ones from the instance.
+	 * @default true
+	 */
+	shouldMergeInterceptors?: boolean;
+
+	/**
 	 * If true or the function returns true, throws errors instead of returning them
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
@@ -235,10 +255,7 @@ export interface BaseExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<
-		ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>,
-		"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "requestKey"
-	> {
+> extends Omit<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey" | InterceptorUnion> {
 	/* eslint-disable perfectionist/sort-union-types */
 	/**
 	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
@@ -285,7 +302,7 @@ export type ResponseErrorContext<TErrorData> = Unravel<{
 
 export type ErrorContext<TErrorData> = Unravel<
 	| {
-			error: Extract<ErrorObjectUnion, { name: PossibleErrorNames }>;
+			error: Prettify<Extract<ErrorObjectUnion, { name: PossibleErrorNames }>>;
 			options: ExtraOptions;
 			request: RequestOptions;
 			response: null;
@@ -304,9 +321,7 @@ type ApiSuccessVariant<TData> = {
 	response: Response;
 };
 
-export type PossibleErrorNames = Unravel<
-	"AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError"
->;
+export type PossibleErrorNames = "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError";
 
 export type ErrorObjectUnion<TErrorData = unknown> =
 	| {

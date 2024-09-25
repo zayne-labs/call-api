@@ -3,17 +3,17 @@ import type {
 	CallApiConfig,
 	ExtraOptions,
 	GetCallApiResult,
+	InterceptorUnion,
 	RequestOptions,
 	ResultModeUnion,
 } from "./types";
-import { isFunction, isObject, isQueryString, isString } from "./utils/typeof";
 import {
 	HTTPError,
 	defaultRetryCodes,
 	defaultRetryMethods,
 	generateRequestKey,
 	getResponseData,
-	handleMergeInterceptors,
+	handleInterceptorsMerge,
 	isHTTPErrorInstance,
 	mergeUrlWithParamsAndQuery,
 	objectifyHeaders,
@@ -22,7 +22,8 @@ import {
 	splitBaseConfig,
 	splitConfig,
 	waitUntil,
-} from "./utils/utils";
+} from "./utils/global";
+import { isFunction, isObject, isQueryString, isString } from "./utils/typeof";
 
 export const createFetchClient = <
 	TBaseData,
@@ -80,26 +81,61 @@ export const createFetchClient = <
 		} = extraOptions;
 
 		// == Default Extra Options
-		const options = {
+		const defaultOptions = {
 			baseURL: "",
 			bodySerializer: JSON.stringify,
 			dedupeStrategy: "cancel",
 			defaultErrorMessage: "Failed to fetch data from server!",
-			onError: handleMergeInterceptors(onBaseError, onError),
-			onRequest: handleMergeInterceptors(onBaseRequest, onRequest),
-			onRequestError: handleMergeInterceptors(onBaseRequestError, onRequestError),
-			onResponse: handleMergeInterceptors(onBaseResponse, onResponse),
-			onResponseError: handleMergeInterceptors(onBaseResponseError, onResponseError),
+			mergedInterceptorsExecutionMode: "parallel",
 			responseType: "json",
 			resultMode: "all",
 			retries: 0,
 			retryCodes: defaultRetryCodes,
 			retryDelay: 0,
 			retryMethods: defaultRetryMethods,
+			shouldMergeInterceptors: true,
 
 			...restOfBaseExtraOptions,
 			...restOfExtraOptions,
-		} satisfies ExtraOptions;
+		} satisfies Omit<ExtraOptions, InterceptorUnion>;
+
+		const interceptors = {
+			onError: handleInterceptorsMerge(
+				onBaseError,
+				onError,
+				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergedInterceptorsExecutionMode
+			),
+			onRequest: handleInterceptorsMerge(
+				onBaseRequest,
+				onRequest,
+				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergedInterceptorsExecutionMode
+			),
+			onRequestError: handleInterceptorsMerge(
+				onBaseRequestError,
+				onRequestError,
+				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergedInterceptorsExecutionMode
+			),
+			onResponse: handleInterceptorsMerge(
+				onBaseResponse,
+				onResponse,
+				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergedInterceptorsExecutionMode
+			),
+			onResponseError: handleInterceptorsMerge(
+				onBaseResponseError,
+				onResponseError,
+				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergedInterceptorsExecutionMode
+			),
+		} satisfies Pick<ExtraOptions, InterceptorUnion>;
+
+		const options = {
+			...interceptors,
+			...defaultOptions,
+		};
 
 		// == Default Request Init
 		const defaultRequestOptions = {
@@ -122,7 +158,7 @@ export const createFetchClient = <
 							...(isQueryString(body) && {
 								"Content-Type": "application/x-www-form-urlencoded",
 							}),
-							...((isString(options.auth) || options.auth == null) && {
+							...((isString(options.auth) || options.auth === null) && {
 								Authorization: `Bearer ${options.auth}`,
 							}),
 							...(isObject(options.auth) && {
@@ -159,7 +195,7 @@ export const createFetchClient = <
 
 		if (prevRequestInfo && options.dedupeStrategy === "cancel") {
 			const reason = new DOMException(
-				`Request aborted as another request to this same endpoint: ${url}, with the same request options was initiated.`,
+				`Request aborted as another request to the endpoint: ${url}, with the same request options was initiated.`,
 				"AbortError"
 			);
 
@@ -210,7 +246,7 @@ export const createFetchClient = <
 			}
 
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.json more than once
-			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
+			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.shouldCloneResponse;
 
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(
@@ -241,7 +277,7 @@ export const createFetchClient = <
 				data: validSuccessData,
 				options,
 				request: requestInit,
-				response: options.cloneResponse ? response.clone() : response,
+				response: options.shouldCloneResponse ? response.clone() : response,
 			});
 
 			return resolveSuccessResult<CallApiResult>({
@@ -290,7 +326,7 @@ export const createFetchClient = <
 						errorData,
 						options,
 						request: requestInit,
-						response: options.cloneResponse ? response.clone() : response,
+						response: options.shouldCloneResponse ? response.clone() : response,
 					}),
 
 					// == Also call the onError interceptor

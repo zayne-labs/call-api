@@ -180,25 +180,36 @@ export const splitConfig = (config: Record<string, any>) =>
 		omitKeys(config, fetchSpecificKeys) as ExtraOptions,
 	] as const;
 
-export const handleMergeInterceptors = <
+export const handleInterceptorsMerge = <
 	TBaseInterceptor extends AnyFunction<Awaitable<void>> | Array<AnyFunction<Awaitable<void>>>,
 	TInterceptor extends AnyFunction<Awaitable<void>>,
 >(
 	baseInterceptor: TBaseInterceptor | undefined,
-	interceptor: TInterceptor | undefined
+	interceptor: TInterceptor | undefined,
+	shouldMergeInterceptors: ExtraOptions["shouldMergeInterceptors"],
+	mergedInterceptorsExecutionMode: ExtraOptions["mergedInterceptorsExecutionMode"]
 ) => {
-	if (isArray(baseInterceptor)) {
-		const mergedFunction = async (ctx: Record<string, unknown>) => {
+	if (isArray(baseInterceptor) && shouldMergeInterceptors) {
+		const mergedInterceptor = async (ctx: Record<string, unknown>) => {
 			if (!interceptor) return;
 
 			const interceptorArray = [...baseInterceptor, interceptor] as Array<AnyFunction<Awaitable<void>>>;
 
-			const uniqueInterceptor = [...new Set(interceptorArray)];
+			const uniqueInterceptorArray = [...new Set(interceptorArray)];
 
-			void (await Promise.all(uniqueInterceptor.map((fn) => fn(ctx))));
+			if (mergedInterceptorsExecutionMode === "sequential") {
+				for (const uniqueInterceptor of uniqueInterceptorArray) {
+					// eslint-disable-next-line no-await-in-loop
+					await uniqueInterceptor(ctx);
+				}
+			}
+
+			if (mergedInterceptorsExecutionMode === "parallel") {
+				await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor(ctx)));
+			}
 		};
 
-		return mergedFunction;
+		return mergedInterceptor;
 	}
 
 	return interceptor ?? (baseInterceptor as typeof interceptor);
