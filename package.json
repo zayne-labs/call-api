@@ -1,21 +1,44 @@
 {
 	"name": "@zayne-labs/callapi",
-	"version": "1.0.0-rc.8",
 	"type": "module",
+	"version": "1.0.0-rc.8",
+	"packageManager": "pnpm@9.10.0",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
+	"author": "Ryan Zayne",
+	"license": "MIT",
+	"homepage": "https://github.com/zayne-labs/call-api#readme",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/zayne-labs/call-api.git"
 	},
-	"homepage": "https://github.com/zayne-labs/call-api#readme",
 	"bugs": {
 		"url": "https://github.com/zayne-labs/call-api/issues"
 	},
-	"license": "MIT",
-	"author": "Ryan Zayne",
+	"keywords": [
+		"fetch",
+		"api",
+		"wrapper",
+		"request",
+		"cancel",
+		"retry",
+		"interceptor"
+	],
+	"sideEffects": false,
+	"exports": {
+		".": "./dist/esm/index.js",
+		"./utils": "./dist/esm/utils/index.js",
+		"./legacy": "./dist/cjs/index.cjs",
+		"./legacy/utils": "./dist/cjs/utils/index.cjs"
+	},
 	"main": "./dist/esm/index.js",
 	"module": "./dist/esm/index.js",
 	"types": "./dist/esm/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=18.17.x"
+	},
 	"scripts": {
 		"build:dev": "cross-env NODE_ENV=development tsup",
 		"build:test": "concurrently --prefix-colors \"yellow.bold,#7da4f8.bold,magenta\" --names PUBLINT,TSUP,ATTW 'pnpm:lint:publint' 'pnpm:build:dev' 'pnpm:lint:attw'",
@@ -34,52 +57,33 @@
 		"test:release": "pkg-pr-new publish",
 		"version-package": "changeset version"
 	},
-	"exports": {
-		".": "./dist/esm/index.js",
-		"./utils": "./dist/esm/utils/index.js",
-		"./legacy": "./dist/cjs/index.cjs",
-		"./legacy/utils": "./dist/cjs/utils/index.cjs"
-	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "0.16.2",
+		"@arethetypeswrong/cli": "0.16.4",
 		"@changesets/cli": "2.27.8",
-		"@eslint/js": "9.10.0",
-		"@size-limit/esbuild-why": "11.1.5",
-		"@size-limit/preset-small-lib": "11.1.5",
-		"@stylistic/eslint-plugin": "2.8.0",
+		"@size-limit/esbuild-why": "11.1.6",
+		"@size-limit/preset-small-lib": "11.1.6",
 		"@total-typescript/ts-reset": "0.6.1",
-		"@types/eslint": "9.6.1",
-		"@types/node": "^22.5.5",
+		"@types/node": "^22.7.4",
+		"@zayne-labs/eslint-config": "0.0.6",
 		"@zayne-labs/tsconfig": "0.1.1",
 		"concurrently": "9.0.1",
 		"cross-env": "^7.0.3",
-		"eslint": "9.10.0",
-		"eslint-import-resolver-typescript": "3.6.3",
-		"eslint-plugin-import-x": "4.2.1",
-		"eslint-plugin-jsdoc": "50.2.3",
-		"eslint-plugin-perfectionist": "3.6.0",
-		"eslint-plugin-unicorn": "55.0.0",
-		"eslint-typegen": "0.3.2",
-		"globals": "15.9.0",
+		"eslint": "9.11.1",
 		"husky": "9.1.6",
 		"lint-staged": "15.2.10",
-		"pkg-pr-new": "0.0.24",
+		"pkg-pr-new": "0.0.29",
 		"prettier": "3.3.3",
 		"publint": "0.2.11",
-		"size-limit": "11.1.5",
-		"terser": "5.32.0",
-		"tsup": "8.2.4",
-		"typescript": "5.6.2",
-		"typescript-eslint": "8.6.0"
+		"size-limit": "11.1.6",
+		"terser": "5.34.1",
+		"tsup": "8.3.0",
+		"typescript": "5.6.2"
 	},
 	"publishConfig": {
 		"access": "public",
 		"registry": "https://registry.npmjs.org/",
 		"provenance": false
 	},
-	"files": [
-		"dist"
-	],
 	"size-limit": [
 		{
 			"path": "./src/index.ts",
@@ -89,19 +93,5 @@
 			"path": "./src/utils/index.ts",
 			"limit": "400 b"
 		}
-	],
-	"sideEffects": false,
-	"keywords": [
-		"fetch",
-		"api",
-		"wrapper",
-		"request",
-		"cancel",
-		"retry",
-		"interceptor"
-	],
-	"packageManager": "pnpm@9.10.0",
-	"engines": {
-		"node": ">=18.17.x"
-	}
+	]
 }

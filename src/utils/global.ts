@@ -60,6 +60,7 @@ const mergeUrlWithParams = (url: string, params: ExtraOptions["params"]) => {
 
 const questionMark = "?";
 const ampersand = "&";
+
 const mergeUrlWithQuery = (url: string, query: ExtraOptions["query"]): string => {
 	if (!query) {
 		return url;
@@ -164,7 +165,7 @@ const pickKeys = <TObject extends Record<string, unknown>, const TPickArray exte
 	return updatedObject as Pick<TObject, TPickArray[number]>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line ts-eslint/no-explicit-any
 export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 	[
 		pickKeys(baseConfig, fetchSpecificKeys) as RequestOptions,
@@ -173,7 +174,7 @@ export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 		>) as BaseExtraOptions,
 	] as const;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line ts-eslint/no-explicit-any
 export const splitConfig = (config: Record<string, any>) =>
 	[
 		pickKeys(config, fetchSpecificKeys) as RequestOptions,

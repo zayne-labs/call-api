@@ -1,7 +1,7 @@
 import type { fetchSpecificKeys, handleResponseType } from "./utils/global";
 
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
+/* eslint-disable ts-eslint/no-empty-object-type */
+/* eslint-disable ts-eslint/consistent-type-definitions */
 import type {
 	AnyNumber,
 	AnyString,
@@ -9,7 +9,7 @@ import type {
 	CommonContentTypes,
 	CommonRequestHeaders,
 	Prettify,
-	Unravel,
+	UnmaskType,
 } from "./utils/type-helpers";
 
 // prettier-ignore
@@ -28,7 +28,7 @@ export interface BaseCallApiConfig<
 
 export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {}
 
-export type InterceptorUnion = Unravel<
+export type InterceptorUnion = UnmaskType<
 	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError"
 >;
 
@@ -141,20 +141,28 @@ export interface ExtraOptions<
 	 */
 	onError?: (errorContext: ErrorContext<TErrorData>) => Awaitable<void>;
 
-	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
+	/**
+	 * @description Interceptor to be called just before the request is made, allowing for modifications or additional operations.
+	 */
 	onRequest?: (requestContext: { options: ExtraOptions; request: RequestOptions }) => Awaitable<void>;
 
-	/** @description Interceptor to be called when an error occurs during the fetch request. */
+	/**
+	 *  @description Interceptor to be called when an error occurs during the fetch request.
+	 */
 	onRequestError?: (requestErrorContext: {
 		error: Error;
 		options: ExtraOptions;
 		request: RequestOptions;
 	}) => Awaitable<void>;
 
-	/** @description Interceptor to be called when a successful response is received from the api. */
+	/**
+	 * @description Interceptor to be called when a successful response is received from the api.
+	 */
 	onResponse?: (responseContext: ResponseContext<TData>) => Awaitable<void>;
 
-	/** @description Interceptor to be called when an error response is received from the api. */
+	/**
+	 *  @description Interceptor to be called when an error response is received from the api.
+	 */
 	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => Awaitable<void>;
 
 	/**
@@ -240,10 +248,11 @@ export interface ExtraOptions<
 	 */
 	throwOnError?:
 		| boolean
-		| ((
-				error: ErrorContext<TErrorData>["error"],
-				optionsAndRequest: ExtraOptions & RequestOptions
-		  ) => boolean);
+		| ((ctx: {
+				error: ErrorContext<TErrorData>["error"];
+				options: ExtraOptions;
+				request: RequestOptions;
+		  }) => boolean);
 
 	/**
 	 * @description Request timeout in milliseconds
@@ -286,21 +295,21 @@ export interface BaseExtraOptions<
 		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]>;
 }
 
-export type ResponseContext<TData> = Unravel<{
+export type ResponseContext<TData> = UnmaskType<{
 	data: TData;
 	options: ExtraOptions;
 	request: RequestOptions;
 	response: Response;
 }>;
 
-export type ResponseErrorContext<TErrorData> = Unravel<{
+export type ResponseErrorContext<TErrorData> = UnmaskType<{
 	errorData: TErrorData;
 	options: ExtraOptions;
 	request: RequestOptions;
 	response: Response;
 }>;
 
-export type ErrorContext<TErrorData> = Unravel<
+export type ErrorContext<TErrorData> = UnmaskType<
 	| {
 			error: Prettify<Extract<ErrorObjectUnion, { name: PossibleErrorNames }>>;
 			options: ExtraOptions;
@@ -354,7 +363,7 @@ export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 	onlySuccess: ApiSuccessVariant<TData>["data"];
 };
 
-export type ResultModeUnion = Unravel<
+export type ResultModeUnion = UnmaskType<
 	{ [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined
 >;
 

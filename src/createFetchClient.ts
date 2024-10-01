@@ -295,7 +295,11 @@ export const createFetchClient = <
 			});
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
-				? options.throwOnError((generalErrorResult as { error: never }).error, options)
+				? options.throwOnError({
+						error: (generalErrorResult as { error: never }).error,
+						options,
+						request: requestInit,
+					})
 				: options.throwOnError;
 
 			if (shouldThrowOnError) {
