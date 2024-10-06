@@ -2,7 +2,7 @@
 	"name": "@zayne-labs/callapi",
 	"type": "module",
 	"version": "1.0.0-rc.9",
-	"packageManager": "pnpm@9.11.0",
+	"packageManager": "pnpm@9.12.0",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"author": "Ryan Zayne",
 	"license": "MIT",
@@ -40,9 +40,9 @@
 		"node": ">=18.17.x"
 	},
 	"scripts": {
+		"build": "tsup",
 		"build:dev": "cross-env NODE_ENV=development tsup",
 		"build:test": "concurrently --prefix-colors \"yellow.bold,#7da4f8.bold,magenta\" --names PUBLINT,TSUP,ATTW 'pnpm:lint:publint' 'pnpm:build:dev' 'pnpm:lint:attw'",
-		"build": "tsup",
 		"inspect:eslint-config": "pnpx @eslint/config-inspector@latest --config eslint.config.js",
 		"lint:attw": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
 		"lint:check-types": "tsc --pretty --incremental -p tsconfig.json",
