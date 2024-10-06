@@ -1,16 +1,6 @@
 import { createFetchClient } from "@zayne-labs/callapi";
 // import { createFetchClient } from "./src";
 
-export const waitUntil = (delay: number) => {
-	if (delay === 0) return;
-
-	const { promise, resolve } = Promise.withResolvers();
-
-	setTimeout(resolve, delay);
-
-	return promise;
-};
-
 const callApi = createFetchClient({
 	dedupeStrategy: "defer",
 });

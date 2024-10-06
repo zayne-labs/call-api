@@ -9,7 +9,7 @@ permissions:
    contents: read
 
 jobs:
-   build:
+   lint-and-type:
       runs-on: ubuntu-latest
       strategy:
          matrix:
