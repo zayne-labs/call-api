@@ -1,4 +1,4 @@
-import type { fetchSpecificKeys, handleResponseType } from "./utils/global";
+import type { fetchSpecificKeys, handleResponseType } from "./utils/common";
 
 /* eslint-disable ts-eslint/no-empty-object-type */
 /* eslint-disable ts-eslint/consistent-type-definitions */

@@ -348,14 +348,16 @@ export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
 
 		this.errorData = errorData;
 		this.response = response;
+
+		Error.captureStackTrace(this, this.constructor);
 	}
 }
 
-// prettier-ignore
 export const isHTTPErrorInstance = <TErrorResponse>(
 	error: unknown
 ): error is HTTPError<TErrorResponse> => {
 	return (
+		// prettier-ignore
 		error instanceof HTTPError || (isObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
 	);
 };

@@ -22,7 +22,7 @@ import {
 	splitBaseConfig,
 	splitConfig,
 	waitUntil,
-} from "./utils/global";
+} from "./utils/common";
 import { isFunction, isObject, isQueryString, isString } from "./utils/typeof";
 
 export const createFetchClient = <
