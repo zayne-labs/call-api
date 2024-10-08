@@ -9,7 +9,7 @@ permissions:
    contents: read
 
 jobs:
-   build:
+   size-limit:
       runs-on: ubuntu-latest
       strategy:
          matrix:
