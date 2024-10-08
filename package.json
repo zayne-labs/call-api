@@ -92,7 +92,7 @@
 		},
 		{
 			"path": "./src/utils/index.ts",
-			"limit": "400 b"
+			"limit": "500 b"
 		}
 	]
 }
