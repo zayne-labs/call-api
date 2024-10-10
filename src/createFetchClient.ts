@@ -204,7 +204,7 @@ export const createFetchClient = <
 
 		const newFetchController = new AbortController();
 
-		const timeoutSignal = options.timeout ? AbortSignal.timeout(options.timeout) : null;
+		const timeoutSignal = options.timeout != null ? AbortSignal.timeout(options.timeout) : null;
 
 		const combinedSignal = AbortSignal.any([
 			newFetchController.signal,
@@ -288,7 +288,7 @@ export const createFetchClient = <
 
 			// == Exhaustive Error handling
 		} catch (error) {
-			const generalErrorResult = resolveErrorResult<CallApiResult>({
+			const { generalErrorResult, resolveCustomErrorInfo } = resolveErrorResult<CallApiResult>({
 				defaultErrorMessage: options.defaultErrorMessage,
 				error,
 				resultMode: options.resultMode,
@@ -311,7 +311,7 @@ export const createFetchClient = <
 
 				console.error(`${error.name}:`, message);
 
-				return { ...generalErrorResult, message };
+				return resolveCustomErrorInfo({ message });
 			}
 
 			if (error instanceof DOMException && error.name === "AbortError") {

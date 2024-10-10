@@ -85,8 +85,8 @@ importers:
         version: link:..
     devDependencies:
       '@types/node':
-        specifier: ^22.7.4
-        version: 22.7.4
+        specifier: ^22.7.5
+        version: 22.7.5
       '@zayne-labs/tsconfig':
         specifier: 'catalog:'
         version: 0.1.1
@@ -98,7 +98,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: ^5.4.8
-        version: 5.4.8(@types/node@22.7.4)(terser@5.34.1)
+        version: 5.4.8(@types/node@22.7.5)(terser@5.34.1)
 
 packages:
 
@@ -931,6 +931,9 @@ packages:
 
   '@types/node@22.7.4':
     resolution: {integrity: sha512-y+NPi1rFzDs1NdQHHToqeiX2TIS79SWEAw9GYhkkx8bD0ChpfqC+n2j5OXOCpzfojBEBt6DnEnnG9MY0zk1XLg==}
+
+  '@types/node@22.7.5':
+    resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -3596,6 +3599,10 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
+  '@types/node@22.7.5':
+    dependencies:
+      undici-types: 6.19.8
+
   '@types/normalize-package-data@2.4.4': {}
 
   '@typescript-eslint/eslint-plugin@8.8.0(@typescript-eslint/parser@8.8.0(eslint@9.12.0(jiti@2.3.1))(typescript@5.6.2))(eslint@9.12.0(jiti@2.3.1))(typescript@5.6.2)':
@@ -5469,13 +5476,13 @@ snapshots:
 
   validate-npm-package-name@5.0.1: {}
 
-  vite@5.4.8(@types/node@22.7.4)(terser@5.34.1):
+  vite@5.4.8(@types/node@22.7.5)(terser@5.34.1):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.47
       rollup: 4.24.0
     optionalDependencies:
-      '@types/node': 22.7.4
+      '@types/node': 22.7.5
       fsevents: 2.3.3
       terser: 5.34.1
 

@@ -279,11 +279,12 @@ export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiR
 type ErrorInfo = {
 	defaultErrorMessage: Required<ExtraOptions>["defaultErrorMessage"];
 	error?: unknown;
+	message?: string;
 	resultMode: ExtraOptions["resultMode"];
 };
 
-export const resolveErrorResult = <CallApiResult>(info: ErrorInfo): CallApiResult => {
-	const { defaultErrorMessage, error, resultMode } = info;
+export const resolveErrorResult = <CallApiResult>(info: ErrorInfo) => {
+	const { defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
 
 	let apiDetails!: ResultModeMap["all"];
 
@@ -302,21 +303,30 @@ export const resolveErrorResult = <CallApiResult>(info: ErrorInfo): CallApiResul
 
 		apiDetails = {
 			data: null,
-			error: { errorData: error as Error, message, name: name as PossibleErrorNames },
+			error: {
+				errorData: error as Error,
+				message: customErrorMessage ?? message,
+				name: name as PossibleErrorNames,
+			},
 			response: null,
 		};
 	}
 
-	if (!resultMode) {
-		return apiDetails as CallApiResult;
-	}
-
-	return {
+	const generalErrorResult = ({
 		all: apiDetails,
 		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
 		onlySuccess: apiDetails.data,
-	}[resultMode] as CallApiResult;
+	}[resultMode ?? "all"] ?? apiDetails) as CallApiResult;
+
+	// prettier-ignore
+	const resolveCustomErrorInfo = ({ message }: Pick<ErrorInfo, "message">) => {
+		const errorResult = resolveErrorResult<CallApiResult>({ ...info, message });
+
+		return errorResult.generalErrorResult;
+	};
+
+	return { generalErrorResult, resolveCustomErrorInfo };
 };
 
 export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["error"] | null) => {
