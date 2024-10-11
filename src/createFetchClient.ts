@@ -245,8 +245,12 @@ export const createFetchClient = <
 				return await callApi(url, { ...config, retries: options.retries - 1 });
 			}
 
-			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.json more than once
-			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.shouldCloneResponse;
+			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
+			// == Also clone response when resultMode is set to "onlyResponse", to avoid error thrown from reading response.(whatever) more than once
+			const shouldCloneResponse =
+				options.dedupeStrategy === "defer" ||
+				options.resultMode === "onlyResponse" ||
+				options.shouldCloneResponse;
 
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(
