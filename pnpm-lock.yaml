@@ -81,8 +81,8 @@ importers:
         specifier: 11.1.4
         version: 11.1.4
       terser:
-        specifier: 5.31.6
-        version: 5.31.6
+        specifier: 5.34.1
+        version: 5.34.1
       tsup:
         specifier: 8.2.4
         version: 8.2.4(jiti@1.21.6)(typescript@5.5.4)(yaml@2.5.1)
@@ -2384,8 +2384,8 @@ packages:
     resolution: {integrity: sha512-wK0Ri4fOGjv/XPy8SBHZChl8CM7uMc5VML7SqiQ0zG7+J5Vr+RMQDoHa2CNT6KHUnTGIXH34UDMkPzAUyapBZg==}
     engines: {node: '>=8'}
 
-  terser@5.31.6:
-    resolution: {integrity: sha512-PQ4DAriWzKj+qgehQ7LK5bQqCFNMmlhjR2PFFLuqGCpuCAauxemVBWwWOxo3UIwWQx8+Pr61Df++r76wDmkQBg==}
+  terser@5.34.1:
+    resolution: {integrity: sha512-FsJZ7iZLd/BXkz+4xrRTGJ26o/6VTjQytUk8b8OxkwcD2I+79VPJlz7qss1+zE7h8GNIScFqXcDyJ/KqBYZFVA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -4890,7 +4890,7 @@ snapshots:
 
   term-size@2.2.1: {}
 
-  terser@5.31.6:
+  terser@5.34.1:
     dependencies:
       '@jridgewell/source-map': 0.3.6
       acorn: 8.12.1
