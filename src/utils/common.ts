@@ -372,10 +372,22 @@ export const isHTTPErrorInstance = <TErrorResponse>(
 	);
 };
 
+const PromiseWithResolvers = () => {
+	let reject!: (reason?: unknown) => void;
+	let resolve!: (value: unknown) => void;
+
+	const promise = new Promise((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+
+	return { promise, reject, resolve };
+};
+
 export const waitUntil = (delay: number) => {
 	if (delay === 0) return;
 
-	const { promise, resolve } = Promise.withResolvers();
+	const { promise, resolve } = PromiseWithResolvers();
 
 	setTimeout(resolve, delay);
 
