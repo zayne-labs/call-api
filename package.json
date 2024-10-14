@@ -94,7 +94,7 @@
 		"retry",
 		"interceptor"
 	],
-	"packageManager": "pnpm@9.9.0",
+	"packageManager": "pnpm@9.12.1",
 	"engines": {
 		"node": ">=18.17.x"
 	}
