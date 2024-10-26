@@ -28,7 +28,7 @@ import { isFunction, isObject, isQueryString, isString } from "./utils/typeof";
 export const createFetchClient = <
 	TBaseData,
 	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = "all",
+	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 >(
 	baseConfig: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
 ) => {
@@ -59,7 +59,7 @@ export const createFetchClient = <
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
-		TResultMode extends ResultModeUnion = TBaseResultMode,
+		TResultMode extends ResultModeUnion = undefined,
 	>(
 		url: string,
 		config: CallApiConfig<TData, TErrorData, TResultMode> = {}
