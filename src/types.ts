@@ -367,7 +367,8 @@ export type ResultModeUnion = UnmaskType<
 	{ [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined
 >;
 
-export type GetCallApiResult<TData, TErrorData, TResultMode> =
-	TResultMode extends NonNullable<ResultModeUnion>
+export type GetCallApiResult<TData, TErrorData, TResultMode> = undefined extends TResultMode
+	? ResultModeMap<TData, TErrorData>["all"]
+	: TResultMode extends NonNullable<ResultModeUnion>
 		? ResultModeMap<TData, TErrorData>[TResultMode]
-		: ResultModeMap<TData, TErrorData>["all"];
+		: never;

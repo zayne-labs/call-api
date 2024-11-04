@@ -28,7 +28,7 @@ import { isFunction, isObject, isQueryString, isString } from "./utils/typeof";
 export const createFetchClient = <
 	TBaseData,
 	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = undefined,
+	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 >(
 	baseConfig: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
 ) => {
