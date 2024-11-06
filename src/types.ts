@@ -29,7 +29,7 @@ export interface BaseCallApiConfig<
 export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {}
 
 export type InterceptorUnion = UnmaskType<
-	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError"
+	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"
 >;
 
 export interface ExtraOptions<
@@ -136,7 +136,7 @@ export interface ExtraOptions<
 	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
 
 	/**
-	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
+	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
 	onError?: (errorContext: ErrorContext<TErrorData>) => Awaitable<void>;
@@ -156,14 +156,19 @@ export interface ExtraOptions<
 	}) => Awaitable<void>;
 
 	/**
-	 * @description Interceptor to be called when a successful response is received from the api.
+	 * @description Interceptor to be called when any response is received from the api, whether successful or not
 	 */
-	onResponse?: (responseContext: ResponseContext<TData>) => Awaitable<void>;
+	onResponse?: (responseContext: ResponseContext<TData, TErrorData>) => Awaitable<void>;
 
 	/**
 	 *  @description Interceptor to be called when an error response is received from the api.
 	 */
 	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => Awaitable<void>;
+
+	/**
+	 * @description Interceptor to be called when a successful response is received from the api.
+	 */
+	onSuccess?: (successResponseContext: SuccessResponseContext<TData>) => Awaitable<void>;
 
 	/**
 	 * @description Params to be appended to the URL (i.e: /:id)
@@ -266,8 +271,9 @@ export interface BaseExtraOptions<
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 > extends Omit<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey" | InterceptorUnion> {
 	/* eslint-disable perfectionist/sort-union-types */
+
 	/**
-	 * @description Interceptor to be called when an error occurs during the fetch request OR when an error response is received from the api
+	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
 	onError?:
@@ -284,7 +290,7 @@ export interface BaseExtraOptions<
 		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]
 		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]>;
 
-	/** @description Interceptor to be called when a successful response is received from the api. */
+	/** @description Interceptor to be called when any response is received from the api, whether successful or not */
 	onResponse?:
 		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]
 		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]>;
@@ -293,9 +299,22 @@ export interface BaseExtraOptions<
 	onResponseError?:
 		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]
 		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]>;
+
+	/** @description Interceptor to be called when a successful response is received from the api. */
+	onSuccess?:
+		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]
+		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]>;
 }
 
-export type ResponseContext<TData> = UnmaskType<{
+type ResponseContext<TData, TErrorData> = {
+	data: TData | null;
+	errorData: TErrorData | null;
+	options: ExtraOptions;
+	request: RequestOptions;
+	response: Response;
+};
+
+export type SuccessResponseContext<TData> = UnmaskType<{
 	data: TData;
 	options: ExtraOptions;
 	request: RequestOptions;

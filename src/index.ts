@@ -4,7 +4,7 @@ export type {
 	RequestOptions,
 	ExtraOptions,
 	CallApiConfig,
-	ResponseContext,
+	SuccessResponseContext,
 	ResponseErrorContext,
 	ErrorContext,
 } from "./types";

@@ -47,6 +47,7 @@ export const createFetchClient = <
 		onRequestError: onBaseRequestError,
 		onResponse: onBaseResponse,
 		onResponseError: onBaseResponseError,
+		onSuccess: onBaseSuccess,
 		...restOfBaseExtraOptions
 	} = baseExtraOptions;
 
@@ -77,6 +78,7 @@ export const createFetchClient = <
 			onRequestError,
 			onResponse,
 			onResponseError,
+			onSuccess,
 			...restOfExtraOptions
 		} = extraOptions;
 
@@ -127,6 +129,12 @@ export const createFetchClient = <
 			onResponseError: handleInterceptorsMerge(
 				onBaseResponseError,
 				onResponseError,
+				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergedInterceptorsExecutionMode
+			),
+			onSuccess: handleInterceptorsMerge(
+				onBaseSuccess,
+				onSuccess,
 				defaultOptions.shouldMergeInterceptors,
 				defaultOptions.mergedInterceptorsExecutionMode
 			),
@@ -277,12 +285,21 @@ export const createFetchClient = <
 				? options.responseValidator(successData)
 				: successData;
 
-			await options.onResponse?.({
-				data: validSuccessData,
-				options,
-				request: requestInit,
-				response: options.shouldCloneResponse ? response.clone() : response,
-			});
+			void (await Promise.all([
+				options.onSuccess?.({
+					data: validSuccessData,
+					options,
+					request: requestInit,
+					response: options.shouldCloneResponse ? response.clone() : response,
+				}),
+				options.onResponse?.({
+					data: validSuccessData,
+					errorData: null,
+					options,
+					request: requestInit,
+					response: options.shouldCloneResponse ? response.clone() : response,
+				}),
+			]));
 
 			return resolveSuccessResult<CallApiResult>({
 				response,
@@ -331,6 +348,14 @@ export const createFetchClient = <
 
 				void (await Promise.all([
 					options.onResponseError?.({
+						errorData,
+						options,
+						request: requestInit,
+						response: options.shouldCloneResponse ? response.clone() : response,
+					}),
+
+					options.onResponse?.({
+						data: null,
 						errorData,
 						options,
 						request: requestInit,
