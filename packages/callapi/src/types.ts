@@ -106,6 +106,12 @@ export interface ExtraOptions<
 	mergedInterceptorsExecutionMode?: "parallel" | "sequential";
 
 	/**
+	 * @description Whether or not to merge the base interceptors with the ones from the instance.
+	 * @default true
+	 */
+	mergeInterceptors?: boolean;
+
+	/**
 	 * @description an optional field you can fill with additional information,
 	 * to associate with the request, typically used for logging or tracing.
 	 *
@@ -239,12 +245,6 @@ export interface ExtraOptions<
 	 * @default false
 	 */
 	shouldCloneResponse?: boolean;
-
-	/**
-	 * @description Whether or not to merge the base interceptors with the ones from the instance.
-	 * @default true
-	 */
-	shouldMergeInterceptors?: boolean;
 
 	/**
 	 * If true or the function returns true, throws errors instead of returning them

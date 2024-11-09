@@ -13,10 +13,10 @@
 		"@zayne-labs/callapi": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/node": "^22.7.5",
+		"@types/node": "^22.9.0",
 		"@zayne-labs/tsconfig": "catalog:",
-		"tsx": "^4.19.1",
+		"tsx": "^4.19.2",
 		"typescript": "catalog:",
-		"vite": "^5.4.8"
+		"vite": "^5.4.10"
 	}
 }

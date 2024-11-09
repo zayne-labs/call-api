@@ -2,7 +2,6 @@
 	"extends": "@zayne-labs/tsconfig/bundler/dom/library",
 
 	"compilerOptions": {
-		"composite": true,
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["src/*"]

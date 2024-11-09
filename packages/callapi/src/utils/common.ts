@@ -187,7 +187,7 @@ export const handleInterceptorsMerge = <
 >(
 	baseInterceptor: TBaseInterceptor | undefined,
 	interceptor: TInterceptor | undefined,
-	shouldMergeInterceptors: ExtraOptions["shouldMergeInterceptors"],
+	shouldMergeInterceptors: ExtraOptions["mergeInterceptors"],
 	mergedInterceptorsExecutionMode: ExtraOptions["mergedInterceptorsExecutionMode"]
 ) => {
 	if (isArray(baseInterceptor) && shouldMergeInterceptors) {
@@ -393,3 +393,12 @@ export const waitUntil = (delay: number) => {
 
 	return promise;
 };
+
+// prettier-ignore
+export const createCombinedSignal = (...signals: Array<AbortSignal | null | undefined>) => AbortSignal.any(signals.filter(Boolean));
+
+export const createTimeoutSignal = (milliseconds: number) => AbortSignal.timeout(milliseconds);
+
+export const executeInterceptors = <TInterceptor extends Awaitable<void>>(
+	...interceptors: TInterceptor[]
+) => Promise.all(interceptors);

@@ -1,6 +1,0 @@
-{
-	"extends": "@zayne-labs/tsconfig/bundler/dom/library",
-
-	"include": ["."],
-	"exclude": ["node_modules/**"]
-}

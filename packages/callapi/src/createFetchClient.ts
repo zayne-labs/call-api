@@ -9,8 +9,11 @@ import type {
 } from "./types";
 import {
 	HTTPError,
+	createCombinedSignal,
+	createTimeoutSignal,
 	defaultRetryCodes,
 	defaultRetryMethods,
+	executeInterceptors,
 	generateRequestKey,
 	getResponseData,
 	handleInterceptorsMerge,
@@ -89,13 +92,13 @@ export const createFetchClient = <
 			dedupeStrategy: "cancel",
 			defaultErrorMessage: "Failed to fetch data from server!",
 			mergedInterceptorsExecutionMode: "parallel",
+			mergeInterceptors: true,
 			responseType: "json",
 			resultMode: "all",
 			retries: 0,
 			retryCodes: defaultRetryCodes,
 			retryDelay: 0,
 			retryMethods: defaultRetryMethods,
-			shouldMergeInterceptors: true,
 
 			...restOfBaseExtraOptions,
 			...restOfExtraOptions,
@@ -105,37 +108,37 @@ export const createFetchClient = <
 			onError: handleInterceptorsMerge(
 				onBaseError,
 				onError,
-				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergeInterceptors,
 				defaultOptions.mergedInterceptorsExecutionMode
 			),
 			onRequest: handleInterceptorsMerge(
 				onBaseRequest,
 				onRequest,
-				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergeInterceptors,
 				defaultOptions.mergedInterceptorsExecutionMode
 			),
 			onRequestError: handleInterceptorsMerge(
 				onBaseRequestError,
 				onRequestError,
-				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergeInterceptors,
 				defaultOptions.mergedInterceptorsExecutionMode
 			),
 			onResponse: handleInterceptorsMerge(
 				onBaseResponse,
 				onResponse,
-				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergeInterceptors,
 				defaultOptions.mergedInterceptorsExecutionMode
 			),
 			onResponseError: handleInterceptorsMerge(
 				onBaseResponseError,
 				onResponseError,
-				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergeInterceptors,
 				defaultOptions.mergedInterceptorsExecutionMode
 			),
 			onSuccess: handleInterceptorsMerge(
 				onBaseSuccess,
 				onSuccess,
-				defaultOptions.shouldMergeInterceptors,
+				defaultOptions.mergeInterceptors,
 				defaultOptions.mergedInterceptorsExecutionMode
 			),
 		} satisfies Pick<ExtraOptions, InterceptorUnion>;
@@ -212,29 +215,33 @@ export const createFetchClient = <
 
 		const newFetchController = new AbortController();
 
-		const timeoutSignal = options.timeout != null ? AbortSignal.timeout(options.timeout) : null;
+		const timeoutSignal = options.timeout != null ? createTimeoutSignal(options.timeout) : null;
 
-		const combinedSignal = AbortSignal.any([
-			newFetchController.signal,
-			...(timeoutSignal ? [timeoutSignal] : []),
-			...(signal ? [signal] : []),
-		]);
+		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
 
 		const requestInit = {
 			signal: combinedSignal,
 			...defaultRequestOptions,
 		} satisfies RequestOptions;
 
-		try {
-			await options.onRequest?.({ options, request: requestInit });
+		const fullUrl = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
 
-			const responsePromise =
-				prevRequestInfo && options.dedupeStrategy === "defer"
-					? prevRequestInfo.responsePromise
-					: fetch(
-							`${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`,
-							requestInit
-						);
+		const request = {
+			url: fullUrl,
+			...requestInit,
+		};
+
+		try {
+			await executeInterceptors(options.onRequest?.({ options, request }));
+
+			const shouldUsePromiseFromCache = prevRequestInfo && options.dedupeStrategy === "defer";
+
+			const responsePromise = shouldUsePromiseFromCache
+				? prevRequestInfo.responsePromise
+				: fetch(
+						`${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`,
+						requestInit
+					);
 
 			requestInfoCacheOrNull?.set(requestKey, { controller: newFetchController, responsePromise });
 
@@ -285,21 +292,22 @@ export const createFetchClient = <
 				? options.responseValidator(successData)
 				: successData;
 
-			void (await Promise.all([
+			await executeInterceptors(
 				options.onSuccess?.({
 					data: validSuccessData,
 					options,
-					request: requestInit,
+					request,
 					response: options.shouldCloneResponse ? response.clone() : response,
 				}),
+
 				options.onResponse?.({
 					data: validSuccessData,
 					errorData: null,
 					options,
-					request: requestInit,
+					request,
 					response: options.shouldCloneResponse ? response.clone() : response,
-				}),
-			]));
+				})
+			);
 
 			return resolveSuccessResult<CallApiResult>({
 				response,
@@ -319,7 +327,7 @@ export const createFetchClient = <
 				? options.throwOnError({
 						error: (generalErrorResult as { error: never }).error,
 						options,
-						request: requestInit,
+						request,
 					})
 				: options.throwOnError;
 
@@ -346,11 +354,11 @@ export const createFetchClient = <
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				const { errorData, response } = error;
 
-				void (await Promise.all([
+				await executeInterceptors(
 					options.onResponseError?.({
 						errorData,
 						options,
-						request: requestInit,
+						request,
 						response: options.shouldCloneResponse ? response.clone() : response,
 					}),
 
@@ -358,7 +366,7 @@ export const createFetchClient = <
 						data: null,
 						errorData,
 						options,
-						request: requestInit,
+						request,
 						response: options.shouldCloneResponse ? response.clone() : response,
 					}),
 
@@ -366,26 +374,26 @@ export const createFetchClient = <
 					options.onError?.({
 						error,
 						options,
-						request: requestInit,
-						response,
-					}),
-				]));
+						request,
+						response: options.shouldCloneResponse ? response.clone() : response,
+					})
+				);
 
 				return generalErrorResult;
 			}
 
-			void (await Promise.all([
+			await executeInterceptors(
 				// == At this point only the request errors exist, so the request error interceptor is called
-				options.onRequestError?.({ error: error as Error, options, request: requestInit }),
+				options.onRequestError?.({ error: error as Error, options, request }),
 
 				// == Also call the onError interceptor
 				options.onError?.({
 					error: (generalErrorResult as { error: never }).error,
 					options,
-					request: requestInit,
+					request,
 					response: null,
-				}),
-			]));
+				})
+			);
 
 			return generalErrorResult;
 

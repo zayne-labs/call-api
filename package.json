@@ -2,6 +2,7 @@
 	"name": "@zayne-labs/callapi-root",
 	"type": "module",
 	"version": "0.0.0",
+	"packageManager": "pnpm@9.12.3",
 	"scripts": {
 		"build": "pnpm --filter \"./packages/*\" build",
 		"build:dev": "pnpm --filter \"./packages/*\" build:dev",
@@ -13,7 +14,7 @@
 		"lint:format": "prettier --cache --write .",
 		"lint:packages": "pnpm dedupe --check",
 		"lint:publint": "pnpm --filter \"./packages/*\" version-package:publint",
-		"lint:size": "pnpm --filter \"./packages/**\" lint:size",
+		"lint:size": "pnpm --filter \"./packages/*\" lint:size",
 		"prepare": "husky",
 		"release": "changeset publish",
 		"release:rc": "pnpm build && changeset publish --tag rc",
@@ -21,19 +22,14 @@
 		"version-package": "changeset version"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "0.16.4",
 		"@changesets/cli": "2.27.9",
 		"@types/node": "^22.9.0",
 		"@zayne-labs/eslint-config": "0.2.9",
-		"@zayne-labs/tsconfig": "0.2.1",
-		"concurrently": "9.1.0",
-		"cross-env": "^7.0.3",
 		"eslint": "9.14.0",
 		"husky": "9.1.6",
 		"lint-staged": "15.2.10",
 		"pkg-pr-new": "0.0.30",
 		"prettier": "3.3.3",
-		"publint": "0.2.12",
 		"typescript": "catalog:"
 	}
 }
