@@ -1,7 +1,7 @@
 import type {
 	ApiErrorVariant,
 	BaseCallApiConfig,
-	CallApiBaseExtraOptions,
+	BaseCallApiExtraOptions,
 	CallApiConfig,
 	CallApiExtraOptions,
 	PossibleErrorNames,
@@ -171,7 +171,7 @@ export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 		pickKeys(baseConfig, fetchSpecificKeys) as RequestOptions,
 		omitKeys(baseConfig, [...fetchSpecificKeys, "requestKey"] satisfies Array<
 			keyof CallApiConfig
-		>) as CallApiBaseExtraOptions,
+		>) as BaseCallApiExtraOptions,
 	] as const;
 
 // eslint-disable-next-line ts-eslint/no-explicit-any

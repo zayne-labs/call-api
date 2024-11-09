@@ -24,7 +24,7 @@ export interface BaseCallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<RequestInit, "body" | "headers" | "method">, CallApiBaseExtraOptions<TData, TErrorData, TResultMode> {}
+> extends Omit<RequestInit, "body" | "headers" | "method">, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {}
 
 export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {}
 
@@ -261,7 +261,7 @@ export interface CallApiExtraOptions<
 	timeout?: number;
 }
 
-export interface CallApiBaseExtraOptions<
+export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
