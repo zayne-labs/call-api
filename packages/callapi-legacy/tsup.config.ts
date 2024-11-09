@@ -5,7 +5,7 @@ const isDevMode = process.env.NODE_ENV === "development";
 const commonOptions = {
 	clean: true, // clean up dist folder,
 	dts: true,
-	entry: ["src/index.ts", "src/utils/index.ts"],
+	entry: ["src/index.ts"],
 	minify: isDevMode ? false : "terser",
 	sourcemap: !isDevMode,
 	tsconfig: "tsconfig.json",
@@ -14,10 +14,9 @@ const commonOptions = {
 export default defineConfig([
 	{
 		...commonOptions,
-
 		format: ["esm"],
 		outDir: "./dist/esm",
-		platform: "browser",
+		platform: "node",
 		splitting: true,
 		target: "esnext",
 		treeshake: true,
