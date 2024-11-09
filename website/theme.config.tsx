@@ -7,11 +7,10 @@ const config: DocsThemeConfig = {
 		component: () => {
 			return <></>;
 		},
-		text: "CallApi docs",
+		content: "CallApi docs",
 	},
 	head: () => {
 		const { asPath, defaultLocale, locale, pathname } = useRouter();
-		// eslint-disable-next-line ts-eslint/no-unsafe-assignment
 		const { frontMatter } = useConfig();
 		const url = `https://zayne-callapi.netlify.app${defaultLocale === locale ? asPath : `/${locale}${asPath}`}`;
 
@@ -27,8 +26,7 @@ const config: DocsThemeConfig = {
 				</title>
 				<meta content="CallApi Docs - Documrentation for CallApi" name="description" />
 				<meta content={url} property="og:url" />
-				{/* eslint-disable ts-eslint/no-unsafe-assignment */
-				/* eslint-disable ts-eslint/no-unsafe-member-access */}
+				{/* eslint-disable ts-eslint/no-unsafe-assignment */}
 				<meta content={frontMatter.title ?? "CallApi"} property="og:title" />
 				<meta content={frontMatter.description ?? "CallApi docs"} property="og:description" />
 			</>

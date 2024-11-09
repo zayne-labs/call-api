@@ -1,13 +1,6 @@
 {
 	"extends": "@zayne-labs/tsconfig/bundler/dom/library",
 
-	"compilerOptions": {
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["src/*"]
-		}
-	},
-
-	"include": ["src/**/*.ts"],
-	"exclude": ["dist", "node_modules"]
+	"include": ["."],
+	"exclude": ["node_modules/**"]
 }
