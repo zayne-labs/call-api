@@ -1,9 +1,9 @@
 import type {
 	ApiErrorVariant,
 	BaseCallApiConfig,
-	BaseExtraOptions,
+	CallApiBaseExtraOptions,
 	CallApiConfig,
-	ExtraOptions,
+	CallApiExtraOptions,
 	PossibleErrorNames,
 	RequestOptions,
 	ResultModeMap,
@@ -15,8 +15,8 @@ import { isArray, isObject } from "./typeof";
 export const generateRequestKey = (url: string, config: Record<string, unknown>) => `${url} ${ampersand} ${JSON.stringify(config)}`;
 
 type ToQueryStringFn = {
-	(params: ExtraOptions["query"]): string | null;
-	(params: Required<ExtraOptions>["query"]): string;
+	(params: CallApiExtraOptions["query"]): string | null;
+	(params: Required<CallApiExtraOptions>["query"]): string;
 };
 
 export const toQueryString: ToQueryStringFn = (params) => {
@@ -31,7 +31,7 @@ export const toQueryString: ToQueryStringFn = (params) => {
 
 const slash = "/";
 const column = ":";
-const mergeUrlWithParams = (url: string, params: ExtraOptions["params"]) => {
+const mergeUrlWithParams = (url: string, params: CallApiExtraOptions["params"]) => {
 	if (!params) {
 		return url;
 	}
@@ -61,7 +61,7 @@ const mergeUrlWithParams = (url: string, params: ExtraOptions["params"]) => {
 const questionMark = "?";
 const ampersand = "&";
 
-const mergeUrlWithQuery = (url: string, query: ExtraOptions["query"]): string => {
+const mergeUrlWithQuery = (url: string, query: CallApiExtraOptions["query"]): string => {
 	if (!query) {
 		return url;
 	}
@@ -85,8 +85,8 @@ const mergeUrlWithQuery = (url: string, query: ExtraOptions["query"]): string =>
 
 export const mergeUrlWithParamsAndQuery = (
 	url: string,
-	params: ExtraOptions["params"],
-	query: ExtraOptions["query"]
+	params: CallApiExtraOptions["params"],
+	query: CallApiExtraOptions["query"]
 ) => {
 	const urlWithMergedParams = mergeUrlWithParams(url, params);
 
@@ -171,14 +171,14 @@ export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 		pickKeys(baseConfig, fetchSpecificKeys) as RequestOptions,
 		omitKeys(baseConfig, [...fetchSpecificKeys, "requestKey"] satisfies Array<
 			keyof CallApiConfig
-		>) as BaseExtraOptions,
+		>) as CallApiBaseExtraOptions,
 	] as const;
 
 // eslint-disable-next-line ts-eslint/no-explicit-any
 export const splitConfig = (config: Record<string, any>) =>
 	[
 		pickKeys(config, fetchSpecificKeys) as RequestOptions,
-		omitKeys(config, fetchSpecificKeys) as ExtraOptions,
+		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
 	] as const;
 
 export const handleInterceptorsMerge = <
@@ -187,8 +187,8 @@ export const handleInterceptorsMerge = <
 >(
 	baseInterceptor: TBaseInterceptor | undefined,
 	interceptor: TInterceptor | undefined,
-	shouldMergeInterceptors: ExtraOptions["mergeInterceptors"],
-	mergedInterceptorsExecutionMode: ExtraOptions["mergedInterceptorsExecutionMode"]
+	shouldMergeInterceptors: CallApiExtraOptions["mergeInterceptors"],
+	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
 ) => {
 	if (isArray(baseInterceptor) && shouldMergeInterceptors) {
 		const mergedInterceptor = async (ctx: Record<string, unknown>) => {
@@ -218,7 +218,7 @@ export const handleInterceptorsMerge = <
 
 export const handleResponseType = <TResponse>(
 	response: Response,
-	parser?: Required<ExtraOptions>["responseParser"]
+	parser?: Required<CallApiExtraOptions>["responseParser"]
 ) => ({
 	arrayBuffer: () => response.arrayBuffer() as Promise<TResponse>,
 	blob: () => response.blob() as Promise<TResponse>,
@@ -236,7 +236,7 @@ export const handleResponseType = <TResponse>(
 export const getResponseData = <TResponse>(
 	response: Response,
 	responseType: keyof ReturnType<typeof handleResponseType>,
-	parser: ExtraOptions["responseParser"]
+	parser: CallApiExtraOptions["responseParser"]
 ) => {
 	const RESPONSE_TYPE_LOOKUP = handleResponseType<TResponse>(response, parser);
 
@@ -249,7 +249,7 @@ export const getResponseData = <TResponse>(
 
 type SuccessInfo = {
 	response: Response;
-	resultMode: ExtraOptions["resultMode"];
+	resultMode: CallApiExtraOptions["resultMode"];
 	successData: unknown;
 };
 
@@ -277,10 +277,10 @@ export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiR
 };
 
 type ErrorInfo = {
-	defaultErrorMessage: Required<ExtraOptions>["defaultErrorMessage"];
+	defaultErrorMessage: Required<CallApiExtraOptions>["defaultErrorMessage"];
 	error?: unknown;
 	message?: string;
-	resultMode: ExtraOptions["resultMode"];
+	resultMode: CallApiExtraOptions["resultMode"];
 };
 
 export const resolveErrorResult = <CallApiResult>(info: ErrorInfo) => {

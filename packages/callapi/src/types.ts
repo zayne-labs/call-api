@@ -17,14 +17,14 @@ export interface CallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<RequestInit, "body" | "headers" | "method">, ExtraOptions<TData, TErrorData, TResultMode> {}
+> extends Omit<RequestInit, "body" | "headers" | "method">, CallApiExtraOptions<TData, TErrorData, TResultMode> {}
 
 // prettier-ignore
 export interface BaseCallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<RequestInit, "body" | "headers" | "method">, BaseExtraOptions<TData, TErrorData, TResultMode> {}
+> extends Omit<RequestInit, "body" | "headers" | "method">, CallApiBaseExtraOptions<TData, TErrorData, TResultMode> {}
 
 export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {}
 
@@ -32,7 +32,7 @@ export type InterceptorUnion = UnmaskType<
 	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"
 >;
 
-export interface ExtraOptions<
+export interface CallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
@@ -64,13 +64,6 @@ export interface ExtraOptions<
 	 * @description Custom function to serialize the body object into a string.
 	 */
 	bodySerializer?: (bodyData: Record<string, unknown>) => string;
-
-	/**
-	 * @description If true, cancels previous unfinished requests to the same URL.
-	 * @default true
-	 * @deprecated use dedupeStrategy option instead
-	 */
-	cancelRedundantRequests?: boolean;
 
 	/**
 	 * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
@@ -150,14 +143,17 @@ export interface ExtraOptions<
 	/**
 	 * @description Interceptor to be called just before the request is made, allowing for modifications or additional operations.
 	 */
-	onRequest?: (requestContext: { options: ExtraOptions; request: RequestOptions }) => Awaitable<void>;
+	onRequest?: (requestContext: {
+		options: CallApiExtraOptions;
+		request: RequestOptions;
+	}) => Awaitable<void>;
 
 	/**
 	 *  @description Interceptor to be called when an error occurs during the fetch request.
 	 */
 	onRequestError?: (requestErrorContext: {
 		error: Error;
-		options: ExtraOptions;
+		options: CallApiExtraOptions;
 		request: RequestOptions;
 	}) => Awaitable<void>;
 
@@ -255,7 +251,7 @@ export interface ExtraOptions<
 		| boolean
 		| ((ctx: {
 				error: ErrorContext<TErrorData>["error"];
-				options: ExtraOptions;
+				options: CallApiExtraOptions;
 				request: RequestOptions;
 		  }) => boolean);
 
@@ -265,11 +261,14 @@ export interface ExtraOptions<
 	timeout?: number;
 }
 
-export interface BaseExtraOptions<
+export interface CallApiBaseExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey" | InterceptorUnion> {
+> extends Omit<
+		CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>,
+		"requestKey" | InterceptorUnion
+	> {
 	/* eslint-disable perfectionist/sort-union-types */
 
 	/**
@@ -277,53 +276,55 @@ export interface BaseExtraOptions<
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
 	onError?:
-		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onError"]
-		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onError"]>;
+		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onError"]
+		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onError"]>;
 
 	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
 	onRequest?:
-		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequest"]
-		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequest"]>;
+		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequest"]
+		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequest"]>;
 
 	/** @description Interceptor to be called when an error occurs during the fetch request. */
 	onRequestError?:
-		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]
-		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]>;
+		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]
+		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]>;
 
 	/** @description Interceptor to be called when any response is received from the api, whether successful or not */
 	onResponse?:
-		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]
-		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]>;
+		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]
+		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]>;
 
 	/** @description Interceptor to be called when an error response is received from the api. */
 	onResponseError?:
-		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]
-		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]>;
+		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]
+		| Array<
+				Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]
+		  >;
 
 	/** @description Interceptor to be called when a successful response is received from the api. */
 	onSuccess?:
-		| Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]
-		| Array<Required<ExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]>;
+		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]
+		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]>;
 }
 
 type ResponseContext<TData, TErrorData> = {
 	data: TData | null;
 	errorData: TErrorData | null;
-	options: ExtraOptions;
+	options: CallApiExtraOptions;
 	request: RequestOptions;
 	response: Response;
 };
 
 export type SuccessResponseContext<TData> = UnmaskType<{
 	data: TData;
-	options: ExtraOptions;
+	options: CallApiExtraOptions;
 	request: RequestOptions;
 	response: Response;
 }>;
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<{
 	errorData: TErrorData;
-	options: ExtraOptions;
+	options: CallApiExtraOptions;
 	request: RequestOptions;
 	response: Response;
 }>;
@@ -331,13 +332,13 @@ export type ResponseErrorContext<TErrorData> = UnmaskType<{
 export type ErrorContext<TErrorData> = UnmaskType<
 	| {
 			error: Prettify<Extract<ErrorObjectUnion, { name: PossibleErrorNames }>>;
-			options: ExtraOptions;
+			options: CallApiExtraOptions;
 			request: RequestOptions;
 			response: null;
 	  }
 	| {
 			error: Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;
-			options: ExtraOptions;
+			options: CallApiExtraOptions;
 			request: RequestOptions;
 			response: Response;
 	  }

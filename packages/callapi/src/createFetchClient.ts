@@ -1,7 +1,7 @@
 import type {
 	BaseCallApiConfig,
 	CallApiConfig,
-	ExtraOptions,
+	CallApiExtraOptions,
 	GetCallApiResult,
 	InterceptorUnion,
 	RequestOptions,
@@ -102,7 +102,7 @@ export const createFetchClient = <
 
 			...restOfBaseExtraOptions,
 			...restOfExtraOptions,
-		} satisfies Omit<ExtraOptions, InterceptorUnion>;
+		} satisfies Omit<CallApiExtraOptions, InterceptorUnion>;
 
 		const interceptors = {
 			onError: handleInterceptorsMerge(
@@ -141,7 +141,7 @@ export const createFetchClient = <
 				defaultOptions.mergeInterceptors,
 				defaultOptions.mergedInterceptorsExecutionMode
 			),
-		} satisfies Pick<ExtraOptions, InterceptorUnion>;
+		} satisfies Pick<CallApiExtraOptions, InterceptorUnion>;
 
 		const options = {
 			...interceptors,
