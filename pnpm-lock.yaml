@@ -48,7 +48,7 @@ importers:
   dev:
     dependencies:
       '@zayne-labs/callapi':
-        specifier: workspace:*
+        specifier: workspace:../packages/callapi
         version: link:../packages/callapi
     devDependencies:
       '@types/node':
