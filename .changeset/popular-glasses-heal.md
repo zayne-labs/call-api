@@ -1,5 +1,5 @@
 ---
-"@zayne-labs/callapi-legacy": patch
+"@zayne-labs/callapi-legacy": major
 ---
 
 feat(callapi-legacy): initialize package with TypeScript configuration and utility functions

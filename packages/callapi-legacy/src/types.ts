@@ -1,7 +1,4 @@
 import type { fetchSpecificKeys, handleResponseType } from "./utils/common";
-
-/* eslint-disable ts-eslint/no-empty-object-type */
-/* eslint-disable ts-eslint/consistent-type-definitions */
 import type {
 	AnyNumber,
 	AnyString,
@@ -12,6 +9,7 @@ import type {
 	UnmaskType,
 } from "./utils/type-helpers";
 
+/* eslint-disable ts-eslint/consistent-type-definitions */
 // prettier-ignore
 export interface CallApiConfig<
 	TData = unknown,
@@ -26,7 +24,9 @@ export interface BaseCallApiConfig<
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 > extends Omit<RequestInit, "body" | "headers" | "method">, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {}
 
-export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {}
+export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {
+	url: string;
+}
 
 export type InterceptorUnion = UnmaskType<
 	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"

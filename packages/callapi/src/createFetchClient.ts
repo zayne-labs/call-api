@@ -185,7 +185,7 @@ export const createFetchClient = <
 
 			...restOfBaseFetchConfig,
 			...restOfFetchConfig,
-		} satisfies RequestOptions;
+		} satisfies RequestInit;
 
 		// prettier-ignore
 		const shouldHaveRequestKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
@@ -222,14 +222,14 @@ export const createFetchClient = <
 		const requestInit = {
 			signal: combinedSignal,
 			...defaultRequestOptions,
-		} satisfies RequestOptions;
+		} satisfies RequestInit;
 
 		const fullUrl = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
 
 		const request = {
 			url: fullUrl,
 			...requestInit,
-		};
+		} satisfies RequestOptions;
 
 		try {
 			await executeInterceptors(options.onRequest?.({ options, request }));

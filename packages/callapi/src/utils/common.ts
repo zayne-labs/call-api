@@ -5,7 +5,6 @@ import type {
 	CallApiConfig,
 	CallApiExtraOptions,
 	PossibleErrorNames,
-	RequestOptions,
 	ResultModeMap,
 } from "../types";
 import type { AnyFunction, Awaitable } from "./type-helpers";
@@ -168,7 +167,7 @@ const pickKeys = <TObject extends Record<string, unknown>, const TPickArray exte
 // eslint-disable-next-line ts-eslint/no-explicit-any
 export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 	[
-		pickKeys(baseConfig, fetchSpecificKeys) as RequestOptions,
+		pickKeys(baseConfig, fetchSpecificKeys) as RequestInit,
 		omitKeys(baseConfig, [...fetchSpecificKeys, "requestKey"] satisfies Array<
 			keyof CallApiConfig
 		>) as BaseCallApiExtraOptions,
@@ -177,7 +176,7 @@ export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 // eslint-disable-next-line ts-eslint/no-explicit-any
 export const splitConfig = (config: Record<string, any>) =>
 	[
-		pickKeys(config, fetchSpecificKeys) as RequestOptions,
+		pickKeys(config, fetchSpecificKeys) as RequestInit,
 		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
 	] as const;
 
