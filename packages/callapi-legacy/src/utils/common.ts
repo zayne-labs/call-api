@@ -8,14 +8,14 @@ import type {
 	ResultModeMap,
 } from "../types";
 import type { AnyFunction, Awaitable } from "./type-helpers";
-import { isArray, isObject } from "./typeof";
+import { isArray, isObject, isQueryString, isString } from "./typeof";
 
 // prettier-ignore
 export const generateRequestKey = (url: string, config: Record<string, unknown>) => `${url} ${ampersand} ${JSON.stringify(config)}`;
 
 type ToQueryStringFn = {
-	(params: CallApiExtraOptions["query"]): string | null;
-	(params: Required<CallApiExtraOptions>["query"]): string;
+	(params: CallApiConfig["query"]): string | null;
+	(params: Required<CallApiConfig>["query"]): string;
 };
 
 export const toQueryString: ToQueryStringFn = (params) => {
@@ -60,7 +60,7 @@ const mergeUrlWithParams = (url: string, params: CallApiExtraOptions["params"]) 
 const questionMark = "?";
 const ampersand = "&";
 
-const mergeUrlWithQuery = (url: string, query: CallApiExtraOptions["query"]): string => {
+const mergeUrlWithQuery = (url: string, query: CallApiConfig["query"]): string => {
 	if (!query) {
 		return url;
 	}
@@ -98,6 +98,42 @@ export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string
 	}
 
 	return Object.fromEntries(isArray(headers) ? headers : headers.entries());
+};
+
+export const resolveHeaders = (options: {
+	auth: CallApiConfig["auth"];
+	baseHeaders: CallApiConfig["headers"];
+	body: CallApiConfig["body"];
+	headers: CallApiConfig["headers"];
+}) => {
+	const { auth, baseHeaders, body, headers } = options;
+
+	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing
+	const shouldResolveHeaders = baseHeaders || headers || body || auth;
+
+	// == Return undefined if the following conditions are not met (so that native fetch would auto set the correct headers):
+	// - headers are provided
+	// - The body is an object
+	// - The auth option is provided
+	if (!shouldResolveHeaders) return;
+
+	return {
+		...(isObject(body) && {
+			Accept: "application/json",
+			"Content-Type": "application/json",
+		}),
+		...(isQueryString(body) && {
+			"Content-Type": "application/x-www-form-urlencoded",
+		}),
+		...((isString(auth) || auth === null) && {
+			Authorization: `Bearer ${auth}`,
+		}),
+		...(isObject(auth) && {
+			Authorization: "bearer" in auth ? `Bearer ${auth.bearer}` : `Token ${auth.token}`,
+		}),
+		...objectifyHeaders(baseHeaders),
+		...objectifyHeaders(headers),
+	};
 };
 
 const retryCodesLookup = {
@@ -186,14 +222,14 @@ export const handleInterceptorsMerge = <
 >(
 	baseInterceptor: TBaseInterceptor | undefined,
 	interceptor: TInterceptor | undefined,
-	shouldMergeInterceptors: CallApiExtraOptions["mergeInterceptors"],
+	mergeInterceptors: CallApiExtraOptions["mergeInterceptors"],
 	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
 ) => {
-	if (isArray(baseInterceptor) && shouldMergeInterceptors) {
+	if (isArray(baseInterceptor) && mergeInterceptors) {
 		const mergedInterceptor = async (ctx: Record<string, unknown>) => {
-			if (!interceptor) return;
-
-			const interceptorArray = [...baseInterceptor, interceptor] as Array<AnyFunction<Awaitable<void>>>;
+			const interceptorArray = [...baseInterceptor, ...(interceptor ? [interceptor] : [])] as Array<
+				AnyFunction<Awaitable<void>>
+			>;
 
 			const uniqueInterceptorArray = [...new Set(interceptorArray)];
 
@@ -391,51 +427,6 @@ export const waitUntil = (delay: number) => {
 	setTimeout(resolve, delay);
 
 	return promise;
-};
-
-export const createCombinedSignal = (...signals: Array<AbortSignal | null | undefined>) => {
-	const actualSignalArray = signals.filter(Boolean);
-
-	// eslint-disable-next-line ts-eslint/no-unnecessary-condition
-	if (AbortSignal && "any" in AbortSignal) {
-		return AbortSignal.any(actualSignalArray);
-	}
-
-	const controller = new AbortController();
-
-	const handleAbort = (actualSignal: AbortSignal) => {
-		if (controller.signal.aborted) return;
-
-		controller.abort(actualSignal.reason);
-	};
-
-	for (const actualSignal of actualSignalArray) {
-		if (actualSignal.aborted) {
-			handleAbort(actualSignal);
-			break;
-		}
-
-		actualSignal.addEventListener("abort", () => handleAbort(actualSignal), {
-			signal: controller.signal,
-		});
-	}
-
-	return controller.signal;
-};
-
-export const createTimeoutSignal = (milliseconds: number) => {
-	// eslint-disable-next-line ts-eslint/no-unnecessary-condition
-	if (AbortSignal && "timeout" in AbortSignal) {
-		return AbortSignal.timeout(milliseconds);
-	}
-
-	const controller = new AbortController();
-
-	const reason = new DOMException("Request timed out", "TimeoutError");
-
-	setTimeout(() => controller.abort(reason), milliseconds);
-
-	return controller.signal;
 };
 
 export const executeInterceptors = <TInterceptor extends Awaitable<void>>(

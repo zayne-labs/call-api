@@ -9,8 +9,6 @@ import type {
 } from "./types";
 import {
 	HTTPError,
-	createCombinedSignal,
-	createTimeoutSignal,
 	defaultRetryCodes,
 	defaultRetryMethods,
 	executeInterceptors,
@@ -19,14 +17,15 @@ import {
 	handleInterceptorsMerge,
 	isHTTPErrorInstance,
 	mergeUrlWithParamsAndQuery,
-	objectifyHeaders,
 	resolveErrorResult,
+	resolveHeaders,
 	resolveSuccessResult,
 	splitBaseConfig,
 	splitConfig,
 	waitUntil,
 } from "./utils/common";
-import { isFunction, isObject, isQueryString, isString } from "./utils/typeof";
+import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
+import { isFunction, isObject } from "./utils/typeof";
 
 export const createFetchClient = <
 	TBaseData,
@@ -59,7 +58,6 @@ export const createFetchClient = <
 		{ controller: AbortController; responsePromise: Promise<Response> }
 	>();
 
-	// eslint-disable-next-line complexity
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
@@ -155,33 +153,7 @@ export const createFetchClient = <
 			// eslint-disable-next-line perfectionist/sort-objects
 			body: isObject(body) ? options.bodySerializer(body) : body,
 
-			// == Return undefined if the following conditions are not met (so that native fetch would auto set the correct headers):
-			// - headers are provided
-			// - The body is an object
-			// - The auth option is provided
-			headers:
-				baseHeaders || headers || isObject(body) || options.auth
-					? {
-							...(isObject(body) && {
-								Accept: "application/json",
-								"Content-Type": "application/json",
-							}),
-							...(isQueryString(body) && {
-								"Content-Type": "application/x-www-form-urlencoded",
-							}),
-							...((isString(options.auth) || options.auth === null) && {
-								Authorization: `Bearer ${options.auth}`,
-							}),
-							...(isObject(options.auth) && {
-								Authorization:
-									"bearer" in options.auth
-										? `Bearer ${options.auth.bearer}`
-										: `Token ${options.auth.token}`,
-							}),
-							...objectifyHeaders(baseHeaders),
-							...objectifyHeaders(headers),
-						}
-					: undefined,
+			headers: resolveHeaders({ auth: options.auth, baseHeaders, body, headers }),
 
 			...restOfBaseFetchConfig,
 			...restOfFetchConfig,
@@ -233,6 +205,16 @@ export const createFetchClient = <
 
 		try {
 			await executeInterceptors(options.onRequest?.({ options, request }));
+
+			// == Incase options.auth was updated in the request interceptor
+			requestInit.headers = resolveHeaders({
+				auth: options.auth,
+				baseHeaders: options.headers,
+				body: options.body,
+				headers: options.headers,
+			});
+
+			request.headers = requestInit.headers;
 
 			const shouldUsePromiseFromCache = prevRequestInfo && options.dedupeStrategy === "defer";
 
