@@ -10,7 +10,7 @@
 		"inspect:eslint-config": "pnpx @eslint/config-inspector@latest",
 		"lint:attw": "pnpm --filter \"./packages/*\" lint:attw",
 		"lint:check-types": "pnpm --filter \"./packages/*\" lint:check-types",
-		"lint:eslint": "eslint . --cache --max-warnings 0 --report-unused-disable-directives",
+		"lint:eslint": "pnpm build && eslint . --cache --max-warnings 0 --report-unused-disable-directives",
 		"lint:format": "prettier --cache --write .",
 		"lint:packages": "pnpm dedupe --check",
 		"lint:publint": "pnpm --filter \"./packages/*\" version-package:publint",
