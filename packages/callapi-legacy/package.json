@@ -36,7 +36,7 @@
 		"dist"
 	],
 	"engines": {
-		"node": ">=16.0.0"
+		"node": ">=v18.0.0"
 	},
 	"scripts": {
 		"build": "tsup",

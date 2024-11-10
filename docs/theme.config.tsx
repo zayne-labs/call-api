@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useRouter } from "next/router";
 import { type DocsThemeConfig, useConfig } from "nextra-theme-docs";
 
@@ -5,7 +6,7 @@ const config: DocsThemeConfig = {
 	docsRepositoryBase: "https://github.com/zayne-labs/callApi",
 	footer: {
 		component: () => {
-			return <></>;
+			return null;
 		},
 		content: "CallApi docs",
 	},

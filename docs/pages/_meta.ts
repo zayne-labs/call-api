@@ -5,5 +5,4 @@ export default {
 	features: "Core Features",
 	advanced: "Advanced Features",
 	"api-reference": "API Reference",
-	examples: "Examples",
 };
