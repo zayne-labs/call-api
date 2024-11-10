@@ -10,7 +10,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@zayne-labs/callapi": "../packages/callapi"
+		"@zayne-labs/callapi": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/node": "^22.9.0",
