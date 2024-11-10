@@ -4,6 +4,6 @@ export default zayne({
 	type: "lib",
 	ignores: ["dist/**", "eslint.config.js"],
 	typescript: {
-		tsconfigPath: ["./**/tsconfig.json"],
+		tsconfigPath: ["**/tsconfig.json"],
 	},
 });
