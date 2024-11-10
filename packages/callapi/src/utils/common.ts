@@ -5,7 +5,6 @@ import type {
 	CallApiConfig,
 	CallApiExtraOptions,
 	PossibleErrorNames,
-	ResultModeMap,
 } from "../types";
 import type { AnyFunction, Awaitable } from "./type-helpers";
 import { isArray, isObject, isQueryString, isString } from "./typeof";
@@ -318,10 +317,10 @@ type ErrorInfo = {
 	resultMode: CallApiExtraOptions["resultMode"];
 };
 
-export const resolveErrorResult = <CallApiResult>(info: ErrorInfo) => {
+export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 	const { defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
 
-	let apiDetails!: ResultModeMap["all"];
+	let apiDetails!: ApiErrorVariant<unknown>;
 
 	if (isHTTPErrorInstance(error)) {
 		const { errorData, message = defaultErrorMessage, name, response } = error;
@@ -352,16 +351,16 @@ export const resolveErrorResult = <CallApiResult>(info: ErrorInfo) => {
 		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
 		onlySuccess: apiDetails.data,
-	}[resultMode ?? "all"] ?? apiDetails) as CallApiResult;
+	}[resultMode ?? "all"] ?? apiDetails) as TCallApiResult;
 
 	// prettier-ignore
 	const resolveCustomErrorInfo = ({ message }: Pick<ErrorInfo, "message">) => {
-		const errorResult = resolveErrorResult<CallApiResult>({ ...info, message });
+		const errorResult = resolveErrorResult<TCallApiResult>({ ...info, message });
 
 		return errorResult.generalErrorResult;
 	};
 
-	return { generalErrorResult, resolveCustomErrorInfo };
+	return { apiDetails, generalErrorResult, resolveCustomErrorInfo };
 };
 
 export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["error"] | null) => {

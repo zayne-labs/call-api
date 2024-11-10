@@ -297,28 +297,34 @@ export const createFetchClient = <
 
 			// == Exhaustive Error handling
 		} catch (error) {
-			const { generalErrorResult, resolveCustomErrorInfo } = resolveErrorResult<CallApiResult>({
-				defaultErrorMessage: options.defaultErrorMessage,
-				error,
-				resultMode: options.resultMode,
-			});
+			const { apiDetails, generalErrorResult, resolveCustomErrorInfo } =
+				resolveErrorResult<CallApiResult>({
+					defaultErrorMessage: options.defaultErrorMessage,
+					error,
+					resultMode: options.resultMode,
+				});
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
 				? options.throwOnError({
-						error: (generalErrorResult as { error: never }).error,
+						error: apiDetails.error,
 						options,
 						request,
 					})
 				: options.throwOnError;
 
-			if (shouldThrowOnError) {
-				throw error;
-			}
+			// eslint-disable-next-line unicorn/consistent-function-scoping
+			const handleThrowOnError = () => {
+				if (!shouldThrowOnError) return;
+
+				throw apiDetails.error as Error;
+			};
 
 			if (error instanceof DOMException && error.name === "TimeoutError") {
 				const message = `Request timed out after ${options.timeout}ms`;
 
 				console.error(`${error.name}:`, message);
+
+				handleThrowOnError();
 
 				return resolveCustomErrorInfo({ message });
 			}
@@ -327,6 +333,8 @@ export const createFetchClient = <
 				const { message, name } = error;
 
 				console.error(`${name}:`, message);
+
+				handleThrowOnError();
 
 				return generalErrorResult;
 			}
@@ -359,6 +367,8 @@ export const createFetchClient = <
 					})
 				);
 
+				handleThrowOnError();
+
 				return generalErrorResult;
 			}
 
@@ -374,6 +384,8 @@ export const createFetchClient = <
 					response: null,
 				})
 			);
+
+			handleThrowOnError();
 
 			return generalErrorResult;
 
