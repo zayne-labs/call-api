@@ -9,28 +9,30 @@ import type {
 	UnmaskType,
 } from "./utils/type-helpers";
 
+type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
+
 /* eslint-disable ts-eslint/consistent-type-definitions */
-// prettier-ignore
-export interface CallApiConfig<
-	TData = unknown,
-	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<RequestInit, "body" | "headers" | "method">, CallApiExtraOptions<TData, TErrorData, TResultMode> {}
 
-// prettier-ignore
-export interface BaseCallApiConfig<
-	TData = unknown,
-	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<RequestInit, "body" | "headers" | "method">, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {}
+export interface RequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion> {
+	/** Optional body of the request, can be a object or any other supported body type. */
+	body?: Record<string, unknown> | RequestInit["body"];
 
-export interface RequestOptions extends Pick<CallApiConfig, (typeof fetchSpecificKeys)[number]> {
-	url: string;
+	/**
+	 * @description Headers to be used in the request.
+	 */
+	headers?:
+		| Record<"Content-Type", CommonContentTypes>
+		| Record<CommonRequestHeaders, string>
+		| RequestInit["headers"];
+
+	/**
+	 * @description HTTP method for the request.
+	 * @default "GET"
+	 */
+	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
+
+	readonly url?: string;
 }
-
-export type InterceptorUnion = UnmaskType<
-	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"
->;
 
 export interface CallApiExtraOptions<
 	TData = unknown,
@@ -57,9 +59,6 @@ export interface CallApiExtraOptions<
 	 */
 	baseURL?: string;
 
-	/** Optional body of the request, can be a object or any other supported body type. */
-	body?: Record<string, unknown> | RequestInit["body"];
-
 	/**
 	 * @description Custom function to serialize the body object into a string.
 	 */
@@ -81,14 +80,6 @@ export interface CallApiExtraOptions<
 	 * @default "Failed to fetch data from server!"
 	 */
 	defaultErrorMessage?: string;
-
-	/**
-	 * @description Headers to be used in the request.
-	 */
-	headers?:
-		| Record<"Content-Type", CommonContentTypes>
-		| Record<CommonRequestHeaders, string>
-		| RequestInit["headers"];
 
 	/**
 	 * @description Defines the mode in which merged interceptors are executed, can be set to "parallel" | "sequential".
@@ -127,12 +118,6 @@ export interface CallApiExtraOptions<
 	 * ```
 	 */
 	meta?: Record<string, unknown>;
-
-	/**
-	 * @description HTTP method for the request.
-	 * @default "GET"
-	 */
-	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
 
 	/**
 	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
@@ -306,6 +291,24 @@ export interface BaseCallApiExtraOptions<
 		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]
 		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]>;
 }
+
+// prettier-ignore
+export interface CallApiConfig<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+> extends RequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> {}
+
+// prettier-ignore
+export interface BaseCallApiConfig<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+> extends RequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {}
+
+export type InterceptorUnion = UnmaskType<
+	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"
+>;
 
 type ResponseContext<TData, TErrorData> = {
 	data: TData | null;

@@ -146,10 +146,11 @@ export const createFetchClient = <
 			...defaultOptions,
 		};
 
+		const fullUrl = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
+
 		// == Default Request Init
 		const defaultRequestOptions = {
 			method: "GET",
-
 			// eslint-disable-next-line perfectionist/sort-objects
 			body: isObject(body) ? options.bodySerializer(body) : body,
 
@@ -164,7 +165,9 @@ export const createFetchClient = <
 
 		const requestKey =
 			options.requestKey ??
-			(shouldHaveRequestKey ? generateRequestKey(url, { ...defaultRequestOptions, ...options }) : null);
+			(shouldHaveRequestKey
+				? generateRequestKey(fullUrl, { ...defaultRequestOptions, ...options })
+				: null);
 
 		// == This is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key start at the same time
 		if (requestKey != null) {
@@ -196,8 +199,6 @@ export const createFetchClient = <
 			...defaultRequestOptions,
 		} satisfies RequestInit;
 
-		const fullUrl = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
-
 		const request = {
 			url: fullUrl,
 			...requestInit,
@@ -209,9 +210,9 @@ export const createFetchClient = <
 			// == Incase options.auth was updated in the request interceptor
 			requestInit.headers = resolveHeaders({
 				auth: options.auth,
-				baseHeaders: options.headers,
-				body: options.body,
-				headers: options.headers,
+				baseHeaders,
+				body: request.body,
+				headers: request.headers,
 			});
 
 			request.headers = requestInit.headers;
@@ -220,10 +221,7 @@ export const createFetchClient = <
 
 			const responsePromise = shouldUsePromiseFromCache
 				? prevRequestInfo.responsePromise
-				: fetch(
-						`${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`,
-						requestInit
-					);
+				: fetch(fullUrl, requestInit);
 
 			requestInfoCacheOrNull?.set(requestKey, { controller: newFetchController, responsePromise });
 

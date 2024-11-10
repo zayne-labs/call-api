@@ -167,7 +167,7 @@ export const fetchSpecificKeys = [
 	"priority",
 	"mode",
 	"referrerPolicy",
-] satisfies Array<keyof CallApiConfig>;
+] satisfies Array<keyof RequestInit>;
 
 export const omitKeys = <
 	TObject extends Record<string, unknown>,

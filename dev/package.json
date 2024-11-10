@@ -5,7 +5,8 @@
 	"private": true,
 	"scripts": {
 		"build": "tsc && vite build",
-		"dev:client": "vite",
+		"dev": "vite",
+		"dev:client": "pnpm dev",
 		"dev:server": "tsx --watch src/server.ts --clear-screen=false",
 		"preview": "vite preview"
 	},
