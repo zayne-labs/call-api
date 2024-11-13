@@ -128,19 +128,12 @@ export interface CallApiExtraOptions<
 	/**
 	 * @description Interceptor to be called just before the request is made, allowing for modifications or additional operations.
 	 */
-	onRequest?: (requestContext: {
-		options: CallApiExtraOptions;
-		request: RequestOptions;
-	}) => Awaitable<void>;
+	onRequest?: (requestContext: RequestContext) => Awaitable<void>;
 
 	/**
 	 *  @description Interceptor to be called when an error occurs during the fetch request.
 	 */
-	onRequestError?: (requestErrorContext: {
-		error: Error;
-		options: CallApiExtraOptions;
-		request: RequestOptions;
-	}) => Awaitable<void>;
+	onRequestError?: (requestErrorContext: RequestErrorContext) => Awaitable<void>;
 
 	/**
 	 * @description Interceptor to be called when any response is received from the api, whether successful or not
@@ -310,13 +303,24 @@ export type InterceptorUnion = UnmaskType<
 	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"
 >;
 
-type ResponseContext<TData, TErrorData> = {
+export type RequestContext = UnmaskType<{
+	options: CallApiExtraOptions;
+	request: RequestOptions;
+}>;
+
+export type RequestErrorContext = UnmaskType<{
+	error: Error;
+	options: CallApiExtraOptions;
+	request: RequestOptions;
+}>;
+
+export type ResponseContext<TData, TErrorData> = UnmaskType<{
 	data: TData | null;
 	errorData: TErrorData | null;
 	options: CallApiExtraOptions;
 	request: RequestOptions;
 	response: Response;
-};
+}>;
 
 export type SuccessResponseContext<TData> = UnmaskType<{
 	data: TData;
@@ -347,7 +351,7 @@ export type ErrorContext<TErrorData> = UnmaskType<
 	  }
 >;
 
-type ApiSuccessVariant<TData> = {
+export type CallApiSuccessVariant<TData> = {
 	data: TData;
 	error: null;
 	response: Response;
@@ -367,7 +371,7 @@ export type ErrorObjectUnion<TErrorData = unknown> =
 			name: "HTTPError";
 	  };
 
-export type ApiErrorVariant<TErrorData> =
+export type CallApiErrorVariant<TErrorData> =
 	| {
 			data: null;
 			error: Extract<ErrorObjectUnion, { name: PossibleErrorNames }>;
@@ -380,10 +384,10 @@ export type ApiErrorVariant<TErrorData> =
 	  };
 
 export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
-	all: ApiErrorVariant<TErrorData> | ApiSuccessVariant<TData>;
-	onlyError: ApiErrorVariant<TErrorData>["error"];
+	all: CallApiErrorVariant<TErrorData> | CallApiSuccessVariant<TData>;
+	onlyError: CallApiErrorVariant<TErrorData>["error"];
 	onlyResponse: Response;
-	onlySuccess: ApiSuccessVariant<TData>["data"];
+	onlySuccess: CallApiSuccessVariant<TData>["data"];
 };
 
 export type ResultModeUnion = UnmaskType<

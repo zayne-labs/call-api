@@ -1,8 +1,8 @@
 import type {
-	ApiErrorVariant,
 	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
 	CallApiConfig,
+	CallApiErrorVariant,
 	CallApiExtraOptions,
 	PossibleErrorNames,
 } from "../types";
@@ -320,7 +320,7 @@ type ErrorInfo = {
 export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 	const { defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
 
-	let apiDetails!: ApiErrorVariant<unknown>;
+	let apiDetails!: CallApiErrorVariant<unknown>;
 
 	if (isHTTPErrorInstance(error)) {
 		const { errorData, message = defaultErrorMessage, name, response } = error;
@@ -363,7 +363,7 @@ export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 	return { apiDetails, generalErrorResult, resolveCustomErrorInfo };
 };
 
-export const isHTTPError = <TErrorData>(error: ApiErrorVariant<TErrorData>["error"] | null) => {
+export const isHTTPError = <TErrorData>(error: CallApiErrorVariant<TErrorData>["error"] | null) => {
 	return isObject(error) && error.name === "HTTPError";
 };
 
