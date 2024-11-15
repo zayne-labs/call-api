@@ -2,12 +2,12 @@ import type {
 	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
 	CallApiConfig,
-	CallApiErrorVariant,
 	CallApiExtraOptions,
-	PossibleErrorNames,
+	CallApiResultErrorVariant,
+	PossibleJavascriptErrorNames,
 } from "../types";
 import type { AnyFunction, Awaitable } from "./type-helpers";
-import { isArray, isObject, isQueryString, isString } from "./typeof";
+import { isArray, isObject, isPlainObject, isQueryString, isString } from "./typeof";
 
 // prettier-ignore
 export const generateRequestKey = (url: string, config: Record<string, unknown>) => `${url} ${ampersand} ${JSON.stringify(config)}`;
@@ -92,11 +92,11 @@ export const mergeUrlWithParamsAndQuery = (
 };
 
 export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {
-	if (!headers || isObject(headers)) {
+	if (!headers || isPlainObject(headers)) {
 		return headers;
 	}
 
-	return Object.fromEntries(isArray(headers) ? headers : headers.entries());
+	return Object.fromEntries(headers);
 };
 
 export const resolveHeaders = (options: {
@@ -116,8 +116,8 @@ export const resolveHeaders = (options: {
 	// - The auth option is provided
 	if (!shouldResolveHeaders) return;
 
-	return {
-		...(isObject(body) && {
+	const headersObject: Record<string, string> = {
+		...(isPlainObject(body) && {
 			Accept: "application/json",
 			"Content-Type": "application/json",
 		}),
@@ -130,9 +130,12 @@ export const resolveHeaders = (options: {
 		...(isObject(auth) && {
 			Authorization: "bearer" in auth ? `Bearer ${auth.bearer}` : `Token ${auth.token}`,
 		}),
+
 		...objectifyHeaders(baseHeaders),
 		...objectifyHeaders(headers),
 	};
+
+	return headersObject;
 };
 
 const retryCodesLookup = {
@@ -215,6 +218,29 @@ export const splitConfig = (config: Record<string, any>) =>
 		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
 	] as const;
 
+const createMergedInterceptor =
+	(
+		baseInterceptor: Array<AnyFunction<Awaitable<void>>>,
+		interceptor: AnyFunction<Awaitable<void>> | undefined,
+		mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
+	) =>
+	async (ctx: Record<string, unknown>) => {
+		const interceptorArray = [...baseInterceptor, ...(interceptor ? [interceptor] : [])];
+
+		const uniqueInterceptorArray = [...new Set(interceptorArray)];
+
+		if (mergedInterceptorsExecutionMode === "sequential") {
+			for (const uniqueInterceptor of uniqueInterceptorArray) {
+				// eslint-disable-next-line no-await-in-loop
+				await uniqueInterceptor(ctx);
+			}
+		}
+
+		if (mergedInterceptorsExecutionMode === "parallel") {
+			await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor(ctx)));
+		}
+	};
+
 export const handleInterceptorsMerge = <
 	TBaseInterceptor extends AnyFunction<Awaitable<void>> | Array<AnyFunction<Awaitable<void>>>,
 	TInterceptor extends AnyFunction<Awaitable<void>>,
@@ -225,24 +251,11 @@ export const handleInterceptorsMerge = <
 	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
 ) => {
 	if (isArray(baseInterceptor) && mergeInterceptors) {
-		const mergedInterceptor = async (ctx: Record<string, unknown>) => {
-			const interceptorArray = [...baseInterceptor, ...(interceptor ? [interceptor] : [])] as Array<
-				AnyFunction<Awaitable<void>>
-			>;
-
-			const uniqueInterceptorArray = [...new Set(interceptorArray)];
-
-			if (mergedInterceptorsExecutionMode === "sequential") {
-				for (const uniqueInterceptor of uniqueInterceptorArray) {
-					// eslint-disable-next-line no-await-in-loop
-					await uniqueInterceptor(ctx);
-				}
-			}
-
-			if (mergedInterceptorsExecutionMode === "parallel") {
-				await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor(ctx)));
-			}
-		};
+		const mergedInterceptor = createMergedInterceptor(
+			baseInterceptor,
+			interceptor,
+			mergedInterceptorsExecutionMode
+		);
 
 		return mergedInterceptor;
 	}
@@ -320,7 +333,7 @@ type ErrorInfo = {
 export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 	const { defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
 
-	let apiDetails!: CallApiErrorVariant<unknown>;
+	let apiDetails!: CallApiResultErrorVariant<unknown>;
 
 	if (isHTTPErrorInstance(error)) {
 		const { errorData, message = defaultErrorMessage, name, response } = error;
@@ -340,7 +353,7 @@ export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 			error: {
 				errorData: error as Error,
 				message: customErrorMessage ?? message,
-				name: name as PossibleErrorNames,
+				name: name as PossibleJavascriptErrorNames,
 			},
 			response: null,
 		};
@@ -363,7 +376,7 @@ export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 	return { apiDetails, generalErrorResult, resolveCustomErrorInfo };
 };
 
-export const isHTTPError = <TErrorData>(error: CallApiErrorVariant<TErrorData>["error"] | null) => {
+export const isHTTPError = <TErrorData>(error: CallApiResultErrorVariant<TErrorData>["error"] | null) => {
 	return isObject(error) && error.name === "HTTPError";
 };
 
@@ -388,7 +401,7 @@ export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
 	constructor(errorDetails: ErrorDetails<TErrorResponse>, errorOptions?: ErrorOptions) {
 		const { defaultErrorMessage, errorData, response } = errorDetails;
 
-		super((errorData as { message?: string }).message ?? defaultErrorMessage, errorOptions);
+		super((errorData as { message?: string } | undefined)?.message ?? defaultErrorMessage, errorOptions);
 
 		this.errorData = errorData;
 		this.response = response;
@@ -402,7 +415,7 @@ export const isHTTPErrorInstance = <TErrorResponse>(
 ): error is HTTPError<TErrorResponse> => {
 	return (
 		// prettier-ignore
-		error instanceof HTTPError || (isObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
+		error instanceof HTTPError || (isPlainObject(error, HTTPError) && error.name === "HTTPError" && error.isHTTPError === true)
 	);
 };
 

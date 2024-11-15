@@ -2,14 +2,13 @@ import { createFetchClient } from "@zayne-labs/callapi";
 // import { createFetchClient } from "./src";
 
 const callApi = createFetchClient({
-	dedupeStrategy: "defer",
+	dedupeStrategy: "cancel",
 });
 
 const [foo1, foo2, foo3, foo4] = await Promise.all([
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
 		params: [1],
-		requestKey: "hello",
 	}),
 
 	callApi("https://dummyjson.com/products/:id", {

@@ -5,7 +5,6 @@ import type {
 	Awaitable,
 	CommonContentTypes,
 	CommonRequestHeaders,
-	Prettify,
 	UnmaskType,
 } from "./utils/type-helpers";
 
@@ -14,7 +13,9 @@ type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body"
 /* eslint-disable ts-eslint/consistent-type-definitions */
 
 export interface RequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion> {
-	/** Optional body of the request, can be a object or any other supported body type. */
+	/**
+	 * @description Optional body of the request, can be a object or any other supported body type.
+	 */
 	body?: Record<string, unknown> | RequestInit["body"];
 
 	/**
@@ -22,7 +23,8 @@ export interface RequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion
 	 */
 	headers?:
 		| Record<"Content-Type", CommonContentTypes>
-		| Record<CommonRequestHeaders, string>
+		// eslint-disable-next-line perfectionist/sort-union-types
+		| Record<CommonRequestHeaders | AnyString, string>
 		| RequestInit["headers"];
 
 	/**
@@ -33,6 +35,20 @@ export interface RequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion
 
 	readonly url?: string;
 }
+
+export interface RequestOptionsForHooks extends RequestOptions {
+	// eslint-disable-next-line perfectionist/sort-union-types
+	headers?: Record<CommonRequestHeaders | AnyString, string>;
+}
+
+// eslint-disable-next-line ts-eslint/no-empty-object-type
+export interface Register {
+	// == meta: R_Meta
+}
+
+export type R_Meta = Register extends { meta: infer TMeta extends Record<string, unknown> }
+	? TMeta
+	: Record<string, unknown>;
 
 export interface CallApiExtraOptions<
 	TData = unknown,
@@ -96,10 +112,11 @@ export interface CallApiExtraOptions<
 	mergeInterceptors?: boolean;
 
 	/**
-	 * @description an optional field you can fill with additional information,
+	 * @description - An optional field you can fill with additional information,
 	 * to associate with the request, typically used for logging or tracing.
 	 *
-	 * A good use case for this, would be to use the info to handle specific cases in any of the shared interceptors.
+	 * - A good use case for this, would be to use the info to handle specific cases in any of the shared interceptors.
+	 *
 	 * @example
 	 * ```ts
 	 * const callMainApi = callApi.create({
@@ -117,7 +134,7 @@ export interface CallApiExtraOptions<
 	 * });
 	 * ```
 	 */
-	meta?: Record<string, unknown>;
+	meta?: R_Meta;
 
 	/**
 	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
@@ -148,7 +165,7 @@ export interface CallApiExtraOptions<
 	/**
 	 * @description Interceptor to be called when a successful response is received from the api.
 	 */
-	onSuccess?: (successResponseContext: SuccessResponseContext<TData>) => Awaitable<void>;
+	onSuccess?: (successContext: SuccessContext<TData>) => Awaitable<void>;
 
 	/**
 	 * @description Params to be appended to the URL (i.e: /:id)
@@ -163,7 +180,7 @@ export interface CallApiExtraOptions<
 
 	/**
 	 * @description Custom request key to be used to identify a request in the fetch deduplication strategy.
-	 * @default request url + string formed from the request options
+	 * @default the full request url + string formed from the request options
 	 */
 	requestKey?: string;
 
@@ -239,6 +256,10 @@ export interface CallApiExtraOptions<
 	timeout?: number;
 }
 
+export type InterceptorUnion = UnmaskType<
+	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"
+>;
+
 export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
@@ -283,6 +304,8 @@ export interface BaseCallApiExtraOptions<
 	onSuccess?:
 		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]
 		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]>;
+
+	/* eslint-enable perfectionist/sort-union-types */
 }
 
 // prettier-ignore
@@ -299,71 +322,77 @@ export interface BaseCallApiConfig<
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 > extends RequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {}
 
-export type InterceptorUnion = UnmaskType<
-	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"
->;
-
 export type RequestContext = UnmaskType<{
 	options: CallApiExtraOptions;
-	request: RequestOptions;
+	request: RequestOptionsForHooks;
+}>;
+
+export type ResponseContext<TData, TErrorData> = UnmaskType<
+	| {
+			data: TData;
+			error: null;
+			options: CallApiExtraOptions;
+			request: RequestOptionsForHooks;
+			response: Response;
+	  }
+	// eslint-disable-next-line perfectionist/sort-union-types
+	| {
+			data: null;
+			error: PossibleHTTPError<TErrorData>;
+			options: CallApiExtraOptions;
+			request: RequestOptionsForHooks;
+			response: Response;
+	  }
+>;
+
+export type SuccessContext<TData> = UnmaskType<{
+	data: TData;
+	options: CallApiExtraOptions;
+	request: RequestOptionsForHooks;
+	response: Response;
 }>;
 
 export type RequestErrorContext = UnmaskType<{
-	error: Error;
+	error: PossibleJavaScriptError;
 	options: CallApiExtraOptions;
-	request: RequestOptions;
-}>;
-
-export type ResponseContext<TData, TErrorData> = UnmaskType<{
-	data: TData | null;
-	errorData: TErrorData | null;
-	options: CallApiExtraOptions;
-	request: RequestOptions;
-	response: Response;
-}>;
-
-export type SuccessResponseContext<TData> = UnmaskType<{
-	data: TData;
-	options: CallApiExtraOptions;
-	request: RequestOptions;
-	response: Response;
+	request: RequestOptionsForHooks;
 }>;
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<{
-	errorData: TErrorData;
+	error: PossibleHTTPError<TErrorData>;
 	options: CallApiExtraOptions;
-	request: RequestOptions;
+	request: RequestOptionsForHooks;
 	response: Response;
 }>;
 
 export type ErrorContext<TErrorData> = UnmaskType<
 	| {
-			error: Prettify<Extract<ErrorObjectUnion, { name: PossibleErrorNames }>>;
+			error: PossibleHTTPError<TErrorData>;
 			options: CallApiExtraOptions;
-			request: RequestOptions;
-			response: null;
+			request: RequestOptionsForHooks;
+			response: Response;
 	  }
 	| {
-			error: Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;
+			error: PossibleJavaScriptError;
 			options: CallApiExtraOptions;
-			request: RequestOptions;
-			response: Response;
+			request: RequestOptionsForHooks;
+			response: null;
 	  }
 >;
 
-export type CallApiSuccessVariant<TData> = {
-	data: TData;
-	error: null;
-	response: Response;
-};
-
-export type PossibleErrorNames = "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError";
+export type PossibleJavascriptErrorNames =
+	| "AbortError"
+	| "Error"
+	| "SyntaxError"
+	| "TimeoutError"
+	| "TypeError"
+	| (`${string}Error` & {});
 
 export type ErrorObjectUnion<TErrorData = unknown> =
 	| {
-			errorData: Error;
+			errorData: DOMException | Error | SyntaxError | TypeError;
 			message: string;
-			name: PossibleErrorNames;
+			name: PossibleJavascriptErrorNames;
 	  }
 	| {
 			errorData: TErrorData;
@@ -371,23 +400,33 @@ export type ErrorObjectUnion<TErrorData = unknown> =
 			name: "HTTPError";
 	  };
 
-export type CallApiErrorVariant<TErrorData> =
+export type PossibleHTTPError<TErrorData> = Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;
+
+export type PossibleJavaScriptError = Extract<ErrorObjectUnion, { errorData: Error }>;
+
+export type CallApiResultSuccessVariant<TData> = {
+	data: TData;
+	error: null;
+	response: Response;
+};
+
+export type CallApiResultErrorVariant<TErrorData> =
 	| {
 			data: null;
-			error: Extract<ErrorObjectUnion, { name: PossibleErrorNames }>;
-			response: null;
+			error: PossibleHTTPError<TErrorData>;
+			response: Response;
 	  }
 	| {
 			data: null;
-			error: Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;
-			response: Response;
+			error: PossibleJavaScriptError;
+			response: null;
 	  };
 
 export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
-	all: CallApiErrorVariant<TErrorData> | CallApiSuccessVariant<TData>;
-	onlyError: CallApiErrorVariant<TErrorData>["error"];
+	all: CallApiResultErrorVariant<TErrorData> | CallApiResultSuccessVariant<TData>;
+	onlyError: CallApiResultErrorVariant<TErrorData>["error"];
 	onlyResponse: Response;
-	onlySuccess: CallApiSuccessVariant<TData>["data"];
+	onlySuccess: CallApiResultSuccessVariant<TData>["data"];
 };
 
 export type ResultModeUnion = UnmaskType<

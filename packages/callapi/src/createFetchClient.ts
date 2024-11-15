@@ -4,6 +4,8 @@ import type {
 	CallApiExtraOptions,
 	GetCallApiResult,
 	InterceptorUnion,
+	PossibleHTTPError,
+	PossibleJavaScriptError,
 	RequestOptions,
 	ResultModeUnion,
 } from "./types";
@@ -25,7 +27,7 @@ import {
 	waitUntil,
 } from "./utils/common";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
-import { isFunction, isObject } from "./utils/typeof";
+import { isFunction, isPlainObject } from "./utils/typeof";
 
 export const createFetchClient = <
 	TBaseData,
@@ -152,7 +154,7 @@ export const createFetchClient = <
 		const defaultRequestOptions = {
 			method: "GET",
 			// eslint-disable-next-line perfectionist/sort-objects
-			body: isObject(body) ? options.bodySerializer(body) : body,
+			body: isPlainObject(body) ? options.bodySerializer(body) : body,
 
 			headers: resolveHeaders({ auth: options.auth, baseHeaders, body, headers }),
 
@@ -180,10 +182,11 @@ export const createFetchClient = <
 		const prevRequestInfo = requestInfoCacheOrNull?.get(requestKey);
 
 		if (prevRequestInfo && options.dedupeStrategy === "cancel") {
-			const reason = new DOMException(
-				`Request aborted as another request to the endpoint: ${url}, with the same request options was initiated.`,
-				"AbortError"
-			);
+			const message = requestKey
+				? `Request aborted as another request with the same request key: '${requestKey}' was initiated while the current request was in progress.`
+				: `Request aborted as another request to the endpoint: '${url}', with the same request options was initiated while the current request was in progress.`;
+
+			const reason = new DOMException(message, "AbortError");
 
 			prevRequestInfo.controller.abort(reason);
 		}
@@ -282,7 +285,7 @@ export const createFetchClient = <
 
 				options.onResponse?.({
 					data: validSuccessData,
-					errorData: null,
+					error: null,
 					options,
 					request,
 					response: options.shouldCloneResponse ? response.clone() : response,
@@ -340,11 +343,14 @@ export const createFetchClient = <
 			}
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
-				const { errorData, response } = error;
+				const { response } = error;
+
+				const possibleHttpError = (generalErrorResult as { error: PossibleHTTPError<TErrorData> })
+					.error;
 
 				await executeInterceptors(
 					options.onResponseError?.({
-						errorData,
+						error: possibleHttpError,
 						options,
 						request,
 						response: options.shouldCloneResponse ? response.clone() : response,
@@ -352,7 +358,7 @@ export const createFetchClient = <
 
 					options.onResponse?.({
 						data: null,
-						errorData,
+						error: possibleHttpError,
 						options,
 						request,
 						response: options.shouldCloneResponse ? response.clone() : response,
@@ -360,7 +366,7 @@ export const createFetchClient = <
 
 					// == Also call the onError interceptor
 					options.onError?.({
-						error,
+						error: possibleHttpError,
 						options,
 						request,
 						response: options.shouldCloneResponse ? response.clone() : response,
@@ -372,13 +378,19 @@ export const createFetchClient = <
 				return generalErrorResult;
 			}
 
+			const possibleJavascriptError = (generalErrorResult as { error: PossibleJavaScriptError }).error;
+
 			await executeInterceptors(
 				// == At this point only the request errors exist, so the request error interceptor is called
-				options.onRequestError?.({ error: error as Error, options, request }),
+				options.onRequestError?.({
+					error: possibleJavascriptError,
+					options,
+					request,
+				}),
 
 				// == Also call the onError interceptor
 				options.onError?.({
-					error: (generalErrorResult as { error: never }).error,
+					error: possibleJavascriptError,
 					options,
 					request,
 					response: null,
