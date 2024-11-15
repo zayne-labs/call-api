@@ -2,10 +2,11 @@ export { callApi, createFetchClient } from "./createFetchClient";
 
 export type {
 	CallApiConfig,
-	CallApiResultErrorVariant,
 	CallApiExtraOptions,
+	CallApiResultErrorVariant,
 	CallApiResultSuccessVariant,
 	ErrorContext,
+	Register,
 	RequestContext,
 	RequestErrorContext,
 	RequestOptions,

@@ -46,9 +46,9 @@ export interface Register {
 	// == meta: R_Meta
 }
 
-export type R_Meta = Register extends { meta: infer TMeta extends Record<string, unknown> }
+export type R_Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> }
 	? TMeta
-	: Record<string, unknown>;
+	: never;
 
 export interface CallApiExtraOptions<
 	TData = unknown,
