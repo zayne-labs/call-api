@@ -182,9 +182,9 @@ export const createFetchClient = <
 		const prevRequestInfo = requestInfoCacheOrNull?.get(requestKey);
 
 		if (prevRequestInfo && options.dedupeStrategy === "cancel") {
-			const message = requestKey
+			const message = options.requestKey
 				? `Request aborted as another request with the same request key: '${requestKey}' was initiated while the current request was in progress.`
-				: `Request aborted as another request to the endpoint: '${url}', with the same request options was initiated while the current request was in progress.`;
+				: `Request aborted as another request to the endpoint: '${fullUrl}', with the same request options was initiated while the current request was in progress.`;
 
 			const reason = new DOMException(message, "AbortError");
 
