@@ -5,6 +5,7 @@ import type {
 	CallApiExtraOptions,
 	CallApiResultErrorVariant,
 	ErrorObjectUnion,
+	PossibleHTTPError,
 	PossibleJavascriptErrorNames,
 } from "../types";
 import type { AnyFunction, Awaitable } from "./type-helpers";
@@ -382,8 +383,8 @@ export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 };
 
 export const isHTTPError = <TErrorData>(
-	error: ErrorObjectUnion<TErrorData>
-): error is HTTPError<TErrorData> => {
+	error: ErrorObjectUnion<TErrorData> | null
+): error is PossibleHTTPError<TErrorData> => {
 	return isPlainObject(error) && error.name === "HTTPError";
 };
 
