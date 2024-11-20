@@ -392,7 +392,13 @@ export type ErrorObjectUnion<TErrorData = unknown> =
 	| {
 			errorData: DOMException | Error | SyntaxError | TypeError;
 			message: string;
-			name: PossibleJavascriptErrorNames;
+			name:
+				| "AbortError"
+				| "Error"
+				| "SyntaxError"
+				| "TimeoutError"
+				| "TypeError"
+				| (`${string}Error` & {});
 	  }
 	| {
 			errorData: TErrorData;

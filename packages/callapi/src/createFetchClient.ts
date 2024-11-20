@@ -60,14 +60,14 @@ export const createFetchClient = <
 		{ controller: AbortController; responsePromise: Promise<Response> }
 	>();
 
-	const callApi = async <
+	async function callApi<
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 	>(
 		url: string,
 		config: CallApiConfig<TData, TErrorData, TResultMode> = {}
-	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
+	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> {
 		type CallApiResult = GetCallApiResult<TData, TErrorData, TResultMode>;
 
 		const [fetchConfig, extraOptions] = splitConfig(config);
@@ -76,13 +76,7 @@ export const createFetchClient = <
 
 		// prettier-ignore
 		const {
-			onError,
-			onRequest,
-			onRequestError,
-			onResponse,
-			onResponseError,
-			onSuccess,
-			...restOfExtraOptions
+			onError, onRequest, onRequestError, onResponse, onResponseError, onSuccess, ...restOfExtraOptions
 		} = extraOptions;
 
 		// == Default Extra Options
@@ -405,7 +399,7 @@ export const createFetchClient = <
 		} finally {
 			requestInfoCacheOrNull?.delete(requestKey);
 		}
-	};
+	}
 
 	callApi.create = createFetchClient;
 

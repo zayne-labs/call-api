@@ -8,7 +8,7 @@ const callApi = createFetchClient({
 const [foo1, foo2, foo3, foo4] = await Promise.all([
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
-		params: [1],
+		params: [331],
 	}),
 
 	callApi("https://dummyjson.com/products/:id", {

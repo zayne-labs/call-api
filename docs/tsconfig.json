@@ -1,8 +1,6 @@
 {
 	"extends": "@zayne-labs/tsconfig/bundler/next",
-	"compilerOptions": {
-		"incremental": true
-	},
+
 	"include": [
 		"next-env.d.ts",
 		"**/*.ts",

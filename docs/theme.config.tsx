@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useRouter } from "next/router";
 import { type DocsThemeConfig, useConfig } from "nextra-theme-docs";
 
@@ -11,7 +10,9 @@ const config: DocsThemeConfig = {
 		content: "CallApi docs",
 	},
 	head: () => {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const { asPath, defaultLocale, locale, pathname } = useRouter();
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const { frontMatter } = useConfig();
 		const url = `https://zayne-callapi.netlify.app${defaultLocale === locale ? asPath : `/${locale}${asPath}`}`;
 
