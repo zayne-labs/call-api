@@ -32,11 +32,14 @@ export interface RequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion
 	 * @default "GET"
 	 */
 	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
-
-	readonly url?: string;
 }
 
 export interface RequestOptionsForHooks extends RequestOptions {
+	/**
+	 * @description Resolved request URL
+	 */
+	readonly fullURL?: string;
+
 	// eslint-disable-next-line perfectionist/sort-union-types
 	headers?: Record<CommonRequestHeaders | AnyString, string>;
 }
@@ -50,11 +53,44 @@ export type R_Meta = Register extends { meta?: infer TMeta extends Record<string
 	? TMeta
 	: never;
 
+interface Interceptors<TData = unknown, TErrorData = unknown> {
+	/**
+	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
+	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
+	 */
+	onError?: (context: ErrorContext<TErrorData>) => Awaitable<void>;
+
+	/**
+	 * @description Interceptor to be called just before the request is made, allowing for modifications or additional operations.
+	 */
+	onRequest?: (context: RequestContext) => Awaitable<void>;
+
+	/**
+	 *  @description Interceptor to be called when an error occurs during the fetch request.
+	 */
+	onRequestError?: (context: RequestErrorContext) => Awaitable<void>;
+
+	/**
+	 * @description Interceptor to be called when any response is received from the api, whether successful or not
+	 */
+	onResponse?: (context: ResponseContext<TData, TErrorData>) => Awaitable<void>;
+
+	/**
+	 *  @description Interceptor to be called when an error response is received from the api.
+	 */
+	onResponseError?: (context: ResponseErrorContext<TErrorData>) => Awaitable<void>;
+
+	/**
+	 * @description Interceptor to be called when a successful response is received from the api.
+	 */
+	onSuccess?: (context: SuccessContext<TData>) => Awaitable<void>;
+}
+
 export interface CallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> {
+> extends Interceptors<TData, TErrorData> {
 	/**
 	 * @description Authorization header value.
 	 */
@@ -135,37 +171,6 @@ export interface CallApiExtraOptions<
 	 * ```
 	 */
 	meta?: R_Meta;
-
-	/**
-	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
-	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
-	 */
-	onError?: (errorContext: ErrorContext<TErrorData>) => Awaitable<void>;
-
-	/**
-	 * @description Interceptor to be called just before the request is made, allowing for modifications or additional operations.
-	 */
-	onRequest?: (requestContext: RequestContext) => Awaitable<void>;
-
-	/**
-	 *  @description Interceptor to be called when an error occurs during the fetch request.
-	 */
-	onRequestError?: (requestErrorContext: RequestErrorContext) => Awaitable<void>;
-
-	/**
-	 * @description Interceptor to be called when any response is received from the api, whether successful or not
-	 */
-	onResponse?: (responseContext: ResponseContext<TData, TErrorData>) => Awaitable<void>;
-
-	/**
-	 *  @description Interceptor to be called when an error response is received from the api.
-	 */
-	onResponseError?: (responseErrorContext: ResponseErrorContext<TErrorData>) => Awaitable<void>;
-
-	/**
-	 * @description Interceptor to be called when a successful response is received from the api.
-	 */
-	onSuccess?: (successContext: SuccessContext<TData>) => Awaitable<void>;
 
 	/**
 	 * @description Params to be appended to the URL (i.e: /:id)
@@ -254,11 +259,14 @@ export interface CallApiExtraOptions<
 	 * @description Request timeout in milliseconds
 	 */
 	timeout?: number;
+
+	/**
+	 * @description URL to be used in the request.
+	 */
+	url?: string;
 }
 
-export type InterceptorUnion = UnmaskType<
-	"onError" | "onRequest" | "onRequestError" | "onResponse" | "onResponseError" | "onSuccess"
->;
+export type InterceptorUnion = keyof Interceptors;
 
 export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
@@ -314,6 +322,15 @@ export interface CallApiConfig<
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 > extends RequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> {}
+
+// prettier-ignore
+export interface CallApiConfigWithRequiredURL<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+> extends CallApiConfig<TData, TErrorData, TResultMode> {
+	url: string;
+}
 
 // prettier-ignore
 export interface BaseCallApiConfig<

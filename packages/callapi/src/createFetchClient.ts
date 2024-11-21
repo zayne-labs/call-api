@@ -6,7 +6,7 @@ import type {
 	InterceptorUnion,
 	PossibleHTTPError,
 	PossibleJavaScriptError,
-	RequestOptions,
+	RequestOptionsForHooks,
 	ResultModeUnion,
 } from "./types";
 import {
@@ -60,6 +60,7 @@ export const createFetchClient = <
 		{ controller: AbortController; responsePromise: Promise<Response> }
 	>();
 
+	// eslint-disable-next-line complexity
 	async function callApi<
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
@@ -74,9 +75,16 @@ export const createFetchClient = <
 
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
-		// prettier-ignore
 		const {
-			onError, onRequest, onRequestError, onResponse, onResponseError, onSuccess, ...restOfExtraOptions
+			url: requestURL = url,
+			// eslint-disable-next-line perfectionist/sort-objects
+			onError,
+			onRequest,
+			onRequestError,
+			onResponse,
+			onResponseError,
+			onSuccess,
+			...restOfExtraOptions
 		} = extraOptions;
 
 		// == Default Extra Options
@@ -142,7 +150,7 @@ export const createFetchClient = <
 			...defaultOptions,
 		};
 
-		const fullUrl = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
+		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(requestURL, options.params, options.query)}`;
 
 		// == Default Request Init
 		const defaultRequestOptions = {
@@ -162,7 +170,7 @@ export const createFetchClient = <
 		const requestKey =
 			options.requestKey ??
 			(shouldHaveRequestKey
-				? generateRequestKey(fullUrl, { ...defaultRequestOptions, ...options })
+				? generateRequestKey(fullURL, { ...defaultRequestOptions, ...options })
 				: null);
 
 		// == This is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key start at the same time
@@ -178,7 +186,7 @@ export const createFetchClient = <
 		if (prevRequestInfo && options.dedupeStrategy === "cancel") {
 			const message = options.requestKey
 				? `Request aborted as another request with the same request key: '${requestKey}' was initiated while the current request was in progress.`
-				: `Request aborted as another request to the endpoint: '${fullUrl}', with the same request options was initiated while the current request was in progress.`;
+				: `Request aborted as another request to the endpoint: '${fullURL}', with the same request options was initiated while the current request was in progress.`;
 
 			const reason = new DOMException(message, "AbortError");
 
@@ -191,15 +199,9 @@ export const createFetchClient = <
 
 		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
 
-		const requestInit = {
-			signal: combinedSignal,
-			...defaultRequestOptions,
-		} satisfies RequestInit;
+		const requestInit = { signal: combinedSignal, ...defaultRequestOptions } satisfies RequestInit;
 
-		const request = {
-			url: fullUrl,
-			...requestInit,
-		} satisfies RequestOptions;
+		const request = { fullURL, ...requestInit } satisfies RequestOptionsForHooks;
 
 		try {
 			await executeInterceptors(options.onRequest?.({ options, request }));
@@ -218,7 +220,7 @@ export const createFetchClient = <
 
 			const responsePromise = shouldUsePromiseFromCache
 				? prevRequestInfo.responsePromise
-				: fetch(fullUrl, requestInit);
+				: fetch(fullURL, requestInit);
 
 			requestInfoCacheOrNull?.set(requestKey, { controller: newFetchController, responsePromise });
 
@@ -234,7 +236,7 @@ export const createFetchClient = <
 			if (shouldRetry) {
 				await waitUntil(options.retryDelay);
 
-				return await callApi(url, { ...config, retries: options.retries - 1 });
+				return await callApi(requestURL, { ...config, retries: options.retries - 1 });
 			}
 
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once

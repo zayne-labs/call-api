@@ -1,6 +1,6 @@
 import type {
 	BaseCallApiConfig,
-	CallApiConfig,
+	CallApiConfigWithRequiredURL,
 	CallApiExtraOptions,
 	GetCallApiResult,
 	InterceptorUnion,
@@ -8,7 +8,7 @@ import type {
 	PossibleJavaScriptError,
 	RequestOptionsForHooks,
 	ResultModeUnion,
-} from "./types";
+} from "@/types";
 import {
 	HTTPError,
 	defaultRetryCodes,
@@ -25,9 +25,9 @@ import {
 	splitBaseConfig,
 	splitConfig,
 	waitUntil,
-} from "./utils/common";
-import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
-import { isFunction, isPlainObject } from "./utils/typeof";
+} from "@/utils/common";
+import { createCombinedSignal, createTimeoutSignal } from "@/utils/polyfills";
+import { isFunction, isPlainObject } from "@/utils/typeof";
 
 export const createFetchClient = <
 	TBaseData,
@@ -60,14 +60,12 @@ export const createFetchClient = <
 		{ controller: AbortController; responsePromise: Promise<Response> }
 	>();
 
-	// eslint-disable-next-line complexity
 	async function callApi<
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 	>(
-		url: string,
-		config: CallApiConfig<TData, TErrorData, TResultMode> = {}
+		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> {
 		type CallApiResult = GetCallApiResult<TData, TErrorData, TResultMode>;
 
@@ -76,7 +74,7 @@ export const createFetchClient = <
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
 		const {
-			url: requestURL = url,
+			url: requestURL = config.url,
 			// eslint-disable-next-line perfectionist/sort-objects
 			onError,
 			onRequest,
@@ -236,7 +234,7 @@ export const createFetchClient = <
 			if (shouldRetry) {
 				await waitUntil(options.retryDelay);
 
-				return await callApi(requestURL, { ...config, retries: options.retries - 1 });
+				return await callApi({ ...config, retries: options.retries - 1 });
 			}
 
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
