@@ -1,7 +1,7 @@
 {
 	"name": "@zayne-labs/callapi",
 	"type": "module",
-	"version": "1.0.0-rc.33",
+	"version": "1.0.0-rc.35",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"author": "Ryan Zayne",
 	"license": "MIT",
@@ -25,7 +25,7 @@
 	"sideEffects": false,
 	"exports": {
 		".": "./dist/esm/index.js",
-		"./withConfig": "./dist/esm/withConfig/index.js",
+		"./options": "./dist/esm/options/index.js",
 		"./utils": "./dist/esm/utils/index.js",
 		"./legacy": "./dist/cjs/index.cjs",
 		"./legacy/utils": "./dist/cjs/utils/index.cjs"

@@ -76,14 +76,14 @@ export const createFetchClient = <
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
 		const {
-			url: requestURL = url,
+			onRequest,
 			// eslint-disable-next-line perfectionist/sort-objects
 			onError,
-			onRequest,
 			onRequestError,
 			onResponse,
 			onResponseError,
 			onSuccess,
+			url: requestURL = url,
 			...restOfExtraOptions
 		} = extraOptions;
 
@@ -154,11 +154,11 @@ export const createFetchClient = <
 
 		// == Default Request Init
 		const defaultRequestOptions = {
-			method: "GET",
-			// eslint-disable-next-line perfectionist/sort-objects
 			body: isPlainObject(body) ? options.bodySerializer(body) : body,
 
 			headers: resolveHeaders({ auth: options.auth, baseHeaders, body, headers }),
+
+			method: "GET",
 
 			...restOfBaseFetchConfig,
 			...restOfFetchConfig,

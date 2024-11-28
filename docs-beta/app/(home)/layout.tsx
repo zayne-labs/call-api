@@ -1,4 +1,4 @@
-/* eslint-disable import/extensions */
+// eslint-disable-next-line import/extensions
 import { baseOptions } from "@/app/layout.config";
 import { HomeLayout as FumaHomeLayout } from "fumadocs-ui/layouts/home";
 import type { ReactNode } from "react";

@@ -3,8 +3,8 @@ import defaultMdxComponents from "fumadocs-ui/mdx";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
 
-/* eslint-disable react/prefer-destructuring-assignment */
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
+	// eslint-disable-next-line react/prefer-destructuring-assignment
 	const params = await props.params;
 
 	const page = source.getPage(params.slug);
@@ -16,7 +16,14 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
 	const MDX = page.data.body;
 
 	return (
-		<DocsPage toc={page.data.toc} full={page.data.full}>
+		<DocsPage
+			toc={page.data.toc}
+			tableOfContent={{
+				single: false,
+				style: "clerk",
+			}}
+			full={page.data.full}
+		>
 			<DocsTitle>{page.data.title}</DocsTitle>
 			<DocsDescription>{page.data.description}</DocsDescription>
 			<DocsBody>

@@ -29,7 +29,7 @@ import {
 import { createCombinedSignal, createTimeoutSignal } from "@/utils/polyfills";
 import { isFunction, isPlainObject } from "@/utils/typeof";
 
-export const createFetchClient = <
+export const createFetchClientWithOptions = <
 	TBaseData,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
@@ -74,14 +74,13 @@ export const createFetchClient = <
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
 		const {
-			url: requestURL = config.url,
-			// eslint-disable-next-line perfectionist/sort-objects
 			onError,
 			onRequest,
 			onRequestError,
 			onResponse,
 			onResponseError,
 			onSuccess,
+			url: requestURL = config.url,
 			...restOfExtraOptions
 		} = extraOptions;
 
@@ -152,11 +151,11 @@ export const createFetchClient = <
 
 		// == Default Request Init
 		const defaultRequestOptions = {
-			method: "GET",
+			headers: resolveHeaders({ auth: options.auth, baseHeaders, body, headers }),
 			// eslint-disable-next-line perfectionist/sort-objects
 			body: isPlainObject(body) ? options.bodySerializer(body) : body,
 
-			headers: resolveHeaders({ auth: options.auth, baseHeaders, body, headers }),
+			method: "GET",
 
 			...restOfBaseFetchConfig,
 			...restOfFetchConfig,
@@ -401,9 +400,9 @@ export const createFetchClient = <
 		}
 	}
 
-	callApi.create = createFetchClient;
+	callApi.create = createFetchClientWithOptions;
 
 	return callApi;
 };
 
-export const callApi = createFetchClient();
+export const callApiWithOptions = createFetchClientWithOptions();

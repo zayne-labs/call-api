@@ -10,7 +10,7 @@ const config = {
 		"./mdx-components.{ts,tsx}",
 		"./node_modules/fumadocs-ui/dist/**/*.js",
 	],
-	presets: [createPreset({ preset: "dusk" })],
+	presets: [createPreset({ preset: "dusk", addGlobalColors: true })],
 
 	theme: {
 		colors: {
@@ -39,6 +39,12 @@ const config = {
 			input: "hsl(214.3, 31.8%, 91.4%)",
 			border: "hsl(214.3, 31.8%, 91.4%)",
 			ring: "hsl(215, 20.2%, 65.1%)",
+		},
+
+		backgroundImage: {
+			"gradient-radial": "radial-gradient(circle, var(--tw-gradient-stops))",
+			"repeat-gradient-to-r": "repeating-linear-gradient(to right, var(--tw-gradient-stops))",
+			"repeat-gradient-to-br": "repeating-linear-gradient(to bottom right, var(--tw-gradient-stops))",
 		},
 	},
 } satisfies Config;
