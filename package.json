@@ -33,7 +33,7 @@
 		"eslint-plugin-react-refresh": "^0.4.14",
 		"husky": "9.1.7",
 		"lint-staged": "15.2.10",
-		"pkg-pr-new": "0.0.34",
+		"pkg-pr-new": "0.0.35",
 		"prettier": "3.4.1",
 		"typescript": "catalog:"
 	}
