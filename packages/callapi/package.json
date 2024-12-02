@@ -1,7 +1,7 @@
 {
 	"name": "@zayne-labs/callapi",
 	"type": "module",
-	"version": "1.0.0-rc.35",
+	"version": "1.0.0-rc.36",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"author": "Ryan Zayne",
 	"license": "MIT",
@@ -72,11 +72,11 @@
 	"size-limit": [
 		{
 			"path": "./src/index.ts",
-			"limit": "2.8 kb"
+			"limit": "3.5 kb"
 		},
 		{
-			"path": "./src/withConfig/index.ts",
-			"limit": "2.8 kb"
+			"path": "./src/options/index.ts",
+			"limit": "3.5 kb"
 		},
 		{
 			"path": "./src/utils/index.ts",

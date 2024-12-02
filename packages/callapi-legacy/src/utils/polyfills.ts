@@ -38,7 +38,9 @@ export const createTimeoutSignal = (milliseconds: number) => {
 
 	const reason = new DOMException("Request timed out", "TimeoutError");
 
-	setTimeout(() => controller.abort(reason), milliseconds);
+	const timeout = setTimeout(() => controller.abort(reason), milliseconds);
+
+	controller.signal.addEventListener("abort", () => clearTimeout(timeout));
 
 	return controller.signal;
 };

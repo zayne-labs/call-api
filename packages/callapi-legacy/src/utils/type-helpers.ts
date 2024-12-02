@@ -7,6 +7,8 @@ export type AnyNumber = number & { placeholder?: never };
 // == `Any` is required here so that one can pass custom function type without type errors
 export type AnyFunction<TResult = any> = (...args: any[]) => TResult;
 
+export type CallbackFn<in TParams, out TResult = void> = (...params: TParams[]) => TResult;
+
 export type Prettify<TObject> = NonNullable<unknown> & { [Key in keyof TObject]: TObject[Key] };
 
 // == Using this Immediately Indexed Mapped type helper to help show computed type of anything passed to it instead of just the type name

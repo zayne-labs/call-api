@@ -11,6 +11,11 @@ export default zayne({
 	},
 	type: "lib",
 	typescript: {
-		tsconfigPath: ["**/tsconfig.json"],
+		tsconfigPath: [
+			"packages/**/tsconfig.json",
+			"docs-beta/tsconfig.json",
+			"docs/tsconfig.json",
+			"**/tsconfig.json",
+		],
 	},
 });

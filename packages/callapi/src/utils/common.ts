@@ -1,5 +1,4 @@
 import type {
-	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
 	CallApiConfig,
 	CallApiExtraOptions,
@@ -8,11 +7,9 @@ import type {
 	PossibleHTTPError,
 	PossibleJavascriptErrorNames,
 } from "../types";
-import type { AnyFunction, Awaitable } from "./type-helpers";
-import { isArray, isObject, isPlainObject, isQueryString, isString } from "./typeof";
-
-// prettier-ignore
-export const generateRequestKey = (url: string, config: Record<string, unknown>) => `${url} ${ampersand} ${JSON.stringify(config)}`;
+import { fetchSpecificKeys } from "./constants";
+import type { Awaitable } from "./type-helpers";
+import { isFunction, isObject, isPlainObject, isQueryString, isString } from "./typeof";
 
 type ToQueryStringFn = {
 	(params: CallApiConfig["query"]): string | null;
@@ -27,70 +24,6 @@ export const toQueryString: ToQueryStringFn = (params) => {
 	}
 
 	return new URLSearchParams(params as Record<string, string>).toString();
-};
-
-const slash = "/";
-const column = ":";
-const mergeUrlWithParams = (url: string, params: CallApiExtraOptions["params"]) => {
-	if (!params) {
-		return url;
-	}
-
-	let newUrl = url;
-
-	if (isArray(params)) {
-		const matchedParamArray = newUrl
-			.split(slash)
-			.filter((matchedParam) => matchedParam.startsWith(column));
-
-		for (const [index, matchedParam] of matchedParamArray.entries()) {
-			const param = params[index] as string;
-			newUrl = newUrl.replace(matchedParam, param);
-		}
-
-		return newUrl;
-	}
-
-	for (const [key, value] of Object.entries(params)) {
-		newUrl = newUrl.replace(`:${key}`, String(value));
-	}
-
-	return newUrl;
-};
-
-const questionMark = "?";
-const ampersand = "&";
-
-const mergeUrlWithQuery = (url: string, query: CallApiConfig["query"]): string => {
-	if (!query) {
-		return url;
-	}
-
-	const queryString = toQueryString(query);
-
-	if (queryString?.length === 0) {
-		return url;
-	}
-
-	if (url.endsWith(questionMark)) {
-		return `${url}${queryString}`;
-	}
-
-	if (url.includes(questionMark)) {
-		return `${url}${ampersand}${queryString}`;
-	}
-
-	return `${url}${questionMark}${queryString}`;
-};
-
-export const mergeUrlWithParamsAndQuery = (
-	url: string,
-	params: CallApiExtraOptions["params"],
-	query: CallApiExtraOptions["query"]
-) => {
-	const urlWithMergedParams = mergeUrlWithParams(url, params);
-
-	return mergeUrlWithQuery(urlWithMergedParams, query);
 };
 
 export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {
@@ -110,12 +43,12 @@ export const resolveHeaders = (options: {
 	const { auth, baseHeaders, body, headers } = options;
 
 	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing
-	const shouldResolveHeaders = baseHeaders || headers || body || auth;
+	const shouldResolveHeaders = Boolean(baseHeaders || headers || body || auth);
 
-	// == Return undefined if the following conditions are not met (so that native fetch would auto set the correct headers):
-	// - headers are provided
-	// - The body is an object
-	// - The auth option is provided
+	// == Return early if the following conditions are not met (so that native fetch would auto set the correct headers):
+	// == - headers are provided
+	// == - The body is an object
+	// == - The auth option is provided
 	if (!shouldResolveHeaders) return;
 
 	const headersObject: Record<string, string> = {
@@ -140,66 +73,36 @@ export const resolveHeaders = (options: {
 	return headersObject;
 };
 
-const retryCodesLookup = {
-	408: "Request Timeout",
-	409: "Conflict",
-	425: "Too Early",
-	429: "Too Many Requests",
-	500: "Internal Server Error",
-	502: "Bad Gateway",
-	503: "Service Unavailable",
-	504: "Gateway Timeout",
-};
-
-export const defaultRetryCodes: Required<BaseCallApiConfig>["retryCodes"] =
-	Object.keys(retryCodesLookup).map(Number);
-
-export const defaultRetryMethods: Required<BaseCallApiConfig>["retryMethods"] = ["GET"];
-
-export const fetchSpecificKeys = [
-	"body",
-	"integrity",
-	"method",
-	"headers",
-	"signal",
-	"cache",
-	"redirect",
-	"window",
-	"credentials",
-	"keepalive",
-	"referrer",
-	"priority",
-	"mode",
-	"referrerPolicy",
-] satisfies Array<keyof RequestInit>;
-
-export const omitKeys = <
-	TObject extends Record<string, unknown>,
-	const TOmitArray extends Array<keyof TObject>,
->(
+const omitKeys = <TObject extends Record<string, unknown>, const TOmitArray extends Array<keyof TObject>>(
 	initialObject: TObject,
 	keysToOmit: TOmitArray
 ) => {
-	const arrayFromFilteredObject = Object.entries(initialObject).filter(
-		([key]) => !keysToOmit.includes(key)
-	);
+	const updatedObject = {} as Record<string, unknown>;
 
-	const updatedObject = Object.fromEntries(arrayFromFilteredObject);
+	const keysToOmitSet = new Set(keysToOmit);
 
-	return updatedObject as Omit<TObject, keyof TOmitArray>;
+	for (const [key, value] of Object.entries(initialObject)) {
+		if (!keysToOmitSet.has(key)) {
+			updatedObject[key] = value;
+		}
+	}
+
+	return updatedObject as Omit<TObject, TOmitArray[number]>;
 };
 
 const pickKeys = <TObject extends Record<string, unknown>, const TPickArray extends Array<keyof TObject>>(
 	initialObject: TObject,
 	keysToPick: TPickArray
 ) => {
+	const updatedObject = {} as Record<string, unknown>;
+
 	const keysToPickSet = new Set(keysToPick);
 
-	const arrayFromInitObject = Object.entries(initialObject);
-
-	const filteredArray = arrayFromInitObject.filter(([objectKey]) => keysToPickSet.has(objectKey));
-
-	const updatedObject = Object.fromEntries(filteredArray);
+	for (const [key, value] of Object.entries(initialObject)) {
+		if (keysToPickSet.has(key)) {
+			updatedObject[key] = value;
+		}
+	}
 
 	return updatedObject as Pick<TObject, TPickArray[number]>;
 };
@@ -220,49 +123,21 @@ export const splitConfig = (config: Record<string, any>) =>
 		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
 	] as const;
 
-const createMergedInterceptor =
-	(
-		baseInterceptor: Array<AnyFunction<Awaitable<void>>>,
-		interceptor: AnyFunction<Awaitable<void>> | undefined,
-		mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
-	) =>
-	async (ctx: Record<string, unknown>) => {
-		const interceptorArray = [...baseInterceptor, ...(interceptor ? [interceptor] : [])];
-
-		const uniqueInterceptorArray = [...new Set(interceptorArray)];
-
-		if (mergedInterceptorsExecutionMode === "sequential") {
-			for (const uniqueInterceptor of uniqueInterceptorArray) {
-				// eslint-disable-next-line no-await-in-loop
-				await uniqueInterceptor(ctx);
-			}
-		}
-
-		if (mergedInterceptorsExecutionMode === "parallel") {
-			await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor(ctx)));
-		}
-	};
-
-export const handleInterceptorsMerge = <
-	TBaseInterceptor extends AnyFunction<Awaitable<void>> | Array<AnyFunction<Awaitable<void>>>,
-	TInterceptor extends AnyFunction<Awaitable<void>>,
->(
-	baseInterceptor: TBaseInterceptor | undefined,
-	interceptor: TInterceptor | undefined,
-	mergeInterceptors: CallApiExtraOptions["mergeInterceptors"],
-	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
-) => {
-	if (isArray(baseInterceptor) && mergeInterceptors) {
-		const mergedInterceptor = createMergedInterceptor(
-			baseInterceptor,
-			interceptor,
-			mergedInterceptorsExecutionMode
-		);
-
-		return mergedInterceptor;
+export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchImpl"]) => {
+	if (customFetchImpl) {
+		return customFetchImpl;
 	}
 
-	return interceptor ?? (baseInterceptor as typeof interceptor);
+	if (typeof globalThis !== "undefined" && isFunction(globalThis.fetch)) {
+		return globalThis.fetch;
+	}
+	/* eslint-disable unicorn/prefer-global-this */
+	if (typeof window !== "undefined" && isFunction(window.fetch)) {
+		return window.fetch;
+	}
+	/* eslint-enable unicorn/prefer-global-this */
+
+	throw new Error("No fetch implementation found");
 };
 
 export const handleResponseType = <TResponse>(
@@ -281,6 +156,10 @@ export const handleResponseType = <TResponse>(
 	},
 	text: () => response.text() as Promise<TResponse>,
 });
+
+export const executeInterceptors = <TInterceptor extends Awaitable<void>>(
+	...interceptors: TInterceptor[]
+) => Promise.all(interceptors);
 
 export const getResponseData = <TResponse>(
 	response: Response,
@@ -448,7 +327,3 @@ export const waitUntil = (delay: number) => {
 
 	return promise;
 };
-
-export const executeInterceptors = <TInterceptor extends Awaitable<void>>(
-	...interceptors: TInterceptor[]
-) => Promise.all(interceptors);

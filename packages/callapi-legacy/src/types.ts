@@ -1,4 +1,6 @@
-import type { fetchSpecificKeys, handleResponseType } from "./utils/common";
+import type { CallApiPlugin } from "./plugins";
+import type { handleResponseType } from "./utils/common";
+import type { fetchSpecificKeys } from "./utils/constants";
 import type {
 	AnyNumber,
 	AnyString,
@@ -12,7 +14,7 @@ type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body"
 
 /* eslint-disable ts-eslint/consistent-type-definitions */
 
-export interface RequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion> {
+export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion> {
 	/**
 	 * @description Optional body of the request, can be a object or any other supported body type.
 	 */
@@ -34,7 +36,7 @@ export interface RequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion
 	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
 }
 
-export interface RequestOptionsForHooks extends RequestOptions {
+export interface CallApiRequestOptionsForHooks extends CallApiRequestOptions {
 	/**
 	 * @description Resolved request URL
 	 */
@@ -53,7 +55,7 @@ export type R_Meta = Register extends { meta?: infer TMeta extends Record<string
 	? TMeta
 	: never;
 
-interface Interceptors<TData = unknown, TErrorData = unknown> {
+export interface Interceptors<TData = unknown, TErrorData = unknown> {
 	/**
 	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
@@ -86,6 +88,8 @@ interface Interceptors<TData = unknown, TErrorData = unknown> {
 	onSuccess?: (context: SuccessContext<TData>) => Awaitable<void>;
 }
 
+type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
+
 export interface CallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
@@ -117,6 +121,11 @@ export interface CallApiExtraOptions<
 	bodySerializer?: (bodyData: Record<string, unknown>) => string;
 
 	/**
+	 * @description Custom fetch implementation
+	 */
+	customFetchImpl?: FetchImpl;
+
+	/**
 	 * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
 	 * - If set to "none", deduplication is disabled.
 	 *
@@ -134,15 +143,15 @@ export interface CallApiExtraOptions<
 	defaultErrorMessage?: string;
 
 	/**
-	 * @description Defines the mode in which merged interceptors are executed, can be set to "parallel" | "sequential".
-	 * - If set to "parallel", both base and instance interceptors will be executed in parallel.
-	 * - If set to "sequential", the base interceptors will be executed first, and then the instance interceptors will be executed.
+	 * @description Defines the mode in which the merged interceptors are executed, can be set to "parallel" | "sequential".
+	 * - If set to "parallel", both plugin and main interceptors will be executed in parallel.
+	 * - If set to "sequential", the plugin interceptors will be executed first, followed by the main interceptor.
 	 * @default "parallel"
 	 */
 	mergedInterceptorsExecutionMode?: "parallel" | "sequential";
 
 	/**
-	 * @description Whether or not to merge the base interceptors with the ones from the instance.
+	 * @description Whether or not to merge the plugin interceptors with main interceptor.
 	 * @default true
 	 */
 	mergeInterceptors?: boolean;
@@ -177,6 +186,11 @@ export interface CallApiExtraOptions<
 	 */
 	// eslint-disable-next-line perfectionist/sort-union-types
 	params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
+
+	/**
+	 * @description An array of CallApi plugins. Allows you to extend the behavior of the library.
+	 */
+	plugins?: Array<CallApiPlugin<TData, TErrorData>>;
 
 	/**
 	 * @description Query parameters to append to the URL.
@@ -252,7 +266,7 @@ export interface CallApiExtraOptions<
 		| ((ctx: {
 				error: ErrorContext<TErrorData>["error"];
 				options: CallApiExtraOptions;
-				request: RequestOptions;
+				request: CallApiRequestOptions;
 		  }) => boolean);
 
 	/**
@@ -266,62 +280,20 @@ export interface CallApiExtraOptions<
 	url?: string;
 }
 
-export type InterceptorUnion = keyof Interceptors;
-
+// prettier-ignore
+// eslint-disable-next-line ts-eslint/no-empty-object-type
 export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<
-		CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>,
-		"requestKey" | InterceptorUnion
-	> {
-	/* eslint-disable perfectionist/sort-union-types */
-
-	/**
-	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
-	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
-	 */
-	onError?:
-		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onError"]
-		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onError"]>;
-
-	/** @description Interceptor to be called just before the request is made, allowing for modifications or additional operations. */
-	onRequest?:
-		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequest"]
-		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequest"]>;
-
-	/** @description Interceptor to be called when an error occurs during the fetch request. */
-	onRequestError?:
-		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]
-		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onRequestError"]>;
-
-	/** @description Interceptor to be called when any response is received from the api, whether successful or not */
-	onResponse?:
-		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]
-		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponse"]>;
-
-	/** @description Interceptor to be called when an error response is received from the api. */
-	onResponseError?:
-		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]
-		| Array<
-				Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onResponseError"]
-		  >;
-
-	/** @description Interceptor to be called when a successful response is received from the api. */
-	onSuccess?:
-		| Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]
-		| Array<Required<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>>["onSuccess"]>;
-
-	/* eslint-enable perfectionist/sort-union-types */
-}
+> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey"> { }
 
 // prettier-ignore
 export interface CallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends RequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> {}
+> extends CallApiRequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 // prettier-ignore
 export interface CallApiConfigWithRequiredURL<
@@ -337,11 +309,11 @@ export interface BaseCallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends RequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {}
+> extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 export type RequestContext = UnmaskType<{
 	options: CallApiExtraOptions;
-	request: RequestOptionsForHooks;
+	request: CallApiRequestOptionsForHooks;
 }>;
 
 export type ResponseContext<TData, TErrorData> = UnmaskType<
@@ -349,7 +321,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 			data: TData;
 			error: null;
 			options: CallApiExtraOptions;
-			request: RequestOptionsForHooks;
+			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
 	// eslint-disable-next-line perfectionist/sort-union-types
@@ -357,7 +329,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 			data: null;
 			error: PossibleHTTPError<TErrorData>;
 			options: CallApiExtraOptions;
-			request: RequestOptionsForHooks;
+			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
 >;
@@ -365,20 +337,20 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 export type SuccessContext<TData> = UnmaskType<{
 	data: TData;
 	options: CallApiExtraOptions;
-	request: RequestOptionsForHooks;
+	request: CallApiRequestOptionsForHooks;
 	response: Response;
 }>;
 
 export type RequestErrorContext = UnmaskType<{
 	error: PossibleJavaScriptError;
 	options: CallApiExtraOptions;
-	request: RequestOptionsForHooks;
+	request: CallApiRequestOptionsForHooks;
 }>;
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<{
 	error: PossibleHTTPError<TErrorData>;
 	options: CallApiExtraOptions;
-	request: RequestOptionsForHooks;
+	request: CallApiRequestOptionsForHooks;
 	response: Response;
 }>;
 
@@ -386,13 +358,13 @@ export type ErrorContext<TErrorData> = UnmaskType<
 	| {
 			error: PossibleHTTPError<TErrorData>;
 			options: CallApiExtraOptions;
-			request: RequestOptionsForHooks;
+			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
 	| {
 			error: PossibleJavaScriptError;
 			options: CallApiExtraOptions;
-			request: RequestOptionsForHooks;
+			request: CallApiRequestOptionsForHooks;
 			response: null;
 	  }
 >;

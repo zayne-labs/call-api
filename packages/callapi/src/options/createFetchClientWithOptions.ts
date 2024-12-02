@@ -1,24 +1,23 @@
+import { createFetchClient } from "@/createFetchClient";
+import { initializePlugins } from "@/plugins";
 import type {
 	BaseCallApiConfig,
 	CallApiConfigWithRequiredURL,
 	CallApiExtraOptions,
+	CallApiRequestOptionsForHooks,
 	GetCallApiResult,
-	InterceptorUnion,
+	Interceptors,
 	PossibleHTTPError,
 	PossibleJavaScriptError,
-	RequestOptionsForHooks,
 	ResultModeUnion,
 } from "@/types";
+import { generateRequestKey, mergeUrlWithParamsAndQuery } from "@/url";
 import {
 	HTTPError,
-	defaultRetryCodes,
-	defaultRetryMethods,
 	executeInterceptors,
-	generateRequestKey,
+	getFetchImpl,
 	getResponseData,
-	handleInterceptorsMerge,
 	isHTTPErrorInstance,
-	mergeUrlWithParamsAndQuery,
 	resolveErrorResult,
 	resolveHeaders,
 	resolveSuccessResult,
@@ -26,6 +25,7 @@ import {
 	splitConfig,
 	waitUntil,
 } from "@/utils/common";
+import { defaultRetryCodes, defaultRetryMethods } from "@/utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "@/utils/polyfills";
 import { isFunction, isPlainObject } from "@/utils/typeof";
 
@@ -45,16 +45,6 @@ export const createFetchClientWithOptions = <
 		...restOfBaseFetchConfig
 	} = baseFetchConfig;
 
-	const {
-		onError: onBaseError,
-		onRequest: onBaseRequest,
-		onRequestError: onBaseRequestError,
-		onResponse: onBaseResponse,
-		onResponseError: onBaseResponseError,
-		onSuccess: onBaseSuccess,
-		...restOfBaseExtraOptions
-	} = baseExtraOptions;
-
 	const requestInfoCache = new Map<
 		string | null,
 		{ controller: AbortController; responsePromise: Promise<Response> }
@@ -73,17 +63,6 @@ export const createFetchClientWithOptions = <
 
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
-		const {
-			onError,
-			onRequest,
-			onRequestError,
-			onResponse,
-			onResponseError,
-			onSuccess,
-			url: requestURL = config.url,
-			...restOfExtraOptions
-		} = extraOptions;
-
 		// == Default Extra Options
 		const defaultOptions = {
 			baseURL: "",
@@ -99,61 +78,15 @@ export const createFetchClientWithOptions = <
 			retryDelay: 0,
 			retryMethods: defaultRetryMethods,
 
-			...restOfBaseExtraOptions,
-			...restOfExtraOptions,
-		} satisfies Omit<CallApiExtraOptions, InterceptorUnion>;
-
-		const interceptors = {
-			onError: handleInterceptorsMerge(
-				onBaseError,
-				onError,
-				defaultOptions.mergeInterceptors,
-				defaultOptions.mergedInterceptorsExecutionMode
-			),
-			onRequest: handleInterceptorsMerge(
-				onBaseRequest,
-				onRequest,
-				defaultOptions.mergeInterceptors,
-				defaultOptions.mergedInterceptorsExecutionMode
-			),
-			onRequestError: handleInterceptorsMerge(
-				onBaseRequestError,
-				onRequestError,
-				defaultOptions.mergeInterceptors,
-				defaultOptions.mergedInterceptorsExecutionMode
-			),
-			onResponse: handleInterceptorsMerge(
-				onBaseResponse,
-				onResponse,
-				defaultOptions.mergeInterceptors,
-				defaultOptions.mergedInterceptorsExecutionMode
-			),
-			onResponseError: handleInterceptorsMerge(
-				onBaseResponseError,
-				onResponseError,
-				defaultOptions.mergeInterceptors,
-				defaultOptions.mergedInterceptorsExecutionMode
-			),
-			onSuccess: handleInterceptorsMerge(
-				onBaseSuccess,
-				onSuccess,
-				defaultOptions.mergeInterceptors,
-				defaultOptions.mergedInterceptorsExecutionMode
-			),
-		} satisfies Pick<CallApiExtraOptions, InterceptorUnion>;
-
-		const options = {
-			...interceptors,
-			...defaultOptions,
-		};
-
-		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(requestURL, options.params, options.query)}`;
+			...baseExtraOptions,
+			...extraOptions,
+		} satisfies Omit<CallApiExtraOptions, keyof Interceptors>;
 
 		// == Default Request Init
 		const defaultRequestOptions = {
-			headers: resolveHeaders({ auth: options.auth, baseHeaders, body, headers }),
-			// eslint-disable-next-line perfectionist/sort-objects
-			body: isPlainObject(body) ? options.bodySerializer(body) : body,
+			body: isPlainObject(body) ? defaultOptions.bodySerializer(body) : body,
+
+			headers: resolveHeaders({ auth: defaultOptions.auth, baseHeaders, body, headers }),
 
 			method: "GET",
 
@@ -161,8 +94,20 @@ export const createFetchClientWithOptions = <
 			...restOfFetchConfig,
 		} satisfies RequestInit;
 
+		const { resolvedInterceptors, url: requestURL } = await initializePlugins(config.url, {
+			...defaultOptions,
+			...defaultRequestOptions,
+		});
+
+		const options = {
+			...defaultOptions,
+			...resolvedInterceptors,
+		};
+
 		// prettier-ignore
 		const shouldHaveRequestKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
+
+		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(requestURL, options.params, options.query)}`;
 
 		const requestKey =
 			options.requestKey ??
@@ -198,12 +143,14 @@ export const createFetchClientWithOptions = <
 
 		const requestInit = { signal: combinedSignal, ...defaultRequestOptions } satisfies RequestInit;
 
-		const request = { fullURL, ...requestInit } satisfies RequestOptionsForHooks;
+		const request = { fullURL, ...requestInit } satisfies CallApiRequestOptionsForHooks;
+
+		const fetch = getFetchImpl(options.customFetchImpl);
 
 		try {
 			await executeInterceptors(options.onRequest?.({ options, request }));
 
-			// == Incase options.auth was updated in the request interceptor
+			// == In case options.auth was updated in the request interceptor
 			requestInit.headers = resolveHeaders({
 				auth: options.auth,
 				baseHeaders,
@@ -357,7 +304,6 @@ export const createFetchClientWithOptions = <
 						response: options.shouldCloneResponse ? response.clone() : response,
 					}),
 
-					// == Also call the onError interceptor
 					options.onError?.({
 						error: possibleHttpError,
 						options,
@@ -381,7 +327,6 @@ export const createFetchClientWithOptions = <
 					request,
 				}),
 
-				// == Also call the onError interceptor
 				options.onError?.({
 					error: possibleJavascriptError,
 					options,
@@ -400,7 +345,7 @@ export const createFetchClientWithOptions = <
 		}
 	}
 
-	callApi.create = createFetchClientWithOptions;
+	callApi.create = createFetchClient;
 
 	return callApi;
 };
