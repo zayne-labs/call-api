@@ -2,7 +2,7 @@
 	"name": "@zayne-labs/callapi-root",
 	"type": "module",
 	"version": "0.0.0",
-	"packageManager": "pnpm@9.13.1",
+	"packageManager": "pnpm@9.14.2",
 	"scripts": {
 		"build": "pnpm --filter \"./packages/*\" build",
 		"build:dev": "pnpm --filter \"./packages/*\" build:dev",

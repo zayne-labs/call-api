@@ -94,20 +94,21 @@ export const createFetchClientWithOptions = <
 			...restOfFetchConfig,
 		} satisfies RequestInit;
 
-		const { resolvedInterceptors, url: requestURL } = await initializePlugins(config.url, {
+		const { interceptors, url } = await initializePlugins(config.url, {
 			...defaultOptions,
 			...defaultRequestOptions,
 		});
 
 		const options = {
 			...defaultOptions,
-			...resolvedInterceptors,
+			...interceptors,
+			url,
 		};
 
 		// prettier-ignore
 		const shouldHaveRequestKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
 
-		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(requestURL, options.params, options.query)}`;
+		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
 
 		const requestKey =
 			options.requestKey ??
@@ -150,7 +151,7 @@ export const createFetchClientWithOptions = <
 		try {
 			await executeInterceptors(options.onRequest?.({ options, request }));
 
-			// == In case options.auth was updated in the request interceptor
+			// == Incase options.auth was updated in the request interceptor
 			requestInit.headers = resolveHeaders({
 				auth: options.auth,
 				baseHeaders,
@@ -304,6 +305,7 @@ export const createFetchClientWithOptions = <
 						response: options.shouldCloneResponse ? response.clone() : response,
 					}),
 
+					// == Also call the onError interceptor
 					options.onError?.({
 						error: possibleHttpError,
 						options,
@@ -327,6 +329,7 @@ export const createFetchClientWithOptions = <
 					request,
 				}),
 
+				// == Also call the onError interceptor
 				options.onError?.({
 					error: possibleJavascriptError,
 					options,

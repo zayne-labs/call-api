@@ -72,13 +72,26 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 	let url: string = initUrl;
 
 	const hooks = {
-		onError: [config.onError],
-		onRequest: [config.onRequest],
-		onRequestError: [config.onRequestError],
-		onResponse: [config.onResponse],
-		onResponseError: [config.onResponseError],
-		onSuccess: [config.onSuccess],
-	} satisfies PluginHooks<TBaseData, TBaseErrorData>;
+		onError: [],
+		onRequest: [],
+		onRequestError: [],
+		onResponse: [],
+		onResponseError: [],
+		onSuccess: [],
+	} satisfies PluginHooks<TBaseData, TBaseErrorData> as Required<PluginHooks<TBaseData, TBaseErrorData>>;
+
+	const addMainInterceptors = () => {
+		hooks.onRequest.push(config.onRequest);
+		hooks.onRequestError.push(config.onRequestError);
+		hooks.onResponse.push(config.onResponse);
+		hooks.onResponseError.push(config.onResponseError);
+		hooks.onSuccess.push(config.onSuccess);
+		hooks.onError.push(config.onError);
+	};
+
+	if (config.mergedInterceptorsExecutionOrder === "mainInterceptorFirst") {
+		addMainInterceptors();
+	}
 
 	for (const plugin of config.plugins ?? []) {
 		if (plugin.init) {
@@ -95,27 +108,32 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 		plugin.hooks?.onError && hooks.onError.push(plugin.hooks.onError);
 	}
 
-	const combine = (interceptors: Array<AnyFunction<Awaitable<void>> | undefined>) => {
+	if (config.mergedInterceptorsExecutionOrder === "mainInterceptorLast") {
+		addMainInterceptors();
+	}
+
+	const handleInterceptorsMerge = (interceptors: Array<AnyFunction<Awaitable<void>> | undefined>) => {
 		const mergedInterceptor = createMergedInterceptor(
 			interceptors,
 			config.mergeInterceptors,
-			config.mergedInterceptorsExecutionMode
+			config.mergedInterceptorsExecutionMode,
+			config.mergedInterceptorsExecutionOrder
 		);
 
 		return mergedInterceptor;
 	};
 
-	const resolvedInterceptors = {
-		onError: combine(hooks.onError),
-		onRequest: combine(hooks.onRequest),
-		onRequestError: combine(hooks.onRequestError),
-		onResponse: combine(hooks.onResponse),
-		onResponseError: combine(hooks.onResponseError),
-		onSuccess: combine(hooks.onSuccess),
+	const interceptors = {
+		onError: handleInterceptorsMerge(hooks.onError),
+		onRequest: handleInterceptorsMerge(hooks.onRequest),
+		onRequestError: handleInterceptorsMerge(hooks.onRequestError),
+		onResponse: handleInterceptorsMerge(hooks.onResponse),
+		onResponseError: handleInterceptorsMerge(hooks.onResponseError),
+		onSuccess: handleInterceptorsMerge(hooks.onSuccess),
 	};
 
 	return {
-		resolvedInterceptors,
+		interceptors,
 		url,
 	};
 };
@@ -123,10 +141,13 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 const createMergedInterceptor = (
 	interceptors: Array<AnyFunction<Awaitable<void>> | undefined>,
 	mergeInterceptors: CallApiExtraOptions["mergeInterceptors"],
-	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
+	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"],
+	mergedInterceptorsExecutionOrder: CallApiExtraOptions["mergedInterceptorsExecutionOrder"]
 ) => {
 	if (!mergeInterceptors) {
-		return interceptors[0];
+		return mergedInterceptorsExecutionOrder === "mainInterceptorFirst"
+			? interceptors[0]
+			: interceptors.at(-1);
 	}
 
 	return async (ctx: Record<string, unknown>) => {

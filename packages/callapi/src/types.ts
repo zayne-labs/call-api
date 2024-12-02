@@ -151,6 +151,12 @@ export interface CallApiExtraOptions<
 	mergedInterceptorsExecutionMode?: "parallel" | "sequential";
 
 	/**
+	 * @description - Controls what order in which the mergedInterceptors execute
+	 * @default "mainInterceptorLast"
+	 */
+	mergedInterceptorsExecutionOrder?: "mainInterceptorFirst" | "mainInterceptorLast";
+
+	/**
 	 * @description Whether or not to merge the plugin interceptors with main interceptor.
 	 * @default true
 	 */

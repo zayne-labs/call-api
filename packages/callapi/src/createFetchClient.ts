@@ -70,6 +70,7 @@ export const createFetchClient = <
 			dedupeStrategy: "cancel",
 			defaultErrorMessage: "Failed to fetch data from server!",
 			mergedInterceptorsExecutionMode: "parallel",
+			mergedInterceptorsExecutionOrder: "mainInterceptorLast",
 			mergeInterceptors: true,
 			responseType: "json",
 			resultMode: "all",
@@ -94,14 +95,15 @@ export const createFetchClient = <
 			...restOfFetchConfig,
 		} satisfies RequestInit;
 
-		const { resolvedInterceptors, url } = await initializePlugins(initUrl, {
+		const { interceptors, url } = await initializePlugins(initUrl, {
 			...defaultOptions,
 			...defaultRequestOptions,
 		});
 
 		const options = {
 			...defaultOptions,
-			...resolvedInterceptors,
+			...interceptors,
+			url,
 		};
 
 		// prettier-ignore
