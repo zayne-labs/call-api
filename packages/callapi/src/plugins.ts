@@ -72,14 +72,14 @@ const createMergedInterceptor = (
 	return async (ctx: Record<string, unknown>) => {
 		const uniqueInterceptorArray = [...new Set(interceptors)];
 
+		if (mergedInterceptorsExecutionMode === "parallel") {
+			await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor?.(ctx)));
+		}
+
 		if (mergedInterceptorsExecutionMode === "sequential") {
 			for (const uniqueInterceptor of uniqueInterceptorArray) {
 				await uniqueInterceptor?.(ctx);
 			}
-		}
-
-		if (mergedInterceptorsExecutionMode === "parallel") {
-			await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor?.(ctx)));
 		}
 	};
 };

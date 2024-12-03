@@ -150,7 +150,7 @@ export const createFetchClient = <
 		const fetch = getFetchImpl(options.customFetchImpl);
 
 		try {
-			await executeInterceptors(options.onRequest?.({ options, request }));
+			await executeInterceptors(options.onRequest({ options, request }));
 
 			// == Incase options.auth was updated in the request interceptor
 			requestInit.headers = resolveHeaders({
@@ -218,14 +218,14 @@ export const createFetchClient = <
 				: successData;
 
 			await executeInterceptors(
-				options.onSuccess?.({
+				options.onSuccess({
 					data: validSuccessData,
 					options,
 					request,
 					response: options.shouldCloneResponse ? response.clone() : response,
 				}),
 
-				options.onResponse?.({
+				options.onResponse({
 					data: validSuccessData,
 					error: null,
 					options,
@@ -291,14 +291,14 @@ export const createFetchClient = <
 					.error;
 
 				await executeInterceptors(
-					options.onResponseError?.({
+					options.onResponseError({
 						error: possibleHttpError,
 						options,
 						request,
 						response: options.shouldCloneResponse ? response.clone() : response,
 					}),
 
-					options.onResponse?.({
+					options.onResponse({
 						data: null,
 						error: possibleHttpError,
 						options,
@@ -307,7 +307,7 @@ export const createFetchClient = <
 					}),
 
 					// == Also call the onError interceptor
-					options.onError?.({
+					options.onError({
 						error: possibleHttpError,
 						options,
 						request,
@@ -324,14 +324,14 @@ export const createFetchClient = <
 
 			await executeInterceptors(
 				// == At this point only the request errors exist, so the request error interceptor is called
-				options.onRequestError?.({
+				options.onRequestError({
 					error: possibleJavascriptError,
 					options,
 					request,
 				}),
 
 				// == Also call the onError interceptor
-				options.onError?.({
+				options.onError({
 					error: possibleJavascriptError,
 					options,
 					request,
