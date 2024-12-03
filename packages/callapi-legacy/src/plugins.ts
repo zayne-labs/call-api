@@ -1,14 +1,13 @@
-/* eslint-disable no-await-in-loop */
 import type { CallApiConfig, CallApiExtraOptions, Interceptors } from "./types";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 import { isFunction, isObject } from "./utils/typeof";
 
-export type PluginInitContext<TBaseData = unknown, TBaseErrorData = unknown> = {
-	config: CallApiConfig<TBaseData, TBaseErrorData>;
+export type PluginInitContext<TData = unknown, TErrorData = unknown> = {
+	config: CallApiConfig<TData, TErrorData>;
 	initUrl: string;
 };
 
-export type CallApiPlugin<TBaseData = unknown, TBaseErrorData = unknown> = {
+export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	/**
 	 *  @description A description for the plugin
 	 */
@@ -17,7 +16,7 @@ export type CallApiPlugin<TBaseData = unknown, TBaseErrorData = unknown> = {
 	/**
 	 * Hooks/Interceptors for the plugin
 	 */
-	hooks?: Interceptors;
+	hooks?: Interceptors<TData, TErrorData>;
 
 	/**
 	 * @description A unique id for the plugin
@@ -29,9 +28,7 @@ export type CallApiPlugin<TBaseData = unknown, TBaseErrorData = unknown> = {
 	 * initialized. This will be called before the any
 	 * of the other internal functions.
 	 */
-	init?: (
-		context: PluginInitContext<TBaseData, TBaseErrorData>
-	) => Awaitable<{ url?: string }> | Awaitable<void>;
+	init?: (context: PluginInitContext<TData, TErrorData>) => Awaitable<{ url?: string }> | Awaitable<void>;
 
 	/**
 	 * @description A name for the plugin
@@ -51,18 +48,8 @@ export const defineCallApiPlugin = <TPlugin extends CallApiPlugin | AnyFunction<
 	return plugin;
 };
 
-export type PluginHooks<TBaseData, TBaseErrorData> = {
-	onError?: Array<Interceptors<TBaseData, TBaseErrorData>["onError"]>;
-
-	onRequest?: Array<Interceptors<TBaseData, TBaseErrorData>["onRequest"]>;
-
-	onRequestError?: Array<Interceptors<TBaseData, TBaseErrorData>["onRequestError"]>;
-
-	onResponse?: Array<Interceptors<TBaseData, TBaseErrorData>["onResponse"]>;
-
-	onResponseError?: Array<Interceptors<TBaseData, TBaseErrorData>["onResponseError"]>;
-
-	onSuccess?: Array<Interceptors<TBaseData, TBaseErrorData>["onSuccess"]>;
+export type PluginHooks<TData, TErrorData> = {
+	[Key in keyof Interceptors<TData, TErrorData>]: Array<Interceptors<TData, TErrorData>[Key]>;
 };
 
 const createMergedInterceptor = (
@@ -72,21 +59,22 @@ const createMergedInterceptor = (
 	return async (ctx: Record<string, unknown>) => {
 		const uniqueInterceptorArray = [...new Set(interceptors)];
 
-		if (mergedInterceptorsExecutionMode === "sequential") {
-			for (const uniqueInterceptor of uniqueInterceptorArray) {
-				await uniqueInterceptor?.(ctx);
-			}
-		}
-
 		if (mergedInterceptorsExecutionMode === "parallel") {
 			await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor?.(ctx)));
+		}
+
+		if (mergedInterceptorsExecutionMode === "sequential") {
+			for (const uniqueInterceptor of uniqueInterceptorArray) {
+				// eslint-disable-next-line no-await-in-loop
+				await uniqueInterceptor?.(ctx);
+			}
 		}
 	};
 };
 
-export const initializePlugins = async <TBaseData, TBaseErrorData>(
+export const initializePlugins = async <TData, TErrorData>(
 	initUrl: string,
-	config: CallApiConfig<TBaseData, TBaseErrorData>
+	config: CallApiConfig<TData, TErrorData>
 ) => {
 	let url: string = initUrl;
 
@@ -97,7 +85,7 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 		onResponse: [],
 		onResponseError: [],
 		onSuccess: [],
-	} satisfies PluginHooks<TBaseData, TBaseErrorData> as Required<PluginHooks<TBaseData, TBaseErrorData>>;
+	} satisfies PluginHooks<TData, TErrorData> as Required<PluginHooks<TData, TErrorData>>;
 
 	const addMainInterceptors = () => {
 		hooks.onRequest.push(config.onRequest);
@@ -108,7 +96,7 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 		hooks.onError.push(config.onError);
 	};
 
-	const addPluginInterceptors = (plugin: CallApiPlugin<TBaseData, TBaseErrorData>) => {
+	const addPluginInterceptors = (plugin: CallApiPlugin<TData, TErrorData>) => {
 		plugin.hooks?.onRequest && hooks.onRequest.push(plugin.hooks.onRequest);
 		plugin.hooks?.onRequestError && hooks.onRequestError.push(plugin.hooks.onRequestError);
 		plugin.hooks?.onResponse && hooks.onResponse.push(plugin.hooks.onResponse);
@@ -125,6 +113,7 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 
 	for (const plugin of resolvedPlugins ?? []) {
 		if (plugin.init) {
+			// eslint-disable-next-line no-await-in-loop
 			const pluginInitResult = await plugin.init({ config, initUrl });
 
 			isObject(pluginInitResult) && pluginInitResult.url && (url = pluginInitResult.url);
