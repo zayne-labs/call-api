@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import type { CallApiConfig, CallApiExtraOptions, Interceptors } from "./types";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
-import { isObject } from "./utils/typeof";
+import { isFunction, isObject } from "./utils/typeof";
 
 export type PluginInitContext<TBaseData = unknown, TBaseErrorData = unknown> = {
 	config: CallApiConfig<TBaseData, TBaseErrorData>;
@@ -65,6 +65,25 @@ export type PluginHooks<TBaseData, TBaseErrorData> = {
 	onSuccess?: Array<Interceptors<TBaseData, TBaseErrorData>["onSuccess"]>;
 };
 
+const createMergedInterceptor = (
+	interceptors: Array<AnyFunction<Awaitable<void>> | undefined>,
+	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
+) => {
+	return async (ctx: Record<string, unknown>) => {
+		const uniqueInterceptorArray = [...new Set(interceptors)];
+
+		if (mergedInterceptorsExecutionMode === "sequential") {
+			for (const uniqueInterceptor of uniqueInterceptorArray) {
+				await uniqueInterceptor?.(ctx);
+			}
+		}
+
+		if (mergedInterceptorsExecutionMode === "parallel") {
+			await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor?.(ctx)));
+		}
+	};
+};
+
 export const initializePlugins = async <TBaseData, TBaseErrorData>(
 	initUrl: string,
 	config: CallApiConfig<TBaseData, TBaseErrorData>
@@ -89,23 +108,31 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 		hooks.onError.push(config.onError);
 	};
 
-	if (config.mergedInterceptorsExecutionOrder === "mainInterceptorFirst") {
-		addMainInterceptors();
-	}
-
-	for (const plugin of config.plugins ?? []) {
-		if (plugin.init) {
-			const pluginInitResult = await plugin.init({ config, initUrl });
-
-			isObject(pluginInitResult) && pluginInitResult.url && (url = pluginInitResult.url);
-		}
-
+	const addPluginInterceptors = (plugin: CallApiPlugin<TBaseData, TBaseErrorData>) => {
 		plugin.hooks?.onRequest && hooks.onRequest.push(plugin.hooks.onRequest);
 		plugin.hooks?.onRequestError && hooks.onRequestError.push(plugin.hooks.onRequestError);
 		plugin.hooks?.onResponse && hooks.onResponse.push(plugin.hooks.onResponse);
 		plugin.hooks?.onResponseError && hooks.onResponseError.push(plugin.hooks.onResponseError);
 		plugin.hooks?.onSuccess && hooks.onSuccess.push(plugin.hooks.onSuccess);
 		plugin.hooks?.onError && hooks.onError.push(plugin.hooks.onError);
+	};
+
+	if (config.mergedInterceptorsExecutionOrder === "mainInterceptorFirst") {
+		addMainInterceptors();
+	}
+
+	const resolvedPlugins = isFunction(config.plugins) ? config.plugins({ config }) : config.plugins;
+
+	for (const plugin of resolvedPlugins ?? []) {
+		if (plugin.init) {
+			const pluginInitResult = await plugin.init({ config, initUrl });
+
+			isObject(pluginInitResult) && pluginInitResult.url && (url = pluginInitResult.url);
+		}
+
+		if (!config.mergeInterceptors) continue;
+
+		addPluginInterceptors(plugin);
 	}
 
 	if (config.mergedInterceptorsExecutionOrder === "mainInterceptorLast") {
@@ -115,9 +142,7 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 	const handleInterceptorsMerge = (interceptors: Array<AnyFunction<Awaitable<void>> | undefined>) => {
 		const mergedInterceptor = createMergedInterceptor(
 			interceptors,
-			config.mergeInterceptors,
-			config.mergedInterceptorsExecutionMode,
-			config.mergedInterceptorsExecutionOrder
+			config.mergedInterceptorsExecutionMode
 		);
 
 		return mergedInterceptor;
@@ -135,32 +160,5 @@ export const initializePlugins = async <TBaseData, TBaseErrorData>(
 	return {
 		interceptors,
 		url,
-	};
-};
-
-const createMergedInterceptor = (
-	interceptors: Array<AnyFunction<Awaitable<void>> | undefined>,
-	mergeInterceptors: CallApiExtraOptions["mergeInterceptors"],
-	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"],
-	mergedInterceptorsExecutionOrder: CallApiExtraOptions["mergedInterceptorsExecutionOrder"]
-) => {
-	if (!mergeInterceptors) {
-		return mergedInterceptorsExecutionOrder === "mainInterceptorFirst"
-			? interceptors[0]
-			: interceptors.at(-1);
-	}
-
-	return async (ctx: Record<string, unknown>) => {
-		const uniqueInterceptorArray = [...new Set(interceptors)];
-
-		if (mergedInterceptorsExecutionMode === "sequential") {
-			for (const uniqueInterceptor of uniqueInterceptorArray) {
-				await uniqueInterceptor?.(ctx);
-			}
-		}
-
-		if (mergedInterceptorsExecutionMode === "parallel") {
-			await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor?.(ctx)));
-		}
 	};
 };

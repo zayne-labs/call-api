@@ -30,7 +30,7 @@
 		"@zayne-labs/eslint-config": "0.2.12",
 		"eslint": "9.16.0",
 		"eslint-plugin-react-hooks": "^5.0.0",
-		"eslint-plugin-react-refresh": "^0.4.14",
+		"eslint-plugin-react-refresh": "^0.4.16",
 		"husky": "9.1.7",
 		"lint-staged": "15.2.10",
 		"pkg-pr-new": "0.0.35",

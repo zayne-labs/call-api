@@ -196,7 +196,11 @@ export interface CallApiExtraOptions<
 	/**
 	 * @description An array of CallApi plugins. Allows you to extend the behavior of the library.
 	 */
-	plugins?: Array<CallApiPlugin<TData, TErrorData>>;
+	plugins?:
+		| Array<CallApiPlugin<TData, TErrorData>>
+		| ((context: {
+				config: CallApiConfig<TData, TErrorData>;
+		  }) => Array<CallApiPlugin<TData, TErrorData>>);
 
 	/**
 	 * @description Query parameters to append to the URL.
