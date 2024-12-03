@@ -41,15 +41,13 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	version?: string;
 };
 
-// eslint-disable-next-line perfectionist/sort-union-types
-export const defineCallApiPlugin = <TPlugin extends CallApiPlugin | AnyFunction<CallApiPlugin>>(
+export const defineCallApiPlugin = <
+	// eslint-disable-next-line perfectionist/sort-union-types
+	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
+>(
 	plugin: TPlugin
 ) => {
 	return plugin;
-};
-
-export type PluginHooks<TData, TErrorData> = {
-	[Key in keyof Interceptors<TData, TErrorData>]: Array<Interceptors<TData, TErrorData>[Key]>;
 };
 
 const createMergedInterceptor = (
@@ -70,6 +68,10 @@ const createMergedInterceptor = (
 			}
 		}
 	};
+};
+
+export type PluginHooks<TData, TErrorData> = {
+	[Key in keyof Interceptors<TData, TErrorData>]: Array<Interceptors<TData, TErrorData>[Key]>;
 };
 
 export const initializePlugins = async <TData, TErrorData>(

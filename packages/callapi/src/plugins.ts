@@ -41,8 +41,10 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	version?: string;
 };
 
-// eslint-disable-next-line perfectionist/sort-union-types
-export const defineCallApiPlugin = <TPlugin extends CallApiPlugin | AnyFunction<CallApiPlugin>>(
+export const defineCallApiPlugin = <
+	// eslint-disable-next-line perfectionist/sort-union-types
+	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
+>(
 	plugin: TPlugin
 ) => {
 	return plugin;
