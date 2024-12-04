@@ -11,15 +11,16 @@ import type {
 	PossibleJavaScriptError,
 	ResultModeUnion,
 } from "@/types";
-import { generateRequestKey, mergeUrlWithParamsAndQuery } from "@/url";
+import { mergeUrlWithParamsAndQuery } from "@/url";
 import {
 	HTTPError,
 	executeInterceptors,
+	generateRequestKey,
 	getFetchImpl,
+	getHeaders,
 	getResponseData,
 	isHTTPErrorInstance,
 	resolveErrorResult,
-	resolveHeaders,
 	resolveSuccessResult,
 	splitBaseConfig,
 	splitConfig,
@@ -70,6 +71,7 @@ export const createFetchClientWithOptions = <
 			dedupeStrategy: "cancel",
 			defaultErrorMessage: "Failed to fetch data from server!",
 			mergedInterceptorsExecutionMode: "parallel",
+			mergedInterceptorsExecutionOrder: "mainInterceptorLast",
 			mergeInterceptors: true,
 			responseType: "json",
 			resultMode: "all",
@@ -86,7 +88,7 @@ export const createFetchClientWithOptions = <
 		const defaultRequestOptions = {
 			body: isPlainObject(body) ? defaultOptions.bodySerializer(body) : body,
 
-			headers: resolveHeaders({ auth: defaultOptions.auth, baseHeaders, body, headers }),
+			headers: getHeaders({ auth: defaultOptions.auth, baseHeaders, body, headers }),
 
 			method: "GET",
 
@@ -105,16 +107,14 @@ export const createFetchClientWithOptions = <
 			url,
 		};
 
+		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
+
 		// prettier-ignore
 		const shouldHaveRequestKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
 
-		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
-
 		const requestKey =
 			options.requestKey ??
-			(shouldHaveRequestKey
-				? generateRequestKey(fullURL, { ...defaultRequestOptions, ...options })
-				: null);
+			generateRequestKey(fullURL, { shouldHaveRequestKey, ...defaultRequestOptions, ...options });
 
 		// == This is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key start at the same time
 		if (requestKey != null) {
@@ -122,7 +122,7 @@ export const createFetchClientWithOptions = <
 		}
 
 		// == This ensures cache operations only occur when key is available
-		const requestInfoCacheOrNull = requestKey ? requestInfoCache : null;
+		const requestInfoCacheOrNull = requestKey != null ? requestInfoCache : null;
 
 		const prevRequestInfo = requestInfoCacheOrNull?.get(requestKey);
 
@@ -152,7 +152,7 @@ export const createFetchClientWithOptions = <
 			await executeInterceptors(options.onRequest({ options, request }));
 
 			// == Incase options.auth was updated in the request interceptor
-			requestInit.headers = resolveHeaders({
+			requestInit.headers = getHeaders({
 				auth: options.auth,
 				baseHeaders,
 				body: request.body,
@@ -352,5 +352,4 @@ export const createFetchClientWithOptions = <
 
 	return callApi;
 };
-
 export const callApiWithOptions = createFetchClientWithOptions();

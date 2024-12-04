@@ -2,9 +2,6 @@ import type { CallApiConfig, CallApiExtraOptions } from "./types";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/typeof";
 
-// prettier-ignore
-export const generateRequestKey = (url: string, config: Record<string, unknown>) => `${url} ${ampersand} ${JSON.stringify(config)}`;
-
 const slash = "/";
 const column = ":";
 const mergeUrlWithParams = (url: string, params: CallApiExtraOptions["params"]) => {
@@ -28,7 +25,7 @@ const mergeUrlWithParams = (url: string, params: CallApiExtraOptions["params"]) 
 	}
 
 	for (const [key, value] of Object.entries(params)) {
-		newUrl = newUrl.replace(`:${key}`, String(value));
+		newUrl = newUrl.replace(`${column}${key}`, String(value));
 	}
 
 	return newUrl;

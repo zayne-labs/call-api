@@ -1,5 +1,5 @@
 import type { CallApiPlugin } from "./plugins";
-import type { handleResponseType } from "./utils/common";
+import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
 import type {
 	AnyNumber,
@@ -194,15 +194,6 @@ export interface CallApiExtraOptions<
 	params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
 
 	/**
-	 * @description An array of CallApi plugins. Allows you to extend the behavior of the library.
-	 */
-	plugins?:
-		| Array<CallApiPlugin<TData, TErrorData>>
-		| ((context: {
-				config: CallApiConfig<TData, TErrorData>;
-		  }) => Array<CallApiPlugin<TData, TErrorData>>);
-
-	/**
 	 * @description Query parameters to append to the URL.
 	 */
 	query?: Record<string, boolean | number | string>;
@@ -216,13 +207,13 @@ export interface CallApiExtraOptions<
 	/**
 	 * @description Custom function to parse the response string into a object.
 	 */
-	responseParser?: (responseString: string) => Record<string, unknown>;
+	responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
 
 	/**
 	 * @description Expected response type, affects how response is parsed
 	 * @default "json"
 	 */
-	responseType?: keyof ReturnType<typeof handleResponseType>;
+	responseType?: keyof ReturnType<typeof getResponseType>;
 
 	/**
 	 * @description Custom function to validate the response data.
@@ -291,12 +282,20 @@ export interface CallApiExtraOptions<
 }
 
 // prettier-ignore
-// eslint-disable-next-line ts-eslint/no-empty-object-type
 export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey"> { }
+> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey"> {
+	/**
+	 * @description An array of CallApi plugins. Allows you to extend the behavior of the library.
+	 */
+	plugins?:
+		| Array<CallApiPlugin<TBaseData, TBaseErrorData>>
+		| ((context: {
+				config: CallApiConfig<TBaseData, TBaseErrorData>;
+		  }) => Array<CallApiPlugin<TBaseData, TBaseErrorData>>);
+}
 
 // prettier-ignore
 export interface CallApiConfig<

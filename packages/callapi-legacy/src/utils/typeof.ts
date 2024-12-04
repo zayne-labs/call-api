@@ -23,8 +23,8 @@ export const isPlainObject = <TPlainObject extends Record<string, unknown>>(
 
 	// Check if it's a plain object
 	return (
-		(prototype == null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) &&
-		!(Symbol.toStringTag in value)
+		// prettier-ignore
+		(prototype == null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in value)
 	);
 };
 

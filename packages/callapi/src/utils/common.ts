@@ -11,68 +11,6 @@ import { fetchSpecificKeys } from "./constants";
 import type { Awaitable } from "./type-helpers";
 import { isFunction, isObject, isPlainObject, isQueryString, isString } from "./typeof";
 
-type ToQueryStringFn = {
-	(params: CallApiConfig["query"]): string | null;
-	(params: Required<CallApiConfig>["query"]): string;
-};
-
-export const toQueryString: ToQueryStringFn = (params) => {
-	if (!params) {
-		console.error("toQueryString:", "No query params provided!");
-
-		return null as never;
-	}
-
-	return new URLSearchParams(params as Record<string, string>).toString();
-};
-
-export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {
-	if (!headers || isPlainObject(headers)) {
-		return headers;
-	}
-
-	return Object.fromEntries(headers);
-};
-
-export const resolveHeaders = (options: {
-	auth: CallApiConfig["auth"];
-	baseHeaders: CallApiConfig["headers"];
-	body: CallApiConfig["body"];
-	headers: CallApiConfig["headers"];
-}) => {
-	const { auth, baseHeaders, body, headers } = options;
-
-	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing
-	const shouldResolveHeaders = Boolean(baseHeaders || headers || body || auth);
-
-	// == Return early if the following conditions are not met (so that native fetch would auto set the correct headers):
-	// == - headers are provided
-	// == - The body is an object
-	// == - The auth option is provided
-	if (!shouldResolveHeaders) return;
-
-	const headersObject: Record<string, string> = {
-		...(isPlainObject(body) && {
-			Accept: "application/json",
-			"Content-Type": "application/json",
-		}),
-		...(isQueryString(body) && {
-			"Content-Type": "application/x-www-form-urlencoded",
-		}),
-		...((isString(auth) || auth === null) && {
-			Authorization: `Bearer ${auth}`,
-		}),
-		...(isObject(auth) && {
-			Authorization: "bearer" in auth ? `Bearer ${auth.bearer}` : `Token ${auth.token}`,
-		}),
-
-		...objectifyHeaders(baseHeaders),
-		...objectifyHeaders(headers),
-	};
-
-	return headersObject;
-};
-
 const omitKeys = <TObject extends Record<string, unknown>, const TOmitArray extends Array<keyof TObject>>(
 	initialObject: TObject,
 	keysToOmit: TOmitArray
@@ -123,6 +61,79 @@ export const splitConfig = (config: Record<string, any>) =>
 		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
 	] as const;
 
+export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {
+	if (!headers || isPlainObject(headers)) {
+		return headers;
+	}
+
+	return Object.fromEntries(headers);
+};
+
+export const generateRequestKey = (
+	url: string,
+	config: Record<string, unknown> & { shouldHaveRequestKey: boolean }
+) => {
+	if (!config.shouldHaveRequestKey) {
+		return null;
+	}
+
+	return `${url}-${JSON.stringify(config)}`;
+};
+
+type ToQueryStringFn = {
+	(params: CallApiConfig["query"]): string | null;
+	(params: Required<CallApiConfig>["query"]): string;
+};
+
+export const toQueryString: ToQueryStringFn = (params) => {
+	if (!params) {
+		console.error("toQueryString:", "No query params provided!");
+
+		return null as never;
+	}
+
+	return new URLSearchParams(params as Record<string, string>).toString();
+};
+
+export const getHeaders = (options: {
+	auth: CallApiConfig["auth"];
+	baseHeaders: CallApiConfig["headers"];
+	body: CallApiConfig["body"];
+	headers: CallApiConfig["headers"];
+}) => {
+	const { auth, baseHeaders, body, headers } = options;
+
+	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing
+	const shouldResolveHeaders = Boolean(baseHeaders || headers || body || auth);
+
+	// == Return early if the following conditions are not met (so that native fetch would auto set the correct headers):
+	// == - headers are provided
+	// == - The body is an object
+	// == - The auth option is provided
+	if (!shouldResolveHeaders) return;
+
+	const headersObject: Record<string, string> = {
+		...(isPlainObject(body) && {
+			Accept: "application/json",
+			"Content-Type": "application/json",
+		}),
+		...(isQueryString(body) && {
+			"Content-Type": "application/x-www-form-urlencoded",
+		}),
+		...((isString(auth) || auth === null) && {
+			Authorization: `Bearer ${auth}`,
+		}),
+		...(isObject(auth) && {
+			Authorization: "bearer" in auth ? `Bearer ${auth.bearer}` : `Token ${auth.token}`,
+		}),
+
+		...objectifyHeaders(baseHeaders),
+		...objectifyHeaders(headers),
+	};
+
+	return headersObject;
+};
+
 export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchImpl"]) => {
 	if (customFetchImpl) {
 		return customFetchImpl;
@@ -140,7 +151,7 @@ export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchIm
 	throw new Error("No fetch implementation found");
 };
 
-export const handleResponseType = <TResponse>(
+export const getResponseType = <TResponse>(
 	response: Response,
 	parser?: Required<CallApiExtraOptions>["responseParser"]
 ) => ({
@@ -149,7 +160,8 @@ export const handleResponseType = <TResponse>(
 	formData: () => response.formData() as Promise<TResponse>,
 	json: async () => {
 		if (parser) {
-			return parser(await response.text());
+			const text = await response.text();
+			return parser(text);
 		}
 
 		return response.json() as Promise<TResponse>;
@@ -163,10 +175,10 @@ export const executeInterceptors = <TInterceptor extends Awaitable<void>>(
 
 export const getResponseData = <TResponse>(
 	response: Response,
-	responseType: keyof ReturnType<typeof handleResponseType>,
+	responseType: keyof ReturnType<typeof getResponseType>,
 	parser: CallApiExtraOptions["responseParser"]
 ) => {
-	const RESPONSE_TYPE_LOOKUP = handleResponseType<TResponse>(response, parser);
+	const RESPONSE_TYPE_LOOKUP = getResponseType<TResponse>(response, parser);
 
 	if (!Object.hasOwn(RESPONSE_TYPE_LOOKUP, responseType)) {
 		throw new Error(`Invalid response type: ${responseType}`);

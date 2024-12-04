@@ -1,4 +1,4 @@
-import type { CallApiConfig, CallApiExtraOptions, Interceptors } from "./types";
+import type { BaseCallApiConfig, CallApiConfig, CallApiExtraOptions, Interceptors } from "./types";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 import { isFunction, isObject } from "./utils/typeof";
 
@@ -76,7 +76,7 @@ export type PluginHooks<TData, TErrorData> = {
 
 export const initializePlugins = async <TData, TErrorData>(
 	initUrl: string,
-	config: CallApiConfig<TData, TErrorData>
+	config: BaseCallApiConfig<TData, TErrorData>
 ) => {
 	let url: string = initUrl;
 
