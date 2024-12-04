@@ -51,27 +51,27 @@ export const defineCallApiPlugin = <
 };
 
 const createMergedInterceptor = (
-	interceptors: Array<AnyFunction<Awaitable<void>> | undefined>,
+	interceptors: Set<AnyFunction<Awaitable<void>> | undefined>,
 	mergedInterceptorsExecutionMode: CallApiExtraOptions["mergedInterceptorsExecutionMode"]
 ) => {
 	return async (ctx: Record<string, unknown>) => {
-		const uniqueInterceptorArray = [...new Set(interceptors)];
-
 		if (mergedInterceptorsExecutionMode === "parallel") {
-			await Promise.all(uniqueInterceptorArray.map((uniqueInterceptor) => uniqueInterceptor?.(ctx)));
+			const interceptorArray = [...interceptors];
+
+			await Promise.all(interceptorArray.map((uniqueInterceptor) => uniqueInterceptor?.(ctx)));
 		}
 
 		if (mergedInterceptorsExecutionMode === "sequential") {
-			for (const uniqueInterceptor of uniqueInterceptorArray) {
+			for (const interceptor of interceptors) {
 				// eslint-disable-next-line no-await-in-loop
-				await uniqueInterceptor?.(ctx);
+				await interceptor?.(ctx);
 			}
 		}
 	};
 };
 
-export type PluginHooks<TData, TErrorData> = {
-	[Key in keyof Interceptors<TData, TErrorData>]: Array<Interceptors<TData, TErrorData>[Key]>;
+type PluginHooks<TData, TErrorData> = {
+	[Key in keyof Interceptors<TData, TErrorData>]: Set<Interceptors<TData, TErrorData>[Key]>;
 };
 
 export const initializePlugins = async <TData, TErrorData>(
@@ -80,31 +80,31 @@ export const initializePlugins = async <TData, TErrorData>(
 ) => {
 	let url: string = initUrl;
 
-	const hooks = {
-		onError: [],
-		onRequest: [],
-		onRequestError: [],
-		onResponse: [],
-		onResponseError: [],
-		onSuccess: [],
+	const hookRegistry = {
+		onError: new Set([]),
+		onRequest: new Set([]),
+		onRequestError: new Set([]),
+		onResponse: new Set([]),
+		onResponseError: new Set([]),
+		onSuccess: new Set([]),
 	} satisfies PluginHooks<TData, TErrorData> as Required<PluginHooks<TData, TErrorData>>;
 
 	const addMainInterceptors = () => {
-		hooks.onRequest.push(config.onRequest);
-		hooks.onRequestError.push(config.onRequestError);
-		hooks.onResponse.push(config.onResponse);
-		hooks.onResponseError.push(config.onResponseError);
-		hooks.onSuccess.push(config.onSuccess);
-		hooks.onError.push(config.onError);
+		hookRegistry.onRequest.add(config.onRequest);
+		hookRegistry.onRequestError.add(config.onRequestError);
+		hookRegistry.onResponse.add(config.onResponse);
+		hookRegistry.onResponseError.add(config.onResponseError);
+		hookRegistry.onSuccess.add(config.onSuccess);
+		hookRegistry.onError.add(config.onError);
 	};
 
-	const addPluginInterceptors = (plugin: CallApiPlugin<TData, TErrorData>) => {
-		plugin.hooks?.onRequest && hooks.onRequest.push(plugin.hooks.onRequest);
-		plugin.hooks?.onRequestError && hooks.onRequestError.push(plugin.hooks.onRequestError);
-		plugin.hooks?.onResponse && hooks.onResponse.push(plugin.hooks.onResponse);
-		plugin.hooks?.onResponseError && hooks.onResponseError.push(plugin.hooks.onResponseError);
-		plugin.hooks?.onSuccess && hooks.onSuccess.push(plugin.hooks.onSuccess);
-		plugin.hooks?.onError && hooks.onError.push(plugin.hooks.onError);
+	const addPluginInterceptors = (pluginHooks: Interceptors<TData, TErrorData>) => {
+		hookRegistry.onRequest.add(pluginHooks.onRequest);
+		hookRegistry.onRequestError.add(pluginHooks.onRequestError);
+		hookRegistry.onResponse.add(pluginHooks.onResponse);
+		hookRegistry.onResponseError.add(pluginHooks.onResponseError);
+		hookRegistry.onSuccess.add(pluginHooks.onSuccess);
+		hookRegistry.onError.add(pluginHooks.onError);
 	};
 
 	if (config.mergedInterceptorsExecutionOrder === "mainInterceptorFirst") {
@@ -121,16 +121,16 @@ export const initializePlugins = async <TData, TErrorData>(
 			isObject(pluginInitResult) && pluginInitResult.url && (url = pluginInitResult.url);
 		}
 
-		if (!config.mergeInterceptors) continue;
+		if (!plugin.hooks) continue;
 
-		addPluginInterceptors(plugin);
+		addPluginInterceptors(plugin.hooks);
 	}
 
 	if (config.mergedInterceptorsExecutionOrder === "mainInterceptorLast") {
 		addMainInterceptors();
 	}
 
-	const handleInterceptorsMerge = (interceptors: Array<AnyFunction<Awaitable<void>> | undefined>) => {
+	const handleInterceptorsMerge = (interceptors: Set<AnyFunction<Awaitable<void>> | undefined>) => {
 		const mergedInterceptor = createMergedInterceptor(
 			interceptors,
 			config.mergedInterceptorsExecutionMode
@@ -140,13 +140,13 @@ export const initializePlugins = async <TData, TErrorData>(
 	};
 
 	const interceptors = {
-		onError: handleInterceptorsMerge(hooks.onError),
-		onRequest: handleInterceptorsMerge(hooks.onRequest),
-		onRequestError: handleInterceptorsMerge(hooks.onRequestError),
-		onResponse: handleInterceptorsMerge(hooks.onResponse),
-		onResponseError: handleInterceptorsMerge(hooks.onResponseError),
-		onSuccess: handleInterceptorsMerge(hooks.onSuccess),
-	};
+		onError: handleInterceptorsMerge(hookRegistry.onError),
+		onRequest: handleInterceptorsMerge(hookRegistry.onRequest),
+		onRequestError: handleInterceptorsMerge(hookRegistry.onRequestError),
+		onResponse: handleInterceptorsMerge(hookRegistry.onResponse),
+		onResponseError: handleInterceptorsMerge(hookRegistry.onResponseError),
+		onSuccess: handleInterceptorsMerge(hookRegistry.onSuccess),
+	} satisfies Interceptors<TData, TErrorData>;
 
 	return {
 		interceptors,

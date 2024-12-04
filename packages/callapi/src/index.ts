@@ -1,7 +1,7 @@
 export { callApi, createFetchClient } from "./createFetchClient";
 
 export { defineCallApiPlugin } from "./plugins";
-export type { CallApiPlugin, PluginHooks, PluginInitContext } from "./plugins";
+export type { CallApiPlugin, PluginInitContext } from "./plugins";
 
 export type {
 	CallApiConfig,

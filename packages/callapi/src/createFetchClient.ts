@@ -72,7 +72,6 @@ export const createFetchClient = <
 			defaultErrorMessage: "Failed to fetch data from server!",
 			mergedInterceptorsExecutionMode: "parallel",
 			mergedInterceptorsExecutionOrder: "mainInterceptorLast",
-			mergeInterceptors: true,
 			responseType: "json",
 			resultMode: "all",
 			retries: 0,

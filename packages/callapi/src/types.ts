@@ -157,12 +157,6 @@ export interface CallApiExtraOptions<
 	mergedInterceptorsExecutionOrder?: "mainInterceptorFirst" | "mainInterceptorLast";
 
 	/**
-	 * @description Whether or not to merge the plugin interceptors with main interceptor.
-	 * @default true
-	 */
-	mergeInterceptors?: boolean;
-
-	/**
 	 * @description - An optional field you can fill with additional information,
 	 * to associate with the request, typically used for logging or tracing.
 	 *
