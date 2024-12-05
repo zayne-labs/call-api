@@ -180,10 +180,10 @@ export const createFetchClient = <
 			if (shouldRetry) {
 				await waitUntil(options.retryDelay);
 
-				return await callApi(url, { ...config, retries: options.retries - 1 });
+				return await callApi(initUrl, { ...config, retries: options.retries - 1 });
 			}
 
-			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
+			// == Clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			// == Also clone response when resultMode is set to "onlyResponse", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse =
 				options.dedupeStrategy === "defer" ||
@@ -208,23 +208,20 @@ export const createFetchClient = <
 			const successData = await getResponseData<TData>(
 				shouldCloneResponse ? response.clone() : response,
 				options.responseType,
-				options.responseParser
+				options.responseParser,
+				options.responseValidator
 			);
-
-			const validSuccessData = options.responseValidator
-				? options.responseValidator(successData)
-				: successData;
 
 			await executeInterceptors(
 				options.onSuccess({
-					data: validSuccessData,
+					data: successData,
 					options,
 					request,
 					response: options.shouldCloneResponse ? response.clone() : response,
 				}),
 
 				options.onResponse({
-					data: validSuccessData,
+					data: successData,
 					error: null,
 					options,
 					request,
@@ -233,9 +230,9 @@ export const createFetchClient = <
 			);
 
 			return resolveSuccessResult<CallApiResult>({
+				data: successData,
 				response,
 				resultMode: options.resultMode,
-				successData: validSuccessData,
 			});
 
 			// == Exhaustive Error handling

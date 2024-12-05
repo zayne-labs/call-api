@@ -176,7 +176,8 @@ export const executeInterceptors = <TInterceptor extends Awaitable<void>>(
 export const getResponseData = <TResponse>(
 	response: Response,
 	responseType: keyof ReturnType<typeof getResponseType>,
-	parser: CallApiExtraOptions["responseParser"]
+	parser: CallApiExtraOptions["responseParser"],
+	validator?: CallApiExtraOptions["responseValidator"]
 ) => {
 	const RESPONSE_TYPE_LOOKUP = getResponseType<TResponse>(response, parser);
 
@@ -184,22 +185,26 @@ export const getResponseData = <TResponse>(
 		throw new Error(`Invalid response type: ${responseType}`);
 	}
 
-	return RESPONSE_TYPE_LOOKUP[responseType]();
+	const responseData = RESPONSE_TYPE_LOOKUP[responseType]();
+
+	const validResponseData = validator ? validator(responseData) : responseData;
+
+	return validResponseData;
 };
 
 type SuccessInfo = {
+	data: unknown;
 	response: Response;
 	resultMode: CallApiExtraOptions["resultMode"];
-	successData: unknown;
 };
 
 // == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
 // LINK - See https://www.zhenghao.io/posts/type-functions for more info
 export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiResult => {
-	const { response, resultMode, successData } = info;
+	const { data, response, resultMode } = info;
 
 	const apiDetails = {
-		data: successData,
+		data,
 		error: null,
 		response,
 	};

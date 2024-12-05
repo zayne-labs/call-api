@@ -199,6 +199,12 @@ export interface CallApiExtraOptions<
 	requestKey?: string;
 
 	/**
+	 * @description Custom function to validate the response error data, stemming from the api.
+	 * This only runs if the api actually sends back error status codes, else it will be ignored, in which case you should only use the `responseValidator` option.
+	 */
+	responseErrorValidator?: (data: unknown) => TErrorData;
+
+	/**
 	 * @description Custom function to parse the response string into a object.
 	 */
 	responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
@@ -421,15 +427,14 @@ export type CallApiResultErrorVariant<TErrorData> =
 	  };
 
 export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
-	all: CallApiResultErrorVariant<TErrorData> | CallApiResultSuccessVariant<TData>;
+	// eslint-disable-next-line perfectionist/sort-union-types
+	all: CallApiResultSuccessVariant<TData> | CallApiResultErrorVariant<TErrorData>;
 	onlyError: CallApiResultErrorVariant<TErrorData>["error"];
 	onlyResponse: Response;
 	onlySuccess: CallApiResultSuccessVariant<TData>["data"];
 };
 
-export type ResultModeUnion = UnmaskType<
-	{ [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined
->;
+export type ResultModeUnion = { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined;
 
 export type GetCallApiResult<TData, TErrorData, TResultMode> = undefined extends TResultMode
 	? ResultModeMap<TData, TErrorData>["all"]
