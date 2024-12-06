@@ -1,4 +1,4 @@
-import type { CallApiPlugin } from "./plugins";
+import type { CallApiPlugin, PluginInitContext } from "./plugins";
 import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
 import type {
@@ -121,6 +121,13 @@ export interface CallApiExtraOptions<
 	bodySerializer?: (bodyData: Record<string, unknown>) => string;
 
 	/**
+	 * @description Whether or not to clone the response, so response.json() and the like, can be read again else where.
+	 * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
+	 * @default false
+	 */
+	cloneResponse?: boolean;
+
+	/**
 	 * @description Custom fetch implementation
 	 */
 	customFetchImpl?: FetchImpl;
@@ -188,6 +195,11 @@ export interface CallApiExtraOptions<
 	params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
 
 	/**
+	 * @description An array of CallApi plugins. It allows you to extend the behavior of the library.
+	 */
+	plugins?: CallApiPluginArrayOrFn<TData, TErrorData>;
+
+	/**
 	 * @description Query parameters to append to the URL.
 	 */
 	query?: Record<string, boolean | number | string>;
@@ -252,12 +264,6 @@ export interface CallApiExtraOptions<
 	retryMethods?: Array<"GET" | "POST" | AnyString>;
 
 	/**
-	 * @description Whether or not to clone the response, so response.json() and the like, can be read again else where.
-	 * @default false
-	 */
-	shouldCloneResponse?: boolean;
-
-	/**
 	 * If true or the function returns true, throws errors instead of returning them
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
@@ -281,21 +287,24 @@ export interface CallApiExtraOptions<
 	url?: string;
 }
 
+type CallApiPluginArrayOrFn<TData, TErrorData> =
+	| Array<CallApiPlugin<TData, TErrorData>>
+	| ((context: PluginInitContext<TData, TErrorData>) => Array<CallApiPlugin<TData, TErrorData>>);
+
 // prettier-ignore
+// eslint-disable-next-line ts-eslint/no-empty-object-type
 export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey"> {
-	/**
-	 * @description An array of CallApi plugins. Allows you to extend the behavior of the library.
-	 */
-	plugins?:
-		| Array<CallApiPlugin<TBaseData, TBaseErrorData>>
-		| ((context: {
-				config: CallApiConfig<TBaseData, TBaseErrorData>;
-		  }) => Array<CallApiPlugin<TBaseData, TBaseErrorData>>);
-}
+> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey"> { }
+
+// prettier-ignore
+export interface CombinedCallApiExtraOptions<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+> extends BaseCallApiExtraOptions<TData, TErrorData, TResultMode>, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 // prettier-ignore
 export interface CallApiConfig<
@@ -321,7 +330,7 @@ export interface BaseCallApiConfig<
 > extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 export type RequestContext = UnmaskType<{
-	options: CallApiExtraOptions;
+	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
 }>;
 
@@ -329,7 +338,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 	| {
 			data: TData;
 			error: null;
-			options: CallApiExtraOptions;
+			options: CombinedCallApiExtraOptions;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
@@ -337,7 +346,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 	| {
 			data: null;
 			error: PossibleHTTPError<TErrorData>;
-			options: CallApiExtraOptions;
+			options: CombinedCallApiExtraOptions;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
@@ -345,20 +354,20 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 
 export type SuccessContext<TData> = UnmaskType<{
 	data: TData;
-	options: CallApiExtraOptions;
+	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
 	response: Response;
 }>;
 
 export type RequestErrorContext = UnmaskType<{
 	error: PossibleJavaScriptError;
-	options: CallApiExtraOptions;
+	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
 }>;
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<{
 	error: PossibleHTTPError<TErrorData>;
-	options: CallApiExtraOptions;
+	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
 	response: Response;
 }>;
@@ -366,13 +375,13 @@ export type ResponseErrorContext<TErrorData> = UnmaskType<{
 export type ErrorContext<TErrorData> = UnmaskType<
 	| {
 			error: PossibleHTTPError<TErrorData>;
-			options: CallApiExtraOptions;
+			options: CombinedCallApiExtraOptions;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
 	| {
 			error: PossibleJavaScriptError;
-			options: CallApiExtraOptions;
+			options: CombinedCallApiExtraOptions;
 			request: CallApiRequestOptionsForHooks;
 			response: null;
 	  }

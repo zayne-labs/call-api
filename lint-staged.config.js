@@ -6,4 +6,6 @@ export default {
 	 * @see https://github.com/arethetypeswrong/arethetypeswrong.github.io/issues/112
 	 */
 	"package.json": ["pnpm lint:publint"],
+
+	"packages/**/*.{js,ts,jsx,tsx}": () => "pnpm lint:size",
 };

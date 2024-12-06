@@ -3,10 +3,10 @@ import { initializePlugins } from "@/plugins";
 import type {
 	BaseCallApiConfig,
 	CallApiConfigWithRequiredURL,
-	CallApiExtraOptions,
+	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
+	CombinedCallApiExtraOptions,
 	GetCallApiResult,
-	Interceptors,
 	PossibleHTTPError,
 	PossibleJavaScriptError,
 	ResultModeUnion,
@@ -64,6 +64,12 @@ export const createFetchClientWithOptions = <
 
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
+		const { interceptors, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
+			initUrl: config.url,
+			options: { ...baseExtraOptions, ...extraOptions },
+			request: { ...restOfBaseFetchConfig, ...restOfFetchConfig },
+		});
+
 		// == Default Extra Options
 		const defaultOptions = {
 			baseURL: "",
@@ -79,11 +85,10 @@ export const createFetchClientWithOptions = <
 			retryDelay: 0,
 			retryMethods: defaultRetryMethods,
 
-			...baseExtraOptions,
-			...extraOptions,
-		} satisfies Omit<CallApiExtraOptions, keyof Interceptors>;
+			...resolvedOptions,
+			...interceptors,
+		} satisfies CombinedCallApiExtraOptions;
 
-		// == Default Request Init
 		const defaultRequestOptions = {
 			body: isPlainObject(body) ? defaultOptions.bodySerializer(body) : body,
 
@@ -91,20 +96,15 @@ export const createFetchClientWithOptions = <
 
 			method: "GET",
 
-			...restOfBaseFetchConfig,
-			...restOfFetchConfig,
-		} satisfies RequestInit;
+			...resolvedRequestOptions,
+		} satisfies CallApiRequestOptions;
 
-		const { interceptors, url } = await initializePlugins(config.url, {
-			...defaultOptions,
-			...defaultRequestOptions,
-		});
+		// == Default Request Init
 
 		const options = {
 			...defaultOptions,
-			...interceptors,
 			url,
-		};
+		} satisfies CombinedCallApiExtraOptions;
 
 		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
 
@@ -113,7 +113,7 @@ export const createFetchClientWithOptions = <
 
 		const requestKey =
 			options.requestKey ??
-			generateRequestKey(fullURL, { shouldHaveRequestKey, ...defaultRequestOptions, ...options });
+			generateRequestKey(fullURL, { shouldHaveRequestKey, ...resolvedRequestOptions, ...options });
 
 		// == This is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key start at the same time
 		if (requestKey != null) {
@@ -141,7 +141,10 @@ export const createFetchClientWithOptions = <
 
 		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
 
-		const requestInit = { signal: combinedSignal, ...defaultRequestOptions } satisfies RequestInit;
+		const requestInit = {
+			signal: combinedSignal,
+			...defaultRequestOptions,
+		} satisfies CallApiRequestOptions;
 
 		const request = { fullURL, ...requestInit } satisfies CallApiRequestOptionsForHooks;
 
@@ -164,7 +167,7 @@ export const createFetchClientWithOptions = <
 
 			const responsePromise = shouldUsePromiseFromCache
 				? prevRequestInfo.responsePromise
-				: fetch(fullURL, requestInit);
+				: fetch(fullURL, requestInit as RequestInit);
 
 			requestInfoCacheOrNull?.set(requestKey, { controller: newFetchController, responsePromise });
 
@@ -175,7 +178,7 @@ export const createFetchClientWithOptions = <
 				!combinedSignal.aborted &&
 				options.retries > 0 &&
 				options.retryCodes.includes(response.status) &&
-				options.retryMethods.includes(requestInit.method);
+				options.retryMethods.includes(request.method);
 
 			if (shouldRetry) {
 				await waitUntil(options.retryDelay);
@@ -188,7 +191,7 @@ export const createFetchClientWithOptions = <
 			const shouldCloneResponse =
 				options.dedupeStrategy === "defer" ||
 				options.resultMode === "onlyResponse" ||
-				options.shouldCloneResponse;
+				options.cloneResponse;
 
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(
@@ -217,7 +220,7 @@ export const createFetchClientWithOptions = <
 					data: successData,
 					options,
 					request,
-					response: options.shouldCloneResponse ? response.clone() : response,
+					response: options.cloneResponse ? response.clone() : response,
 				}),
 
 				options.onResponse({
@@ -225,7 +228,7 @@ export const createFetchClientWithOptions = <
 					error: null,
 					options,
 					request,
-					response: options.shouldCloneResponse ? response.clone() : response,
+					response: options.cloneResponse ? response.clone() : response,
 				})
 			);
 
@@ -290,7 +293,7 @@ export const createFetchClientWithOptions = <
 						error: possibleHttpError,
 						options,
 						request,
-						response: options.shouldCloneResponse ? response.clone() : response,
+						response: options.cloneResponse ? response.clone() : response,
 					}),
 
 					options.onResponse({
@@ -298,7 +301,7 @@ export const createFetchClientWithOptions = <
 						error: possibleHttpError,
 						options,
 						request,
-						response: options.shouldCloneResponse ? response.clone() : response,
+						response: options.cloneResponse ? response.clone() : response,
 					}),
 
 					// == Also call the onError interceptor
@@ -306,7 +309,7 @@ export const createFetchClientWithOptions = <
 						error: possibleHttpError,
 						options,
 						request,
-						response: options.shouldCloneResponse ? response.clone() : response,
+						response: options.cloneResponse ? response.clone() : response,
 					})
 				);
 
