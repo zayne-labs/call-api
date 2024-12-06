@@ -30,7 +30,7 @@ import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
 import { isFunction, isPlainObject } from "./utils/typeof";
 
 export const createFetchClient = <
-	TBaseData,
+	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 >(
@@ -50,15 +50,15 @@ export const createFetchClient = <
 		{ controller: AbortController; responsePromise: Promise<Response> }
 	>();
 
-	async function callApi<
+	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 	>(
 		initUrl: string,
-		config: CallApiConfig<TData, TErrorData, TResultMode> = {}
-	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> {
-		type CallApiResult = GetCallApiResult<TData, TErrorData, TResultMode>;
+		config: CallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
+	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
+		type CallApiResult = never;
 
 		const [fetchConfig, extraOptions] = splitConfig(config);
 
@@ -345,7 +345,7 @@ export const createFetchClient = <
 		} finally {
 			requestInfoCacheOrNull?.delete(requestKey);
 		}
-	}
+	};
 
 	callApi.create = createFetchClient;
 

@@ -94,6 +94,7 @@ export interface CallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	// TExtraOptions extends Record<string, any> = Record<string, any>,
 > extends Interceptors<TData, TErrorData> {
 	/**
 	 * @description Authorization header value.
@@ -297,6 +298,7 @@ export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	// TExtraOptions extends Record<string, any> = Record<string, any>,
 > extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey"> { }
 
 // prettier-ignore
@@ -304,6 +306,7 @@ export interface CombinedCallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	// TExtraOptions extends Record<string, any> = Record<string, any>,
 > extends BaseCallApiExtraOptions<TData, TErrorData, TResultMode>, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 // prettier-ignore

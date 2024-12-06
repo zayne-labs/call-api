@@ -9,6 +9,7 @@ export type {
 	CallApiResultErrorVariant,
 	CallApiResultSuccessVariant,
 	ErrorContext,
+	ResultModeUnion,
 	Register,
 	RequestContext,
 	RequestErrorContext,
