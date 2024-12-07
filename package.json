@@ -1,101 +1,40 @@
 {
-	"name": "@zayne-labs/callapi",
-	"version": "0.8.0",
+	"name": "@zayne-labs/callapi-root",
 	"type": "module",
-	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/zayne-labs/call-api.git"
-	},
-	"homepage": "https://github.com/zayne-labs/call-api#readme",
-	"bugs": {
-		"url": "https://github.com/zayne-labs/call-api/issues"
-	},
-	"license": "MIT",
-	"author": "Ryan Zayne",
-	"main": "./dist/esm/index.js",
-	"module": "./dist/esm/index.js",
-	"types": "./dist/esm/index.d.ts",
+	"version": "0.0.0",
+	"packageManager": "pnpm@9.14.4",
 	"scripts": {
+		"build": "pnpm --filter \"./packages/*\" build",
+		"build:dev": "pnpm --filter \"./packages/*\" build:dev",
+		"build:test": "pnpm --filter \"./packages/*\" build:test",
+		"inspect:eslint-config": "pnpx @eslint/config-inspector@latest",
+		"lint:attw": "pnpm --filter \"./packages/*\" lint:attw",
+		"lint:check-types": "pnpm --filter \"./packages/*\" lint:check-types",
+		"lint:eslint": "pnpm build && pnpm lint:eslint:dev",
+		"lint:eslint:dev": "eslint . --max-warnings 0 --report-unused-disable-directives",
+		"lint:format": "prettier --cache --write .",
+		"lint:packages": "pnpm dedupe --check",
+		"lint:publint": "pnpm --filter \"./packages/*\" version-package:publint",
+		"lint:size": "pnpm --filter \"./packages/*\" lint:size",
 		"prepare": "husky",
-		"test:check-types": "tsc --pretty --incremental -p tsconfig.json",
-		"test:format": "prettier --cache --write .",
-		"test:lint": "eslint src/**/*.ts --cache --max-warnings 0 --report-unused-disable-directives",
-		"test:size": "size-limit",
-		"test:publint": "publint --strict .",
-		"test:attw": "attw --pack . --exclude-entrypoints utils",
-		"test:release": "pkg-pr-new publish",
-		"build": "tsup",
-		"build:dev": "concurrently --prefix-colors \"yellow.bold,#7da4f8.bold,magenta\"   --names PUBLINT,TSUP,ATTW   'pnpm:test:publint' \"pnpm build --watch\" 'pnpm:test:attw'",
-		"version-package": "changeset version",
-		"release": "changeset publish"
-	},
-	"exports": {
-		".": {
-			"import": "./dist/esm/index.js",
-			"require": "./dist/cjs/index.cjs"
-		},
-		"./utils": {
-			"import": "./dist/esm/utils/index.js",
-			"require": "./dist/cjs/utils/index.cjs"
-		}
+		"release": "changeset publish",
+		"release:rc": "pnpm build && changeset publish --tag rc",
+		"test:release": "pnpm --filter \"./packages/*\" test:release",
+		"version-package": "changeset version"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "0.16.1",
-		"@changesets/cli": "2.27.8",
-		"@eslint/js": "9.12.0",
-		"@size-limit/esbuild-why": "11.1.4",
-		"@size-limit/preset-small-lib": "11.1.4",
-		"@stylistic/eslint-plugin": "2.8.0",
-		"@total-typescript/ts-reset": "0.6.1",
-		"@types/eslint": "9.6.1",
-		"@zayne-labs/tsconfig": "0.1.1",
-		"concurrently": "9.0.1",
-		"eslint": "9.12.0",
-		"eslint-import-resolver-typescript": "3.6.3",
-		"eslint-plugin-import-x": "4.3.1",
-		"eslint-plugin-jsdoc": "50.3.1",
-		"eslint-plugin-perfectionist": "3.8.0",
-		"eslint-plugin-unicorn": "56.0.0",
-		"eslint-typegen": "0.3.1",
-		"globals": "15.10.0",
-		"husky": "9.1.5",
+		"@changesets/cli": "2.27.10",
+		"@eslint-react/eslint-plugin": "^1.18.0",
+		"@next/eslint-plugin-next": "^15.0.4",
+		"@types/node": "^22.10.1",
+		"@zayne-labs/eslint-config": "0.3.0",
+		"eslint": "9.16.0",
+		"eslint-plugin-react-hooks": "^5.1.0",
+		"eslint-plugin-react-refresh": "^0.4.16",
+		"husky": "9.1.7",
 		"lint-staged": "15.2.10",
-		"pkg-pr-new": "0.0.24",
-		"prettier": "3.3.3",
-		"publint": "0.2.10",
-		"size-limit": "11.1.4",
-		"terser": "5.34.1",
-		"tsup": "8.3.0",
-		"typescript": "5.6.2",
-		"typescript-eslint": "8.8.0"
-	},
-	"publishConfig": {
-		"access": "public",
-		"registry": "https://registry.npmjs.org/",
-		"provenance": true
-	},
-	"files": [
-		"dist"
-	],
-	"size-limit": [
-		{
-			"path": "./src/index.ts",
-			"limit": "2 kb"
-		}
-	],
-	"sideEffects": false,
-	"keywords": [
-		"fetch",
-		"api",
-		"wrapper",
-		"request",
-		"cancel",
-		"retry",
-		"interceptor"
-	],
-	"packageManager": "pnpm@9.9.0",
-	"engines": {
-		"node": ">=18.17.x"
+		"pkg-pr-new": "0.0.35",
+		"prettier": "3.4.2",
+		"typescript": "^5.7.2"
 	}
 }

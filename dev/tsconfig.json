@@ -1,0 +1,6 @@
+{
+	"extends": "@zayne-labs/tsconfig/bundler/dom/app",
+
+	"include": ["**/*", "/*"],
+	"exclude": ["node_modules"]
+}

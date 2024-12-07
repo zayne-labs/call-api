@@ -1,0 +1,31 @@
+{
+	"name": "docs",
+	"type": "module",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"build": "next build",
+		"dev": "next dev",
+		"postinstall": "fumadocs-mdx",
+		"start": "next start"
+	},
+	"dependencies": {
+		"fumadocs-core": "14.4.2",
+		"fumadocs-mdx": "11.1.1",
+		"fumadocs-ui": "14.4.2",
+		"next": "15.0.3",
+		"react": "19.0.0-rc.1",
+		"react-dom": "19.0.0-rc.1"
+	},
+	"devDependencies": {
+		"@types/mdx": "^2.0.13",
+		"@types/node": "22.10.1",
+		"@types/react": "^18.3.12",
+		"@types/react-dom": "^18.3.1",
+		"@zayne-labs/tsconfig": "catalog:",
+		"autoprefixer": "^10.4.20",
+		"postcss": "^8.4.49",
+		"tailwindcss": "^3.4.15",
+		"typescript": "catalog:"
+	}
+}

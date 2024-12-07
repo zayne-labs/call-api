@@ -9,11 +9,11 @@ permissions:
    contents: read
 
 jobs:
-   build:
+   size-limit:
       runs-on: ubuntu-latest
       strategy:
          matrix:
-            node-version: [20.x]
+            node-version: [lts/*]
       steps:
          - name: Checkout code
            uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
@@ -21,7 +21,7 @@ jobs:
          - name: Setup pnpm
            uses: pnpm/action-setup@v4
            with:
-              version: 9.9.0
+              version: 9.14.4
 
          - name: Setup Node.js
            uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
@@ -32,4 +32,4 @@ jobs:
          - name: Install dependencies and run size limit check
            run: |
               pnpm install --frozen-lockfile
-              pnpm test:size
+              pnpm lint:size
