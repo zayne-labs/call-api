@@ -8426,6 +8426,7 @@ snapshots:
 
   eslint@9.16.0(jiti@2.4.0):
     dependencies:
+<<<<<<< HEAD
       '@eslint-community/eslint-utils': 4.4.1(eslint@9.16.0(jiti@2.4.0))
       '@eslint-community/regexpp': 4.12.1
       '@eslint/config-array': 0.19.0
@@ -8434,6 +8435,16 @@ snapshots:
       '@eslint/js': 9.16.0
       '@eslint/plugin-kit': 0.2.3
       '@humanfs/node': 0.16.6
+=======
+      '@eslint-community/eslint-utils': 4.4.0(eslint@9.12.0(jiti@1.21.6))
+      '@eslint-community/regexpp': 4.11.0
+      '@eslint/config-array': 0.18.0
+      '@eslint/core': 0.6.0
+      '@eslint/eslintrc': 3.1.0
+      '@eslint/js': 9.12.0
+      '@eslint/plugin-kit': 0.2.3
+      '@humanfs/node': 0.16.5
+>>>>>>> 6ef9c96af1f942c81b5723fde67e4e708feafc28
       '@humanwhocodes/module-importer': 1.0.1
       '@humanwhocodes/retry': 0.4.1
       '@types/estree': 1.0.6
