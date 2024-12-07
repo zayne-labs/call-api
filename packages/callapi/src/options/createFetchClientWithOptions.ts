@@ -197,7 +197,8 @@ export const createFetchClientWithOptions = <
 				const errorData = await getResponseData<TErrorData>(
 					shouldCloneResponse ? response.clone() : response,
 					options.responseType,
-					options.responseParser
+					options.responseParser,
+					options.responseErrorValidator
 				);
 
 				// == Pushing all error handling responsibilities to the catch block
