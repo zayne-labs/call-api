@@ -2,7 +2,6 @@ import { createFetchClient } from "@/createFetchClient";
 import { initializePlugins } from "@/plugins";
 import type {
 	BaseCallApiConfig,
-	CallApiConfigWithRequiredURL,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
@@ -29,6 +28,7 @@ import {
 import { defaultRetryCodes, defaultRetryMethods } from "@/utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "@/utils/polyfills";
 import { isFunction, isPlainObject } from "@/utils/typeof";
+import type { CallApiConfigWithRequiredURL } from "./types";
 
 export const createFetchClientWithOptions = <
 	TBaseData = unknown,
@@ -64,14 +64,8 @@ export const createFetchClientWithOptions = <
 
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
-		const { interceptors, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
-			initUrl: config.url,
-			options: { ...baseExtraOptions, ...extraOptions },
-			request: { ...restOfBaseFetchConfig, ...restOfFetchConfig },
-		});
-
 		// == Default Extra Options
-		const defaultOptions = {
+		const defaultExtraOptions = {
 			baseURL: "",
 			bodySerializer: JSON.stringify,
 			dedupeStrategy: "cancel",
@@ -85,26 +79,31 @@ export const createFetchClientWithOptions = <
 			retryDelay: 0,
 			retryMethods: defaultRetryMethods,
 
-			...resolvedOptions,
-			...interceptors,
+			...baseExtraOptions,
+			...extraOptions,
 		} satisfies CombinedCallApiExtraOptions;
 
+		const { interceptors, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
+			initUrl: config.url,
+			options: defaultExtraOptions,
+			request: { ...restOfBaseFetchConfig, ...restOfFetchConfig },
+		});
+
+		const options = {
+			...resolvedOptions,
+			...interceptors,
+			url,
+		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof interceptors;
+
 		const defaultRequestOptions = {
-			body: isPlainObject(body) ? defaultOptions.bodySerializer(body) : body,
-
-			headers: getHeaders({ auth: defaultOptions.auth, baseHeaders, body, headers }),
-
+			body: isPlainObject(body) ? options.bodySerializer(body) : body,
+			headers: getHeaders({ auth: options.auth, baseHeaders, body, headers }),
 			method: "GET",
 
 			...resolvedRequestOptions,
 		} satisfies CallApiRequestOptions;
 
 		// == Default Request Init
-
-		const options = {
-			...defaultOptions,
-			url,
-		} satisfies CombinedCallApiExtraOptions;
 
 		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
 

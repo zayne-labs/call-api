@@ -11,10 +11,22 @@ export type CallbackFn<in TParams, out TResult = void> = (...params: TParams[]) 
 
 export type Prettify<TObject> = NonNullable<unknown> & { [Key in keyof TObject]: TObject[Key] };
 
+export type Writeable<TObject, TType extends "deep" | "shallow" = "shallow"> = {
+	-readonly [key in keyof TObject]: TType extends "shallow"
+		? TObject[key]
+		: TType extends "deep"
+			? TObject[key] extends object
+				? Writeable<TObject[key], TType>
+				: TObject[key]
+			: never;
+};
+
+export const defineEnum = <const TValue>(value: TValue) => value as Prettify<Writeable<TValue, "deep">>;
+
 // == Using this Immediately Indexed Mapped type helper to help show computed type of anything passed to it instead of just the type name
 export type UnmaskType<TValue> = { _: TValue }["_"];
 
-export type Awaitable<TValue> = UnmaskType<Promise<TValue> | TValue>;
+export type Awaitable<TValue> = Promise<TValue> | TValue;
 
 export type CommonRequestHeaders =
 	| "Access-Control-Allow-Credentials"

@@ -1,4 +1,5 @@
-import type { CallApiConfigWithRequiredURL, ResultModeUnion } from "@/types";
+import type { ResultModeUnion } from "@/types";
+import type { CallApiConfigWithRequiredURL } from "./types";
 
 const callApiOptions = <
 	TData = unknown,

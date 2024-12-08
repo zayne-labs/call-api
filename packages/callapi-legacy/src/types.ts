@@ -1,13 +1,14 @@
 import type { CallApiPlugin, PluginInitContext } from "./plugins";
 import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
-import type {
-	AnyNumber,
-	AnyString,
-	Awaitable,
-	CommonContentTypes,
-	CommonRequestHeaders,
-	UnmaskType,
+import {
+	type AnyNumber,
+	type AnyString,
+	type Awaitable,
+	type CommonContentTypes,
+	type CommonRequestHeaders,
+	type UnmaskType,
+	defineEnum,
 } from "./utils/type-helpers";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
@@ -60,37 +61,43 @@ export interface Interceptors<TData = unknown, TErrorData = unknown> {
 	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
-	onError?: (context: ErrorContext<TErrorData>) => Awaitable<void>;
+	onError?: (context: ErrorContext<TErrorData>) => Awaitable<unknown>;
 
 	/**
 	 * @description Interceptor to be called just before the request is made, allowing for modifications or additional operations.
 	 */
-	onRequest?: (context: RequestContext) => Awaitable<void>;
+	onRequest?: (context: RequestContext) => Awaitable<unknown>;
 
 	/**
 	 *  @description Interceptor to be called when an error occurs during the fetch request.
 	 */
-	onRequestError?: (context: RequestErrorContext) => Awaitable<void>;
+	onRequestError?: (context: RequestErrorContext) => Awaitable<unknown>;
 
 	/**
 	 * @description Interceptor to be called when any response is received from the api, whether successful or not
 	 */
-	onResponse?: (context: ResponseContext<TData, TErrorData>) => Awaitable<void>;
+	onResponse?: (context: ResponseContext<TData, TErrorData>) => Awaitable<unknown>;
 
 	/**
 	 *  @description Interceptor to be called when an error response is received from the api.
 	 */
-	onResponseError?: (context: ResponseErrorContext<TErrorData>) => Awaitable<void>;
+	onResponseError?: (context: ResponseErrorContext<TErrorData>) => Awaitable<unknown>;
 
 	/**
 	 * @description Interceptor to be called when a successful response is received from the api.
 	 */
-	onSuccess?: (context: SuccessContext<TData>) => Awaitable<void>;
+	onSuccess?: (context: SuccessContext<TData>) => Awaitable<unknown>;
 }
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
-export interface CallApiExtraOptions<
+type CallApiPluginArray<TData, TErrorData> = Array<CallApiPlugin<TData, TErrorData>>;
+
+type CallApiPluginFn<TData, TErrorData> = (
+	context: PluginInitContext<TData, TErrorData>
+) => Array<CallApiPlugin<TData, TErrorData>>;
+
+export interface ExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
@@ -197,7 +204,7 @@ export interface CallApiExtraOptions<
 	/**
 	 * @description An array of CallApi plugins. It allows you to extend the behavior of the library.
 	 */
-	plugins?: CallApiPluginArrayOrFn<TData, TErrorData>;
+	plugins?: CallApiPluginArray<TData, TErrorData>;
 
 	/**
 	 * @description Query parameters to append to the URL.
@@ -284,20 +291,43 @@ export interface CallApiExtraOptions<
 	/**
 	 * @description URL to be used in the request.
 	 */
-	url?: string;
+	readonly url?: string;
 }
 
-type CallApiPluginArrayOrFn<TData, TErrorData> =
-	| Array<CallApiPlugin<TData, TErrorData>>
-	| ((context: PluginInitContext<TData, TErrorData>) => Array<CallApiPlugin<TData, TErrorData>>);
+export const optionsToOmitFromInstance = defineEnum(["plugins"]);
+
+export interface CallApiExtraOptions<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+> extends Omit<ExtraOptions<TData, TErrorData, TResultMode>, (typeof optionsToOmitFromInstance)[number]> {
+	/**
+	 * @description Options that should extend the base options.
+	 */
+	extend?: Pick<ExtraOptions<TData, TErrorData, TResultMode>, (typeof optionsToOmitFromInstance)[number]>;
+
+	/**
+	 * @description Options that should override the base options.
+	 */
+	override?: Pick<
+		ExtraOptions<TData, TErrorData, TResultMode>,
+		(typeof optionsToOmitFromInstance)[number]
+	>;
+}
+
+export const optionsToOmitFromBase = defineEnum(["extend", "override", "requestKey"]);
 
 // prettier-ignore
-// eslint-disable-next-line ts-eslint/no-empty-object-type
 export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, "requestKey"> { }
+> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, typeof optionsToOmitFromBase[number]> {
+	/**
+	 * @description An array of CallApi plugins. It allows you to extend the behavior of the library.
+	 */
+	plugins?: CallApiPluginArray<TBaseData, TBaseErrorData> | CallApiPluginFn<TBaseData, TBaseErrorData>;
+}
 
 // prettier-ignore
 export interface CombinedCallApiExtraOptions<
@@ -314,20 +344,13 @@ export interface CallApiConfig<
 > extends CallApiRequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 // prettier-ignore
-export interface CallApiConfigWithRequiredURL<
-	TData = unknown,
-	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends CallApiConfig<TData, TErrorData, TResultMode> {
-	url: string;
-}
-
-// prettier-ignore
 export interface BaseCallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> { }
+> extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {
+
+ }
 
 export type RequestContext = UnmaskType<{
 	options: CombinedCallApiExtraOptions;

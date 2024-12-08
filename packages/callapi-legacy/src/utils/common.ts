@@ -1,11 +1,14 @@
-import type {
-	BaseCallApiExtraOptions,
-	CallApiConfig,
-	CallApiExtraOptions,
-	CallApiResultErrorVariant,
-	ErrorObjectUnion,
-	PossibleHTTPError,
-	PossibleJavascriptErrorNames,
+import {
+	type BaseCallApiExtraOptions,
+	type CallApiConfig,
+	type CallApiExtraOptions,
+	type CallApiRequestOptions,
+	type CallApiResultErrorVariant,
+	type ErrorObjectUnion,
+	type PossibleHTTPError,
+	type PossibleJavascriptErrorNames,
+	optionsToOmitFromBase,
+	optionsToOmitFromInstance,
 } from "../types";
 import { fetchSpecificKeys } from "./constants";
 import type { Awaitable } from "./type-helpers";
@@ -48,17 +51,18 @@ const pickKeys = <TObject extends Record<string, unknown>, const TPickArray exte
 // eslint-disable-next-line ts-eslint/no-explicit-any
 export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 	[
-		pickKeys(baseConfig, fetchSpecificKeys) as RequestInit,
-		omitKeys(baseConfig, [...fetchSpecificKeys, "requestKey"] satisfies Array<
-			keyof CallApiConfig
-		>) as BaseCallApiExtraOptions,
+		pickKeys(baseConfig, fetchSpecificKeys) as CallApiRequestOptions,
+		omitKeys(baseConfig, [
+			...fetchSpecificKeys,
+			...optionsToOmitFromBase,
+		]) satisfies BaseCallApiExtraOptions,
 	] as const;
 
 // eslint-disable-next-line ts-eslint/no-explicit-any
 export const splitConfig = (config: Record<string, any>) =>
 	[
-		pickKeys(config, fetchSpecificKeys) as RequestInit,
-		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
+		pickKeys(config, fetchSpecificKeys) as CallApiRequestOptions,
+		omitKeys(config, [...fetchSpecificKeys, ...optionsToOmitFromInstance]) as CallApiExtraOptions,
 	] as const;
 
 export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {

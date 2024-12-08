@@ -1,6 +1,7 @@
-import type { BaseCallApiConfig } from "@/types";
+import type { BaseCallApiConfig } from "../types";
+import { defineEnum } from "./type-helpers";
 
-export const fetchSpecificKeys = [
+export const fetchSpecificKeys = defineEnum([
 	"body",
 	"integrity",
 	"method",
@@ -15,9 +16,9 @@ export const fetchSpecificKeys = [
 	"priority",
 	"mode",
 	"referrerPolicy",
-] satisfies Array<keyof RequestInit>;
+] satisfies Array<keyof RequestInit>);
 
-const retryCodesLookup = {
+const retryCodesLookup = defineEnum({
 	408: "Request Timeout",
 	409: "Conflict",
 	425: "Too Early",
@@ -26,9 +27,10 @@ const retryCodesLookup = {
 	502: "Bad Gateway",
 	503: "Service Unavailable",
 	504: "Gateway Timeout",
-};
+});
 
-export const defaultRetryMethods: Required<BaseCallApiConfig>["retryMethods"] = ["GET"];
+export const defaultRetryMethods = ["GET"] satisfies BaseCallApiConfig["retryMethods"];
 
-export const defaultRetryCodes: Required<BaseCallApiConfig>["retryCodes"] =
-	Object.keys(retryCodesLookup).map(Number);
+export const defaultRetryCodes = Object.keys(retryCodesLookup).map(
+	Number
+) as Required<BaseCallApiConfig>["retryCodes"];
