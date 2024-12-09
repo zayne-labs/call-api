@@ -1,19 +1,9 @@
 import { createFetchClient, defineCallApiPlugin } from "@zayne-labs/callapi";
 // import { createFetchClient, defineCallApiPlugin } from "./src";
 
-export const waitUntil = (delay: number) => {
-	if (delay === 0) return;
-
-	const { promise, resolve } = Promise.withResolvers();
-
-	setTimeout(resolve, delay);
-
-	return promise;
-};
-
 const plugin = defineCallApiPlugin({
 	hooks: {
-		onRequest: () => waitUntil(1000),
+		onRequest: () => console.info("PLUGIN-OnRequest"),
 	},
 	id: "1",
 	name: "sdew",
