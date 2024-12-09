@@ -348,9 +348,7 @@ export interface BaseCallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {
-
- }
+> extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 export type RequestContext = UnmaskType<{
 	options: CombinedCallApiExtraOptions;
@@ -361,7 +359,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 	| {
 			data: TData;
 			error: null;
-			options: CombinedCallApiExtraOptions;
+			options: CombinedCallApiExtraOptions<TData, TErrorData>;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
@@ -369,7 +367,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 	| {
 			data: null;
 			error: PossibleHTTPError<TErrorData>;
-			options: CombinedCallApiExtraOptions;
+			options: CombinedCallApiExtraOptions<TData, TErrorData>;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
@@ -377,7 +375,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 
 export type SuccessContext<TData> = UnmaskType<{
 	data: TData;
-	options: CombinedCallApiExtraOptions;
+	options: CombinedCallApiExtraOptions<TData>;
 	request: CallApiRequestOptionsForHooks;
 	response: Response;
 }>;
@@ -390,7 +388,7 @@ export type RequestErrorContext = UnmaskType<{
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<{
 	error: PossibleHTTPError<TErrorData>;
-	options: CombinedCallApiExtraOptions;
+	options: CombinedCallApiExtraOptions<unknown, TErrorData>;
 	request: CallApiRequestOptionsForHooks;
 	response: Response;
 }>;
@@ -398,7 +396,7 @@ export type ResponseErrorContext<TErrorData> = UnmaskType<{
 export type ErrorContext<TErrorData> = UnmaskType<
 	| {
 			error: PossibleHTTPError<TErrorData>;
-			options: CombinedCallApiExtraOptions;
+			options: CombinedCallApiExtraOptions<TErrorData>;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }

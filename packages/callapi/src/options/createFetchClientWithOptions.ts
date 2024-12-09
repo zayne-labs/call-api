@@ -56,7 +56,7 @@ export const createFetchClientWithOptions = <
 		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 	>(
-		config: CallApiConfigWithRequiredURL<TBaseData, TBaseErrorData, TBaseResultMode>
+		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
 		type CallApiResult = never;
 

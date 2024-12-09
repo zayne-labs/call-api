@@ -348,9 +348,7 @@ export interface BaseCallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> {
-
- }
+> extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 export type RequestContext = UnmaskType<{
 	options: CombinedCallApiExtraOptions;
