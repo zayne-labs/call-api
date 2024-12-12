@@ -10,7 +10,7 @@ const inter = Inter({
 function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" className={inter.className} suppressHydrationWarning={true}>
-			<body className="flex flex-col min-h-screen">
+			<body className="flex min-h-screen flex-col">
 				<FumaThemeProvider>{children}</FumaThemeProvider>
 			</body>
 		</html>

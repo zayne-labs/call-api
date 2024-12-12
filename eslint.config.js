@@ -9,6 +9,11 @@ export default zayne({
 			"nextjs-next/no-html-link-for-pages": ["error", "docs"],
 		},
 	},
+	tailwindcss: {
+		settings: {
+			config: "docs-beta/tailwind.config.ts",
+		},
+	},
 	type: "lib",
 	typescript: {
 		tsconfigPath: ["**/tsconfig.json"],

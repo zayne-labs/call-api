@@ -28,7 +28,7 @@ jobs:
          - name: Setup pnpm
            uses: pnpm/action-setup@v4
            with:
-              version: 9.14.4
+              version: 9.15.0
 
          - name: Setup Node.js 20.x
            uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
@@ -44,8 +44,8 @@ jobs:
          - name: Create Release Pull Request or Publish to npm
            uses: changesets/action@v1
            with:
-              commit: "ci: update package version"
-              title: "ci: update package version"
+              commit: "ci(changesets): update package version"
+              title: "ci(changesets): update package version"
               publish: pnpm release
 
            env:

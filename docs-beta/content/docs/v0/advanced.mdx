@@ -1,0 +1,352 @@
+---
+title: Advanced Features
+description: Learn more about advanced features of CallApi
+---
+
+In this section, we'll explore some advanced features of `CallApi`.
+
+## ✔️ CallApi Instance
+
+You can create an instance of `callApi` with predefined options. This is super helpful if you need to send requests with similar options.
+
+#### Things to Note:
+
+- All options that can be passed to `callApi` can also be passed to `callApi.create`.
+- Any options passed to `callApi.create` will be applied to all requests made with the instance.
+- If you pass a similar options property to the instance, the instance's options will take precedence.
+
+```js
+import { callApi } from "@zayne-labs/callapi";
+
+// Creating the instance with some base options
+const callAnotherApi = callApi.create({
+	timeout: 5000,
+	baseURL: "https://api.example.com",
+});
+
+// Using the instance
+const { data, error } = await callAnotherApi("some-url");
+
+// Overriding the timeout option (all base options can be overridden via the instance)
+const { data, error } = await callAnotherApi("some-url", {
+	timeout: 10000,
+});
+```
+
+You can also use the `createFetchClient` function to create an instance if you don't want to use `callApi.create`.
+
+```js
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const callApi = createFetchClient({
+	timeout: 5000,
+	baseURL: "https://api.example.com",
+});
+```
+
+Creating an instance allows you to streamline your API calls and manage default settings in a centralized way.
+
+## ✔️ Interceptors
+
+Interceptors in `CallApi` work just like those in axios. They allow you to hook into the lifecycle events of a callApi call. These interceptors can be either asynchronous or synchronous.
+
+Note: You might want to use `callApi.create` to set shared interceptors for better management and consistency across multiple API calls. This approach ensures that the same interceptors are applied to all requests made through that instance of `callApi`.
+
+#### onRequest
+
+`onRequest` is a function that is called just before the request is made, allowing you to modify the request or perform additional operations.
+
+```js
+await callApi("/api", {
+	onRequest: ({ request, options }) => {
+		// Log request
+		console.log(request, options);
+
+		// Do other cool stuffs
+	},
+});
+```
+
+#### onRequestError
+
+`onRequestError` is invoked when an error occurs during the fetch request and it fails. It provides access to the error object, request details, and fetch options, allowing you to handle errors gracefully or perform custom error handling logic.
+
+```js
+await callApi("/api", {
+	onRequestError: ({ request, options, error }) => {
+		// Log error
+		console.log("fetch request error", request, error);
+	},
+});
+```
+
+#### onResponse
+
+`onResponse` is invoked when a successful response is received. It provides access to the parsed response body in the `data` property, the response object, request details and fetch options.
+
+```js
+await callApi("/api", {
+	onResponse: ({ data, request, response, options }) => {
+		// Log response
+		console.log(request, response.status, data);
+
+		// Do other stuff
+	},
+});
+```
+
+#### onResponseError
+
+`onResponseError` is invoked when an error response or a status code >= 400 is received from the api. It provides access to the parsed response body in the `errorData` property, the response object, request details, and fetch options used.
+
+The response object here contains all regular fetch response properties,
+`errorData` property, which contains the parsed response error json response, if the server returns one.
+
+##### Note for `onRequestError` Interceptor:
+
+This interceptor is triggered under the following conditions:
+
+- The `response.ok` property is `false`.
+- The `response.status` property is greater than or equal to 400.
+
+Essentially, it triggers only for HTTP error responses returned by the API. It does not trigger for errors unrelated to API responses, such as network errors or syntax errors. Handle those types of errors in the `onRequestError` interceptor instead.
+
+- This example uses a shared interceptor for all requests made with the instance.
+
+```js
+const callAnotherApi = callApi.create({
+	onResponseError: ({ errorData, response, request, options }) => {
+		// Log error response
+		console.log(request, response.status, errorData);
+
+		// Perform action on various error conditions
+		if (response.status === 401) {
+			actions.clearSession();
+		}
+
+		if (response.status === 429) {
+			toast.error("Too may requests!");
+		}
+
+		if (response.status === 403 && errorData?.message === "2FA is required") {
+			toast.error(errorData?.message, {
+				description: "Please authenticate to continue",
+			});
+		}
+
+		if (response.status === 500) {
+			toast.error("Internal server Error!");
+		}
+	},
+});
+```
+
+#### onError
+
+`onError` is invoked both on request and response errors.
+It is basically a combination of `onRequestError` and `onResponseError` in that it provides access to:
+
+- The response object (f the error is a response error from api, else it's set to null).
+- The `error` object which contains the following properties (just like the error object destructured from callApi itself):
+
+   1. `name`: A string indicating the type of error (e.g., 'TypeError', 'SyntaxError', 'HTTPError').
+   2. `message`: The error message describing what went wrong.
+   3. `errorData`: The error data, which can be an error response from the API or a standard JavaScript error object..
+
+- The request details.
+- And finally the fetch options used.
+
+```js
+await callApi("/api", {
+	onError: ({ errorData, error, request, response, options }) => {
+		if (errorData) {
+			// Do things related to errors from api
+		}
+
+		if (error) {
+			// Do things related to errors that occurred during
+		}
+	},
+});
+```
+
+## ✔️ Retries
+
+`CallApi` support retries for requests if an error happens and if the response status code is included in `retryStatusCodes` list:
+
+#### Default Retry status codes:
+
+- `408` - Request Timeout
+- `409` - Conflict
+- `425` - Too Early
+- `429` - Too Many Requests
+- `500` - Internal Server Error
+- `502` - Bad Gateway
+- `503` - Service Unavailable
+- `504` - Gateway Timeout
+
+You can specify the amount of retries and delay between them using retry and retryDelay options and also pass a custom array of codes using retryStatusCodes option.
+
+You can also specify which methods should be retried by passing in a custom `retryMethods` array.
+
+The default for `retry` is `0` retries. The default for `retryDelay` is `0 ms`. The default for `retryMethods` is `["GET", "POST"]`.
+
+```js
+await callApi("http://google.com/404", {
+	retry: 3,
+	retryDelay: 500, // ms
+	retryStatusCodes: [404, 502, 503, 504], // custom status codes for retries
+	retryMethods: ["POST", "PUT", "PATCH", "DELETE"], // custom methods for retries
+});
+```
+
+## ✔️ Timeout
+
+You can specify `timeout` in milliseconds to automatically abort a request after a timeout (default is disabled).
+
+```js
+await callApi("http://google.com/404", {
+	timeout: 3000, // Timeout after 3 seconds
+});
+```
+
+## ✔️ Throw on all errors
+
+You can throw an error on all errors (including http errors) by passing `throwOnError` option. This makes CallApi integrate beautifully with other libraries that expect a promise to resolve to a value, for example `React Query`.
+
+```js
+const callMainApi = callApi.create({
+	throwOnError: true,
+});
+
+const { data, error } = useQuery({
+	queryKey: ["todos"],
+	queryFn: async () => {
+		/* CallApi will throw an error if the request fails or there is an error response,
+			which react query would handle */
+		const { data } = await callMainApi("todos");
+
+		return data;
+	},
+});
+```
+
+- Doing this with regular fetch would imply the following extra steps:
+
+```js
+const { data, error } = useQuery({
+	queryKey: ["todos"],
+	queryFn: async () => {
+		const response = await fetch("todos");
+
+		if (!response.ok) {
+			throw new Error("Failed to fetch");
+		}
+
+		return response.json();
+	},
+});
+```
+
+- For added convenience, you can set a `resultMode` for `CallApi` alongside the `throwOnError` option. This is particularly useful if you prefer to avoid creating a small wrapper around `callApi`, such as when integrating with libraries like React Query.
+
+```js
+const callMainApi = callApi.create({
+	throwOnError: true,
+	resultMode: "onlySuccess",
+});
+
+const { data, error } = useQuery({
+	queryKey: ["todos"],
+	/* CallApi will throw on errors here, and also return only data,
+	 which react query is interested in */
+	queryFn: () => callMainApi("todos"),
+});
+```
+
+## ✔️ Usage with Typescript
+
+- You can provide types for the success and error data via generics, to enable autocomplete and type checking in your codebase.
+
+```ts
+const callMainApi = callApi.create<FormResponseDataType, FormErrorResponseType>({
+	baseURL: BASE_AUTH_URL,
+
+	method: "POST",
+
+	retries: 3,
+
+	credentials: "same-origin",
+});
+```
+
+- Just like the fetch options, all type parameters (generics) can also be overridden per instance level
+
+```ts
+const { data } = await callMainApi<NewResponseDataType>({
+	method: "GET",
+
+	retries: 5,
+});
+```
+
+- Since the `data` and `error` properties destructured from callApi are in a discriminated union, simply checking for and handling the `error` property will narrow down the type of the data. The reverse case also holds (checking for data to narrow `error` type).
+
+This simply means that if data is available error will be null, and if error is available data will be null. Both cannot exist at the same time.
+
+```ts
+// As is, both data and error could be null
+const { data, error } = await callMainApi("some-url", {
+	body: { message: "Good game" },
+});
+
+if (error) {
+	console.error(error);
+	return;
+}
+
+// Now, data is no longer null
+console.log(data);
+```
+
+- `CallApi` provides a type guard that allows you to differentiate between an HTTPError and a standard js error. It also helps narrow down the discriminated union type of the error object.
+
+```js
+import { isHTTPError } from "@zayne-labs/callapi/utils";
+
+const { data, error } = await callMainApi("some-url", {
+	body: { message: "Good game" },
+});
+
+if (isHTTPError(error)) {
+	console.error(error.name); // `HTTPError`
+	console.error(error.message); // contains the parsed error message, if the response from the server contains such a property
+	console.error(error.errorData); // contains the parsed error response
+
+	return;
+}
+
+if (error) {
+	console.error(error.name); // contains the name of the error
+	console.error(error.message); // contains the error message
+	console.error(error.errorData); // contains the original error object
+}
+```
+
+- The types for the object passed to `onResponse`, `onResponseError` and `onError` could be augmented with type helpers provided by `@zayne-labs/callapi`.
+
+```ts
+const callAnotherApi = callApi.create({
+	onResponseError: ({ response, request, options }: ResponseErrorContext<{ message?: string }>) => {
+		// Log error response
+		console.log(
+			request,
+			response.status,
+			// error data, coming back from api
+			response.errorData,
+			// Typescript will now understand the errorData might contain a message property
+			response.errorData?.message
+		);
+	},
+});
+```

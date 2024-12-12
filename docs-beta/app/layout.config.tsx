@@ -1,4 +1,6 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import Image from "next/image";
+import Logo from "public/logo.png";
 
 /**
  * Shared layout configurations
@@ -10,9 +12,16 @@ import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
 /* eslint-disable perfectionist/sort-objects */
 
+export const logo = <Image alt="CallApi" src={Logo} width={18} height={18} aria-label="Fumadocs" />;
+
 export const baseOptions: BaseLayoutProps = {
 	nav: {
-		title: <span className="font-medium [header_&]:text-[15px]">CallApi</span>,
+		title: (
+			<>
+				{logo}
+				<span className="font-medium [header_&]:text-[15px]">CallApi</span>
+			</>
+		),
 		transparentMode: "top",
 	},
 	links: [

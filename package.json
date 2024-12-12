@@ -2,7 +2,7 @@
 	"name": "@zayne-labs/callapi-root",
 	"type": "module",
 	"version": "0.0.0",
-	"packageManager": "pnpm@9.14.4",
+	"packageManager": "pnpm@9.15.0",
 	"scripts": {
 		"build": "pnpm --filter \"./packages/*\" build",
 		"build:dev": "pnpm --filter \"./packages/*\" build:dev",
@@ -31,6 +31,7 @@
 		"eslint": "9.16.0",
 		"eslint-plugin-react-hooks": "^5.1.0",
 		"eslint-plugin-react-refresh": "^0.4.16",
+		"eslint-plugin-tailwindcss": "^3.17.5",
 		"husky": "9.1.7",
 		"lint-staged": "15.2.10",
 		"pkg-pr-new": "0.0.35",
