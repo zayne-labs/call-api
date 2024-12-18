@@ -95,6 +95,7 @@ export const createFetchClientWithOptions = <
 			url,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof interceptors;
 
+		// == Default Request Options
 		const defaultRequestOptions = {
 			body: isPlainObject(body) ? options.bodySerializer(body) : body,
 			headers: getHeaders({ auth: options.auth, baseHeaders, body, headers }),
@@ -102,8 +103,6 @@ export const createFetchClientWithOptions = <
 
 			...resolvedRequestOptions,
 		} satisfies CallApiRequestOptions;
-
-		// == Default Request Init
 
 		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
 

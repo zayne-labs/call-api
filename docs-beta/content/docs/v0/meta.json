@@ -2,5 +2,5 @@
 	"root": true,
 	"title": "Version 0",
 	"description": "0.8.0",
-	"pages": ["index", "installation", "features", "advanced", "api-reference"]
+	"pages": ["index", "getting-started", "features", "advanced", "api-reference"]
 }

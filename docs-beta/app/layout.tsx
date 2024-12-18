@@ -1,15 +1,16 @@
-import "../tailwind.css";
 import { RootProvider as FumaThemeProvider } from "fumadocs-ui/provider";
-import { Inter } from "next/font/google";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import type { ReactNode } from "react";
-
-const inter = Inter({
-	subsets: ["latin"],
-});
+import "../tailwind.css";
 
 function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" className={inter.className} suppressHydrationWarning={true}>
+		<html
+			lang="en"
+			className={`${GeistSans.variable} ${GeistMono.variable}`}
+			suppressHydrationWarning={true}
+		>
 			<body className="flex min-h-screen flex-col">
 				<FumaThemeProvider>{children}</FumaThemeProvider>
 			</body>
