@@ -359,7 +359,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 	| {
 			data: TData;
 			error: null;
-			options: CombinedCallApiExtraOptions<TData, TErrorData>;
+			options: CombinedCallApiExtraOptions;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
@@ -367,7 +367,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 	| {
 			data: null;
 			error: PossibleHTTPError<TErrorData>;
-			options: CombinedCallApiExtraOptions<TData, TErrorData>;
+			options: CombinedCallApiExtraOptions;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
@@ -375,7 +375,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 
 export type SuccessContext<TData> = UnmaskType<{
 	data: TData;
-	options: CombinedCallApiExtraOptions<TData>;
+	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
 	response: Response;
 }>;
@@ -388,7 +388,7 @@ export type RequestErrorContext = UnmaskType<{
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<{
 	error: PossibleHTTPError<TErrorData>;
-	options: CombinedCallApiExtraOptions<unknown, TErrorData>;
+	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
 	response: Response;
 }>;
@@ -396,7 +396,7 @@ export type ResponseErrorContext<TErrorData> = UnmaskType<{
 export type ErrorContext<TErrorData> = UnmaskType<
 	| {
 			error: PossibleHTTPError<TErrorData>;
-			options: CombinedCallApiExtraOptions<TErrorData>;
+			options: CombinedCallApiExtraOptions;
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
@@ -466,8 +466,10 @@ export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 
 export type ResultModeUnion = { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined;
 
-export type GetCallApiResult<TData, TErrorData, TResultMode> = undefined extends TResultMode
-	? ResultModeMap<TData, TErrorData>["all"]
-	: TResultMode extends NonNullable<ResultModeUnion>
-		? ResultModeMap<TData, TErrorData>[TResultMode]
-		: never;
+export type GetCallApiResult<TData, TErrorData, TResultMode> = TErrorData extends false
+	? ResultModeMap<TData, TErrorData>["onlySuccess"]
+	: undefined extends TResultMode
+		? ResultModeMap<TData, TErrorData>["all"]
+		: TResultMode extends NonNullable<ResultModeUnion>
+			? ResultModeMap<TData, TErrorData>[TResultMode]
+			: never;

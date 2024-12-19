@@ -466,8 +466,10 @@ export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 
 export type ResultModeUnion = { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined;
 
-export type GetCallApiResult<TData, TErrorData, TResultMode> = undefined extends TResultMode
-	? ResultModeMap<TData, TErrorData>["all"]
-	: TResultMode extends NonNullable<ResultModeUnion>
-		? ResultModeMap<TData, TErrorData>[TResultMode]
-		: never;
+export type GetCallApiResult<TData, TErrorData, TResultMode> = TErrorData extends false
+	? ResultModeMap<TData, TErrorData>["onlySuccess"]
+	: undefined extends TResultMode
+		? ResultModeMap<TData, TErrorData>["all"]
+		: TResultMode extends NonNullable<ResultModeUnion>
+			? ResultModeMap<TData, TErrorData>[TResultMode]
+			: never;
