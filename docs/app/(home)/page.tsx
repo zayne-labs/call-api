@@ -21,7 +21,7 @@ export default function HomePage() {
 				</p>
 
 				<div className="flex w-full items-center justify-center gap-4 py-4">
-					<Link href="/docs/latest">
+					<Link href="/docs/v0">
 						<Button className="flex gap-2">
 							{/* <ShinyButton> */}
 							<DocsIcon />

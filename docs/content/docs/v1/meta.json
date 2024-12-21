@@ -1,5 +1,6 @@
 {
 	"root": "true",
-	"title": "Latest Version",
+	"title": "Latest",
+	"icon": "tag",
 	"description": "1.0.0"
 }

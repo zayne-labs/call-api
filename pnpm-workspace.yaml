@@ -2,7 +2,6 @@ packages:
    - "packages/*"
    - "dev"
    - "docs"
-   - "docs-beta"
 
 catalog:
    "typescript": "^5.7.2"
