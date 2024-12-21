@@ -16,7 +16,7 @@ import { source } from "./source";
 
 /* eslint-disable perfectionist/sort-objects */
 
-export const logo = <Image alt="CallApi" src={Logo} width={18} height={18} aria-label="Fumadocs" />;
+const logo = <Image alt="CallApi" src={Logo} width={18} height={18} aria-label="Fumadocs" />;
 
 const linkItems = [
 	{
