@@ -39,6 +39,11 @@ const linkItems = [
 
 export const baseOptions: BaseLayoutProps = {
 	links: linkItems,
+};
+
+export const docsOptions: DocsLayoutProps = {
+	...baseOptions,
+
 	nav: {
 		transparentMode: "top",
 		title: (
@@ -48,10 +53,6 @@ export const baseOptions: BaseLayoutProps = {
 			</>
 		),
 	},
-};
-
-export const docsOptions: DocsLayoutProps = {
-	...baseOptions,
 
 	// eslint-disable-next-line ts-eslint/no-non-null-assertion
 	links: [linkItems.at(-1)!],

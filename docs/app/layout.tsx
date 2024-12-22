@@ -4,6 +4,8 @@ import { GeistSans } from "geist/font/sans";
 import type { ReactNode } from "react";
 import "../tailwind.css";
 
+// TODO - add metadata for seo
+
 function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html
