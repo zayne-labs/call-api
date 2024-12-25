@@ -99,7 +99,7 @@ export const toQueryString: ToQueryStringFn = (params) => {
 	return new URLSearchParams(params as Record<string, string>).toString();
 };
 
-export const getHeaders = (options: {
+export const mergeAndResolveHeaders = (options: {
 	auth: CallApiConfig["auth"];
 	baseHeaders: CallApiConfig["headers"];
 	body: CallApiConfig["body"];
@@ -170,6 +170,7 @@ export const getResponseType = <TResponse>(
 
 		return response.json() as Promise<TResponse>;
 	},
+	stream: () => response.body,
 	text: () => response.text() as Promise<TResponse>,
 });
 

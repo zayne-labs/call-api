@@ -16,9 +16,9 @@ import {
 	executeInterceptors,
 	generateRequestKey,
 	getFetchImpl,
-	getHeaders,
 	getResponseData,
 	isHTTPErrorInstance,
+	mergeAndResolveHeaders,
 	resolveErrorResult,
 	resolveSuccessResult,
 	splitBaseConfig,
@@ -95,15 +95,14 @@ export const createFetchClient = <
 			url,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof interceptors;
 
+		// == Default Request Options
 		const defaultRequestOptions = {
 			body: isPlainObject(body) ? options.bodySerializer(body) : body,
-			headers: getHeaders({ auth: options.auth, baseHeaders, body, headers }),
+			headers: mergeAndResolveHeaders({ auth: options.auth, baseHeaders, body, headers }),
 			method: "GET",
 
 			...resolvedRequestOptions,
 		} satisfies CallApiRequestOptions;
-
-		// == Default Request Init
 
 		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
 
@@ -153,7 +152,7 @@ export const createFetchClient = <
 			await executeInterceptors(options.onRequest({ options, request }));
 
 			// == Incase options.auth was updated in the request interceptor
-			requestInit.headers = getHeaders({
+			requestInit.headers = mergeAndResolveHeaders({
 				auth: options.auth,
 				baseHeaders,
 				body: request.body,
