@@ -4,11 +4,11 @@ import type {
 	BaseCallApiConfig,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
+	CallApiResultModeUnion,
 	CombinedCallApiExtraOptions,
 	GetCallApiResult,
 	PossibleHTTPError,
 	PossibleJavaScriptError,
-	ResultModeUnion,
 } from "@/types";
 import { mergeUrlWithParamsAndQuery } from "@/url";
 import {
@@ -33,7 +33,7 @@ import type { CallApiConfigWithRequiredURL } from "./types";
 export const createFetchClientWithOptions = <
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 >(
 	baseConfig: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
 ) => {
@@ -54,10 +54,12 @@ export const createFetchClientWithOptions = <
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
-		TResultMode extends ResultModeUnion = TBaseResultMode,
+		TResultMode extends CallApiResultModeUnion = TBaseResultMode,
 	>(
-		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>
+		configWithRequiredURL: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
+		const { url: initURL, ...config } = configWithRequiredURL;
+
 		type CallApiResult = never;
 
 		const [fetchConfig, extraOptions] = splitConfig(config);
@@ -84,7 +86,7 @@ export const createFetchClientWithOptions = <
 		} satisfies CombinedCallApiExtraOptions;
 
 		const { interceptors, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
-			initUrl: config.url,
+			initURL,
 			options: defaultExtraOptions,
 			request: { ...restOfBaseFetchConfig, ...restOfFetchConfig },
 		});
@@ -181,7 +183,7 @@ export const createFetchClientWithOptions = <
 			if (shouldRetry) {
 				await waitUntil(options.retryDelay);
 
-				return await callApi({ ...config, retries: options.retries - 1 });
+				return await callApi({ ...configWithRequiredURL, retries: options.retries - 1 });
 			}
 
 			// == Clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once

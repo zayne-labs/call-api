@@ -100,7 +100,7 @@ type CallApiPluginFn<TData, TErrorData> = (
 export interface ExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 > extends Interceptors<TData, TErrorData> {
 	/**
 	 * @description Authorization header value.
@@ -299,7 +299,7 @@ export const optionsToOmitFromInstance = defineEnum(["plugins"]);
 export interface CallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 > extends Omit<ExtraOptions<TData, TErrorData, TResultMode>, (typeof optionsToOmitFromInstance)[number]> {
 	/**
 	 * @description Options that should extend the base options.
@@ -321,7 +321,7 @@ export const optionsToOmitFromBase = defineEnum(["extend", "override", "requestK
 export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
-	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 > extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, typeof optionsToOmitFromBase[number]> {
 	/**
 	 * @description An array of CallApi plugins. It allows you to extend the behavior of the library.
@@ -333,22 +333,28 @@ export interface BaseCallApiExtraOptions<
 export interface CombinedCallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 > extends BaseCallApiExtraOptions<TData, TErrorData, TResultMode>, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 // prettier-ignore
 export interface CallApiConfig<
 	TData = unknown,
 	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 > extends CallApiRequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 // prettier-ignore
 export interface BaseCallApiConfig<
+	TBaseData = unknown,
+	TBaseErrorData = unknown,
+	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+> extends CallApiRequestOptions, BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode> { }
+
+export type CallApiParameters<
 	TData = unknown,
 	TErrorData = unknown,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
-> extends CallApiRequestOptions, BaseCallApiExtraOptions<TData, TErrorData, TResultMode> { }
+	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+> = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode>];
 
 export type RequestContext = UnmaskType<{
 	options: CombinedCallApiExtraOptions;
@@ -464,12 +470,14 @@ export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 	onlySuccess: CallApiResultSuccessVariant<TData>["data"];
 };
 
-export type ResultModeUnion = { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined;
+export type CallApiResultModeUnion =
+	| { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap]
+	| undefined;
 
 export type GetCallApiResult<TData, TErrorData, TResultMode> = TErrorData extends false
 	? ResultModeMap<TData, TErrorData>["onlySuccess"]
 	: undefined extends TResultMode
 		? ResultModeMap<TData, TErrorData>["all"]
-		: TResultMode extends NonNullable<ResultModeUnion>
+		: TResultMode extends NonNullable<CallApiResultModeUnion>
 			? ResultModeMap<TData, TErrorData>[TResultMode]
 			: never;

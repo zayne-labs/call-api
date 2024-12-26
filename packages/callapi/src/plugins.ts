@@ -3,7 +3,7 @@ import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 import { isFunction, isObject, isString } from "./utils/typeof";
 
 export type PluginInitContext<TData = unknown, TErrorData = unknown> = {
-	initUrl: string;
+	initURL: string;
 	options: CombinedCallApiExtraOptions<TData, TErrorData>;
 	request: Omit<CallApiRequestOptionsForHooks, "fullURL">;
 };
@@ -86,7 +86,7 @@ type PluginHooks<TData, TErrorData> = {
 export const initializePlugins = async <TData, TErrorData>(
 	context: PluginInitContext<TData, TErrorData>
 ) => {
-	const { initUrl, options, request } = context;
+	const { initURL, options, request } = context;
 
 	const hookRegistry = {
 		onError: new Set([]),
@@ -120,17 +120,17 @@ export const initializePlugins = async <TData, TErrorData>(
 	}
 
 	const resolvedPlugins = isFunction(options.plugins)
-		? [...options.plugins({ initUrl, options, request }), ...(options.extend?.plugins ?? [])]
+		? [...options.plugins({ initURL, options, request }), ...(options.extend?.plugins ?? [])]
 		: [...(options.plugins ?? []), ...(options.extend?.plugins ?? [])];
 
-	let resolvedUrl = initUrl;
+	let resolvedUrl = initURL;
 	let resolvedOptions = options;
 	let resolvedRequestOptions = request;
 
 	const executePluginInit = async (pluginInit: CallApiPlugin<TData, TErrorData>["init"]) => {
 		if (!pluginInit) return;
 
-		const pluginInitResult = await pluginInit({ initUrl, options, request });
+		const pluginInitResult = await pluginInit({ initURL, options, request });
 
 		if (!isObject(pluginInitResult)) return;
 
