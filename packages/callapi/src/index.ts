@@ -6,6 +6,7 @@ export type { CallApiPlugin, PluginInitContext } from "./plugins";
 export type {
 	CallApiConfig,
 	CallApiExtraOptions,
+	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CallApiResultErrorVariant,
