@@ -27,7 +27,7 @@ import {
 } from "./utils/common";
 import { defaultRetryCodes, defaultRetryMethods } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
-import { isFunction, isPlainObject } from "./utils/typeof";
+import { isFunction, isPlainObject } from "./utils/type-guards";
 
 export const createFetchClient = <
 	TBaseData = unknown,
@@ -99,7 +99,6 @@ export const createFetchClient = <
 		// == Default Request Options
 		const defaultRequestOptions = {
 			body: isPlainObject(body) ? options.bodySerializer(body) : body,
-			headers: mergeAndResolveHeaders({ auth: options.auth, baseHeaders, body, headers }),
 			method: "GET",
 
 			...resolvedRequestOptions,
@@ -140,33 +139,30 @@ export const createFetchClient = <
 
 		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
 
-		const requestInit = {
+		const request = {
+			fullURL,
 			signal: combinedSignal,
 			...defaultRequestOptions,
-		} satisfies CallApiRequestOptions;
-
-		const request = { fullURL, ...requestInit } satisfies CallApiRequestOptionsForHooks;
+		} satisfies CallApiRequestOptionsForHooks;
 
 		const fetch = getFetchImpl(options.customFetchImpl);
 
 		try {
 			await executeInterceptors(options.onRequest({ options, request }));
 
-			// == Incase options.auth was updated in the request interceptor
-			requestInit.headers = mergeAndResolveHeaders({
+			// == Apply determined headers
+			request.headers = mergeAndResolveHeaders({
 				auth: options.auth,
-				baseHeaders,
+				baseHeaders: baseHeaders ?? headers,
 				body: request.body,
 				headers: request.headers,
 			});
-
-			request.headers = requestInit.headers;
 
 			const shouldUsePromiseFromCache = prevRequestInfo && options.dedupeStrategy === "defer";
 
 			const responsePromise = shouldUsePromiseFromCache
 				? prevRequestInfo.responsePromise
-				: fetch(fullURL, requestInit as RequestInit);
+				: fetch(fullURL, request as RequestInit);
 
 			requestInfoCacheOrNull?.set(requestKey, { controller: newFetchController, responsePromise });
 
@@ -255,32 +251,12 @@ export const createFetchClient = <
 					})
 				: options.throwOnError;
 
-			// eslint-disable-next-line unicorn/consistent-function-scoping
+			// eslint-disable-next-line unicorn/consistent-function-scoping -- This error is wrong cause the function is using some variables within the catch block
 			const handleThrowOnError = () => {
 				if (!shouldThrowOnError) return;
 
 				throw apiDetails.error as Error;
 			};
-
-			if (error instanceof DOMException && error.name === "TimeoutError") {
-				const message = `Request timed out after ${options.timeout}ms`;
-
-				console.error(`${error.name}:`, message);
-
-				handleThrowOnError();
-
-				return resolveCustomErrorInfo({ message });
-			}
-
-			if (error instanceof DOMException && error.name === "AbortError") {
-				const { message, name } = error;
-
-				console.error(`${name}:`, message);
-
-				handleThrowOnError();
-
-				return generalErrorResult;
-			}
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				const { response } = error;
@@ -296,22 +272,41 @@ export const createFetchClient = <
 						response: options.cloneResponse ? response.clone() : response,
 					}),
 
-					options.onResponse({
-						data: null,
+					options.onError({
 						error: possibleHttpError,
 						options,
 						request,
 						response: options.cloneResponse ? response.clone() : response,
 					}),
 
-					// == Also call the onError interceptor
-					options.onError({
+					options.onResponse({
+						data: null,
 						error: possibleHttpError,
 						options,
 						request,
 						response: options.cloneResponse ? response.clone() : response,
 					})
 				);
+
+				handleThrowOnError();
+
+				return generalErrorResult;
+			}
+
+			if (error instanceof DOMException && error.name === "TimeoutError") {
+				const message = `Request timed out after ${options.timeout}ms`;
+
+				console.error(`${error.name}:`, message);
+
+				handleThrowOnError();
+
+				return resolveCustomErrorInfo({ message });
+			}
+
+			if (error instanceof DOMException && error.name === "AbortError") {
+				const { message, name } = error;
+
+				console.error(`${name}:`, message);
 
 				handleThrowOnError();
 

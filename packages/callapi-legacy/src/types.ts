@@ -1,3 +1,4 @@
+/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { CallApiPlugin, PluginInitContext } from "./plugins";
 import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
@@ -13,8 +14,6 @@ import {
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
-/* eslint-disable ts-eslint/consistent-type-definitions */
-
 export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion> {
 	/**
 	 * @description Optional body of the request, can be a object or any other supported body type.
@@ -26,7 +25,7 @@ export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKe
 	 */
 	headers?:
 		| Record<"Content-Type", CommonContentTypes>
-		// eslint-disable-next-line perfectionist/sort-union-types
+		// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
 		| Record<CommonRequestHeaders | AnyString, string>
 		| RequestInit["headers"];
 
@@ -43,11 +42,11 @@ export interface CallApiRequestOptionsForHooks extends CallApiRequestOptions {
 	 */
 	readonly fullURL?: string;
 
-	// eslint-disable-next-line perfectionist/sort-union-types
+	// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
 	headers?: Record<CommonRequestHeaders | AnyString, string>;
 }
 
-// eslint-disable-next-line ts-eslint/no-empty-object-type
+// eslint-disable-next-line ts-eslint/no-empty-object-type -- This needs to be empty to allow users to register their own meta
 export interface Register {
 	// == meta: R_Meta
 }
@@ -198,7 +197,7 @@ export interface ExtraOptions<
 	/**
 	 * @description Params to be appended to the URL (i.e: /:id)
 	 */
-	// eslint-disable-next-line perfectionist/sort-union-types
+	// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
 	params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
 
 	/**
@@ -369,7 +368,7 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 			request: CallApiRequestOptionsForHooks;
 			response: Response;
 	  }
-	// eslint-disable-next-line perfectionist/sort-union-types
+	// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
 	| {
 			data: null;
 			error: PossibleHTTPError<TErrorData>;
@@ -463,11 +462,11 @@ export type CallApiResultErrorVariant<TErrorData> =
 	  };
 
 export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
-	// eslint-disable-next-line perfectionist/sort-union-types
+	// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
 	all: CallApiResultSuccessVariant<TData> | CallApiResultErrorVariant<TErrorData>;
-	onlyError: CallApiResultErrorVariant<TErrorData>["error"];
-	onlyResponse: Response;
-	onlySuccess: CallApiResultSuccessVariant<TData>["data"];
+	onlyError: CallApiResultErrorVariant<TErrorData>["error"] | null;
+	onlyResponse: CallApiResultSuccessVariant<TData>["response"] | null;
+	onlySuccess: CallApiResultSuccessVariant<TData>["data"] | null;
 };
 
 export type CallApiResultModeUnion =

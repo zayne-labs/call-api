@@ -1,6 +1,6 @@
 import type { CallApiConfig, CallApiExtraOptions } from "./types";
 import { toQueryString } from "./utils";
-import { isArray } from "./utils/typeof";
+import { isArray } from "./utils/type-guards";
 
 const slash = "/";
 const column = ":";

@@ -1,4 +1,4 @@
-name: "Assign issues with .take"
+name: Assign issues with .take
 
 on:
    issue_comment:

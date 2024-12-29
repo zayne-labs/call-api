@@ -26,7 +26,7 @@ export default function TypingAnimation({ className, duration = 200, text }: Typ
 		return () => {
 			clearInterval(typingEffect);
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- Not my code
 	}, [duration, i]);
 
 	return (

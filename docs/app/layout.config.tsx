@@ -1,4 +1,5 @@
 import { GitHubIcon } from "@/components/icons";
+import { assertDefined } from "@zayne-labs/toolkit/type-helpers";
 import type { DocsLayoutProps, LinkItemType } from "fumadocs-ui/layouts/docs";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
@@ -14,10 +15,9 @@ import { source } from "./source";
  * Docs Layout: app/docs/layout.tsx
  */
 
-/* eslint-disable perfectionist/sort-objects */
-
 const logo = <Image alt="CallApi" src={Logo} width={18} height={18} aria-label="Fumadocs" />;
 
+/* eslint-disable perfectionist/sort-objects -- Ignore sort here */
 const linkItems = [
 	{
 		text: "Documentation",
@@ -36,6 +36,7 @@ const linkItems = [
 		external: true,
 	},
 ] satisfies LinkItemType[];
+/* eslint-enable perfectionist/sort-objects -- Ignore sort here */
 
 export const baseOptions: BaseLayoutProps = {
 	links: linkItems,
@@ -44,21 +45,29 @@ export const baseOptions: BaseLayoutProps = {
 export const docsOptions: DocsLayoutProps = {
 	...baseOptions,
 
+	links: [assertDefined(linkItems.at(-1))],
+
 	nav: {
-		transparentMode: "top",
 		title: (
 			<>
 				{logo}
 				<p className="font-medium [header_&]:text-[15px]">CallApi</p>
 			</>
 		),
+		transparentMode: "top",
 	},
-
-	// eslint-disable-next-line ts-eslint/no-non-null-assertion
-	links: [linkItems.at(-1)!],
 	sidebar: {
 		collapsible: false,
 		defaultOpenLevel: 1,
+		footer: (
+			<Link
+				href="https://github.com/zayne-labs/callapi"
+				target="_blank"
+				className="absolute bottom-[calc(12px_+_((29.6px-20px)/2))] right-4"
+			>
+				<GitHubIcon width={20} height={20} />
+			</Link>
+		),
 		tabs: {
 			transform: (option, node) => {
 				const meta = source.getNodeMeta(node);
@@ -80,15 +89,6 @@ export const docsOptions: DocsLayoutProps = {
 				};
 			},
 		},
-		footer: (
-			<Link
-				href="https://github.com/zayne-labs/callapi"
-				target="_blank"
-				className="absolute bottom-[calc(12px_+_((29.6px-20px)/2))] right-4"
-			>
-				<GitHubIcon width={20} height={20} />
-			</Link>
-		),
 	},
 	tree: source.pageTree,
 };

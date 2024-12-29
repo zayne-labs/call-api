@@ -1,6 +1,6 @@
 import type { CallApiRequestOptionsForHooks, CombinedCallApiExtraOptions, Interceptors } from "./types";
+import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
-import { isFunction, isObject, isString } from "./utils/typeof";
 
 export type PluginInitContext<TData = unknown, TErrorData = unknown> = {
 	initURL: string;
@@ -49,7 +49,7 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 };
 
 export const defineCallApiPlugin = <
-	// eslint-disable-next-line perfectionist/sort-union-types
+	// eslint-disable-next-line perfectionist/sort-union-types -- I want the first one to be first
 	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
 >(
 	plugin: TPlugin
@@ -64,7 +64,7 @@ const createMergedInterceptor = (
 	return async (ctx: Record<string, unknown>) => {
 		if (mergedInterceptorsExecutionMode === "sequential") {
 			for (const interceptor of interceptors) {
-				// eslint-disable-next-line no-await-in-loop
+				// eslint-disable-next-line no-await-in-loop -- This is necessary in this case
 				await interceptor?.(ctx);
 			}
 
@@ -132,23 +132,23 @@ export const initializePlugins = async <TData, TErrorData>(
 
 		const pluginInitResult = await pluginInit({ initURL, options, request });
 
-		if (!isObject(pluginInitResult)) return;
+		if (!isPlainObject(pluginInitResult)) return;
 
 		if (isString(pluginInitResult.url)) {
 			resolvedUrl = pluginInitResult.url;
 		}
 
-		if (isObject(pluginInitResult.request)) {
+		if (isPlainObject(pluginInitResult.request)) {
 			resolvedRequestOptions = pluginInitResult.request;
 		}
 
-		if (isObject(pluginInitResult.options)) {
+		if (isPlainObject(pluginInitResult.options)) {
 			resolvedOptions = pluginInitResult.options;
 		}
 	};
 
 	for (const plugin of options.override?.plugins ?? resolvedPlugins) {
-		// eslint-disable-next-line no-await-in-loop
+		// eslint-disable-next-line no-await-in-loop -- This is necessary in this case
 		await executePluginInit(plugin.init);
 
 		if (!plugin.hooks) continue;

@@ -6,7 +6,7 @@ import type { InferProps } from "@zayne-labs/toolkit/react/utils";
 import type { Prettify } from "@zayne-labs/toolkit/type-helpers";
 import { type VariantProps, tv } from "tailwind-variants";
 
-// eslint-disable-next-line react-refresh/only-export-components
+// eslint-disable-next-line react-refresh/only-export-components -- It's fine
 export const buttonVariants = tv({
 	base: `inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium
 	transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
@@ -31,12 +31,12 @@ export const buttonVariants = tv({
 		},
 	},
 
-	/* eslint-disable perfectionist/sort-objects */
+	/* eslint-disable perfectionist/sort-objects -- I want this to be last */
 	defaultVariants: {
 		size: "default",
 		theme: "default",
 	},
-	/* eslint-enable perfectionist/sort-objects */
+	/* eslint-enable perfectionist/sort-objects -- I want this to be last */
 });
 
 export type ButtonProps = Prettify<InferProps<"button"> & VariantProps<typeof buttonVariants>> & {

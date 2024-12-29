@@ -1,4 +1,4 @@
-/* eslint-disable perfectionist/sort-objects */
+/* eslint-disable perfectionist/sort-objects -- Ignore sort here */
 import { createPreset } from "fumadocs-ui/tailwind-plugin";
 import type { Config } from "tailwindcss";
 

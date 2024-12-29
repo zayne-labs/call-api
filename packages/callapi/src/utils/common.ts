@@ -11,8 +11,8 @@ import {
 	optionsToOmitFromInstance,
 } from "../types";
 import { fetchSpecificKeys } from "./constants";
+import { isFunction, isPlainObject, isQueryString, isString } from "./type-guards";
 import type { Awaitable } from "./type-helpers";
-import { isFunction, isObject, isPlainObject, isQueryString, isString } from "./typeof";
 
 const omitKeys = <TObject extends Record<string, unknown>, const TOmitArray extends Array<keyof TObject>>(
 	initialObject: TObject,
@@ -48,7 +48,7 @@ const pickKeys = <TObject extends Record<string, unknown>, const TPickArray exte
 	return updatedObject as Pick<TObject, TPickArray[number]>;
 };
 
-// eslint-disable-next-line ts-eslint/no-explicit-any
+// eslint-disable-next-line ts-eslint/no-explicit-any -- Any is required here so that one can pass custom function type without type errors
 export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 	[
 		pickKeys(baseConfig, fetchSpecificKeys) as CallApiRequestOptions,
@@ -58,7 +58,7 @@ export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 		]) satisfies BaseCallApiExtraOptions,
 	] as const;
 
-// eslint-disable-next-line ts-eslint/no-explicit-any
+// eslint-disable-next-line ts-eslint/no-explicit-any -- Any is required here so that one can pass custom function type without type errors
 export const splitConfig = (config: Record<string, any>) =>
 	[
 		pickKeys(config, fetchSpecificKeys) as CallApiRequestOptions,
@@ -107,33 +107,37 @@ export const mergeAndResolveHeaders = (options: {
 }) => {
 	const { auth, baseHeaders, body, headers } = options;
 
-	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing
+	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing -- Nullish coalescing makes no sense in this boolean context
 	const shouldResolveHeaders = Boolean(baseHeaders || headers || body || auth);
 
-	// == Return early if the following conditions are not met (so that native fetch would auto set the correct headers):
+	// == Return early if any of the following conditions are not met (so that native fetch would auto set the correct headers):
 	// == - headers are provided
 	// == - The body is an object
 	// == - The auth option is provided
 	if (!shouldResolveHeaders) return;
 
 	const headersObject: Record<string, string> = {
-		...(isPlainObject(body) && {
-			Accept: "application/json",
-			"Content-Type": "application/json",
-		}),
-		...(isQueryString(body) && {
-			"Content-Type": "application/x-www-form-urlencoded",
-		}),
 		...((isString(auth) || auth === null) && {
 			Authorization: `Bearer ${auth}`,
 		}),
-		...(isObject(auth) && {
+		...(isPlainObject(auth) && {
 			Authorization: "bearer" in auth ? `Bearer ${auth.bearer}` : `Token ${auth.token}`,
 		}),
 
 		...objectifyHeaders(baseHeaders),
 		...objectifyHeaders(headers),
 	};
+
+	if (isQueryString(body)) {
+		headersObject["Content-Type"] = "application/x-www-form-urlencoded";
+
+		return headersObject;
+	}
+
+	if (isPlainObject(body)) {
+		headersObject["Content-Type"] = "application/json";
+		headersObject.Accept = "application/json";
+	}
 
 	return headersObject;
 };
@@ -146,11 +150,6 @@ export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchIm
 	if (typeof globalThis !== "undefined" && isFunction(globalThis.fetch)) {
 		return globalThis.fetch;
 	}
-	/* eslint-disable unicorn/prefer-global-this */
-	if (typeof window !== "undefined" && isFunction(window.fetch)) {
-		return window.fetch;
-	}
-	/* eslint-enable unicorn/prefer-global-this */
 
 	throw new Error("No fetch implementation found");
 };
@@ -178,7 +177,7 @@ export const executeInterceptors = <TInterceptor extends Awaitable<void>>(
 	...interceptors: TInterceptor[]
 ) => Promise.all(interceptors);
 
-export const getResponseData = <TResponse>(
+export const getResponseData = async <TResponse>(
 	response: Response,
 	responseType: keyof ReturnType<typeof getResponseType>,
 	parser: CallApiExtraOptions["responseParser"],
@@ -190,7 +189,7 @@ export const getResponseData = <TResponse>(
 		throw new Error(`Invalid response type: ${responseType}`);
 	}
 
-	const responseData = RESPONSE_TYPE_LOOKUP[responseType]();
+	const responseData = await RESPONSE_TYPE_LOOKUP[responseType]();
 
 	const validResponseData = validator ? validator(responseData) : responseData;
 

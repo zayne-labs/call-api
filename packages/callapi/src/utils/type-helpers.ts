@@ -3,8 +3,7 @@
 export type AnyString = string & { placeholder?: never };
 export type AnyNumber = number & { placeholder?: never };
 
-/* eslint-disable ts-eslint/no-explicit-any */
-// == `Any` is required here so that one can pass custom function type without type errors
+// eslint-disable-next-line ts-eslint/no-explicit-any -- Any is required here so that one can pass custom function type without type errors
 export type AnyFunction<TResult = any> = (...args: any[]) => TResult;
 
 export type CallbackFn<in TParams, out TResult = void> = (...params: TParams[]) => TResult;

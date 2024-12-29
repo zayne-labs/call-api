@@ -1,7 +1,7 @@
 export const createCombinedSignal = (...signals: Array<AbortSignal | null | undefined>) => {
 	const actualSignalArray = signals.filter(Boolean);
 
-	// eslint-disable-next-line ts-eslint/no-unnecessary-condition
+	// eslint-disable-next-line ts-eslint/no-unnecessary-condition -- This is a polyfill
 	if (AbortSignal && "any" in AbortSignal) {
 		return AbortSignal.any(actualSignalArray);
 	}
@@ -29,7 +29,7 @@ export const createCombinedSignal = (...signals: Array<AbortSignal | null | unde
 };
 
 export const createTimeoutSignal = (milliseconds: number) => {
-	// eslint-disable-next-line ts-eslint/no-unnecessary-condition
+	// eslint-disable-next-line ts-eslint/no-unnecessary-condition -- This is a polyfill
 	if (AbortSignal && "timeout" in AbortSignal) {
 		return AbortSignal.timeout(milliseconds);
 	}

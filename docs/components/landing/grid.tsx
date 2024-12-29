@@ -67,10 +67,10 @@ export function GridPattern({
 	// Update squares to animate in
 	useEffect(() => {
 		if (dimensions.width && dimensions.height) {
-			// eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
+			// eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- Not my code
 			setSquares(generateSquares(numSquares));
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- Not my code
 	}, [dimensions, numSquares]);
 
 	// Resize observer to update container dimensions
@@ -110,7 +110,7 @@ export function GridPattern({
 			</defs>
 			<rect width="100%" height="100%" fill={`url(#${id})`} />
 			<svg x={x} y={y} className="overflow-visible">
-				{/* eslint-disable-next-line ts-eslint/no-shadow */}
+				{/* eslint-disable-next-line ts-eslint/no-shadow -- Not my code */}
 				{squares.map(({ id, pos: [x, y] }, index) => (
 					<motion.rect
 						initial={{ opacity: 0 }}
@@ -122,7 +122,7 @@ export function GridPattern({
 							repeatType: "reverse",
 						}}
 						onAnimationComplete={() => updateSquarePosition(id)}
-						// eslint-disable-next-line react/no-array-index-key
+						// eslint-disable-next-line react/no-array-index-key -- Not my code
 						key={`${x}-${y}-${index}`}
 						width={width - 1}
 						height={height - 1}
@@ -136,4 +136,3 @@ export function GridPattern({
 		</svg>
 	);
 }
-
