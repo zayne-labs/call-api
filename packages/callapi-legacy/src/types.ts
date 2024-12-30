@@ -88,6 +88,39 @@ export interface Interceptors<TData = unknown, TErrorData = unknown> {
 	onSuccess?: (context: SuccessContext<TData>) => Awaitable<unknown>;
 }
 
+export interface InterceptorsArray<TData = unknown, TErrorData = unknown> {
+	/**
+	 * @description Interceptor to be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
+	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
+	 */
+	onError?: Array<Interceptors<TData, TErrorData>["onError"]>;
+
+	/**
+	 * @description Interceptor to be called just before the request is made, allowing for modifications or additional operations.
+	 */
+	onRequest?: Array<Interceptors<TData, TErrorData>["onRequest"]>;
+
+	/**
+	 *  @description Interceptor to be called when an error occurs during the fetch request.
+	 */
+	onRequestError?: Array<Interceptors<TData, TErrorData>["onRequestError"]>;
+
+	/**
+	 * @description Interceptor to be called when any response is received from the api, whether successful or not
+	 */
+	onResponse?: Array<Interceptors<TData, TErrorData>["onResponse"]>;
+
+	/**
+	 *  @description Interceptor to be called when an error response is received from the api.
+	 */
+	onResponseError?: Array<Interceptors<TData, TErrorData>["onResponseError"]>;
+
+	/**
+	 * @description Interceptor to be called when a successful response is received from the api.
+	 */
+	onSuccess?: Array<Interceptors<TData, TErrorData>["onSuccess"]>;
+}
+
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
 type CallApiPluginArray<TData, TErrorData> = Array<CallApiPlugin<TData, TErrorData>>;
@@ -96,11 +129,12 @@ type CallApiPluginFn<TData, TErrorData> = (
 	context: PluginInitContext<TData, TErrorData>
 ) => Array<CallApiPlugin<TData, TErrorData>>;
 
-export interface ExtraOptions<
+export type ExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends Interceptors<TData, TErrorData> {
+	// eslint-disable-next-line perfectionist/sort-intersection-types -- I want the first one to be first
+> = (Interceptors<TData, TErrorData> | InterceptorsArray<TData, TErrorData>) & {
 	/**
 	 * @description Authorization header value.
 	 */
@@ -291,41 +325,47 @@ export interface ExtraOptions<
 	 * @description URL to be used in the request.
 	 */
 	readonly url?: string;
-}
+};
 
-export const optionsToOmitFromInstance = defineEnum(["plugins"]);
-
-export interface CallApiExtraOptions<
-	TData = unknown,
-	TErrorData = unknown,
-	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends Omit<ExtraOptions<TData, TErrorData, TResultMode>, (typeof optionsToOmitFromInstance)[number]> {
-	/**
-	 * @description Options that should extend the base options.
-	 */
-	extend?: Pick<ExtraOptions<TData, TErrorData, TResultMode>, (typeof optionsToOmitFromInstance)[number]>;
-
-	/**
-	 * @description Options that should override the base options.
-	 */
-	override?: Pick<
-		ExtraOptions<TData, TErrorData, TResultMode>,
-		(typeof optionsToOmitFromInstance)[number]
-	>;
-}
-
-export const optionsToOmitFromBase = defineEnum(["extend", "override", "requestKey"]);
+export const optionsEnumToOmitFromBase = defineEnum(["extend", "override", "requestKey"]);
 
 // prettier-ignore
 export interface BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, typeof optionsToOmitFromBase[number]> {
+> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, typeof optionsEnumToOmitFromBase[number]> {
 	/**
 	 * @description An array of CallApi plugins. It allows you to extend the behavior of the library.
 	 */
 	plugins?: CallApiPluginArray<TBaseData, TBaseErrorData> | CallApiPluginFn<TBaseData, TBaseErrorData>;
+}
+
+export const optionsEnumToOmitFromInstance = defineEnum(["plugins"]);
+
+export interface CallApiExtraOptions<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+> extends Omit<
+		ExtraOptions<TData, TErrorData, TResultMode>,
+		(typeof optionsEnumToOmitFromInstance)[number]
+	> {
+	/**
+	 * @description Options that should extend the base options.
+	 */
+	extend?: Pick<
+		ExtraOptions<TData, TErrorData, TResultMode>,
+		(typeof optionsEnumToOmitFromInstance)[number]
+	>;
+
+	/**
+	 * @description Options that should override the base options.
+	 */
+	override?: Pick<
+		ExtraOptions<TData, TErrorData, TResultMode>,
+		(typeof optionsEnumToOmitFromInstance)[number]
+	>;
 }
 
 // prettier-ignore
@@ -336,18 +376,18 @@ export interface CombinedCallApiExtraOptions<
 > extends BaseCallApiExtraOptions<TData, TErrorData, TResultMode>, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 // prettier-ignore
-export interface CallApiConfig<
-	TData = unknown,
-	TErrorData = unknown,
-	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends CallApiRequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
-
-// prettier-ignore
 export interface BaseCallApiConfig<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 > extends CallApiRequestOptions, BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode> { }
+
+// prettier-ignore
+export interface CallApiConfig<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+> extends CallApiRequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
 
 export type CallApiParameters<
 	TData = unknown,

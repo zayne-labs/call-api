@@ -7,12 +7,12 @@ import {
 	type ErrorObjectUnion,
 	type PossibleHTTPError,
 	type PossibleJavascriptErrorNames,
-	optionsToOmitFromBase,
-	optionsToOmitFromInstance,
+	optionsEnumToOmitFromBase,
+	optionsEnumToOmitFromInstance,
 } from "../types";
 import { fetchSpecificKeys } from "./constants";
-import { isFunction, isPlainObject, isQueryString, isString } from "./type-guards";
-import type { Awaitable } from "./type-helpers";
+import { isArray, isFunction, isPlainObject, isQueryString, isString } from "./type-guards";
+import type { AnyFunction, Awaitable } from "./type-helpers";
 
 const omitKeys = <TObject extends Record<string, unknown>, const TOmitArray extends Array<keyof TObject>>(
 	initialObject: TObject,
@@ -54,15 +54,15 @@ export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 		pickKeys(baseConfig, fetchSpecificKeys) as CallApiRequestOptions,
 		omitKeys(baseConfig, [
 			...fetchSpecificKeys,
-			...optionsToOmitFromBase,
-		]) satisfies BaseCallApiExtraOptions,
+			...optionsEnumToOmitFromBase,
+		]) as BaseCallApiExtraOptions,
 	] as const;
 
 // eslint-disable-next-line ts-eslint/no-explicit-any -- Any is required here so that one can pass custom function type without type errors
 export const splitConfig = (config: Record<string, any>) =>
 	[
 		pickKeys(config, fetchSpecificKeys) as CallApiRequestOptions,
-		omitKeys(config, [...fetchSpecificKeys, ...optionsToOmitFromInstance]) as CallApiExtraOptions,
+		omitKeys(config, [...fetchSpecificKeys, ...optionsEnumToOmitFromInstance]) as CallApiExtraOptions,
 	] as const;
 
 export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {
@@ -98,6 +98,8 @@ export const toQueryString: ToQueryStringFn = (params) => {
 
 	return new URLSearchParams(params as Record<string, string>).toString();
 };
+
+// export mergeAndResolve
 
 export const mergeAndResolveHeaders = (options: {
 	auth: CallApiConfig["auth"];
@@ -142,6 +144,24 @@ export const mergeAndResolveHeaders = (options: {
 	return headersObject;
 };
 
+export const flattenHooks = <
+	TBaseInterceptor extends
+		| AnyFunction<Awaitable<unknown>>
+		| Array<AnyFunction<Awaitable<unknown>> | undefined>,
+	TInterceptor extends
+		| AnyFunction<Awaitable<unknown>>
+		| Array<AnyFunction<Awaitable<unknown>> | undefined>,
+>(
+	baseInterceptor: TBaseInterceptor | undefined,
+	interceptor: TInterceptor | undefined
+) => {
+	if (isArray(baseInterceptor)) {
+		return [baseInterceptor, interceptor].flat() as TInterceptor;
+	}
+
+	return interceptor ?? baseInterceptor;
+};
+
 export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchImpl"]) => {
 	if (customFetchImpl) {
 		return customFetchImpl;
@@ -173,9 +193,8 @@ export const getResponseType = <TResponse>(
 	text: () => response.text() as Promise<TResponse>,
 });
 
-export const executeInterceptors = <TInterceptor extends Awaitable<void>>(
-	...interceptors: TInterceptor[]
-) => Promise.all(interceptors);
+export const executeHooks = <TInterceptor extends Awaitable<unknown>>(...interceptors: TInterceptor[]) =>
+	Promise.all(interceptors);
 
 export const getResponseData = async <TResponse>(
 	response: Response,
@@ -323,7 +342,7 @@ export const isHTTPErrorInstance = <TErrorResponse>(
 ): error is HTTPError<TErrorResponse> => {
 	return (
 		// prettier-ignore
-		error instanceof HTTPError || (isPlainObject(error, HTTPError) && error.name === "HTTPError" && error.isHTTPError === true)
+		error instanceof HTTPError|| (isPlainObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
 	);
 };
 

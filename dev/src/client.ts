@@ -1,5 +1,4 @@
 import { createFetchClient, defineCallApiPlugin } from "@zayne-labs/callapi";
-// import { createFetchClient, defineCallApiPlugin } from "./src";
 
 const plugin = defineCallApiPlugin({
 	hooks: {
@@ -10,7 +9,8 @@ const plugin = defineCallApiPlugin({
 });
 
 const callApi = createFetchClient({
-	dedupeStrategy: "none",
+	dedupeStrategy: "cancel",
+	onRequest: [() => console.info("OnBaseRequest")],
 	plugins: [plugin],
 });
 
@@ -46,6 +46,7 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 	}),
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
+		onRequest: () => console.info("OnRequest"),
 		params: [1],
 	}),
 ]);

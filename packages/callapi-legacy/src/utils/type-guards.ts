@@ -5,16 +5,10 @@ export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Ar
 export const isObject = (value: unknown) => typeof value === "object" && value !== null;
 
 export const isPlainObject = <TPlainObject extends Record<string, unknown>>(
-	value: unknown,
-	// eslint-disable-next-line ts-eslint/no-unsafe-function-type -- This is the only generic way to type a class
-	Class?: Function
+	value: unknown
 ): value is TPlainObject => {
 	if (!isObject(value)) {
 		return false;
-	}
-
-	if (Class && value instanceof Class) {
-		return true;
 	}
 
 	const prototype = Object.getPrototypeOf(value) as unknown;

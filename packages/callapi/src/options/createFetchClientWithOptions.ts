@@ -13,7 +13,8 @@ import type {
 import { mergeUrlWithParamsAndQuery } from "@/url";
 import {
 	HTTPError,
-	executeInterceptors,
+	executeHooks,
+	flattenHooks,
 	generateRequestKey,
 	getFetchImpl,
 	getResponseData,
@@ -83,6 +84,13 @@ export const createFetchClientWithOptions = <
 
 			...baseExtraOptions,
 			...extraOptions,
+
+			onError: flattenHooks(baseExtraOptions.onError, extraOptions.onError),
+			onRequest: flattenHooks(baseExtraOptions.onRequest, extraOptions.onRequest),
+			onRequestError: flattenHooks(baseExtraOptions.onRequestError, extraOptions.onRequestError),
+			onResponse: flattenHooks(baseExtraOptions.onResponse, extraOptions.onResponse),
+			onResponseError: flattenHooks(baseExtraOptions.onResponseError, extraOptions.onResponseError),
+			onSuccess: flattenHooks(baseExtraOptions.onSuccess, extraOptions.onSuccess),
 		} satisfies CombinedCallApiExtraOptions;
 
 		const { interceptors, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
@@ -126,8 +134,8 @@ export const createFetchClientWithOptions = <
 
 		if (prevRequestInfo && options.dedupeStrategy === "cancel") {
 			const message = options.requestKey
-				? `Request aborted as another request with the same request key: '${requestKey}' was initiated while the current request was in progress.`
-				: `Request aborted as another request to the endpoint: '${fullURL}', with the same request options was initiated while the current request was in progress.`;
+				? `Duplicate request detected - Aborting previous request with key '${requestKey}' as a new request was initiated`
+				: `Duplicate request detected - Aborting previous request to '${fullURL}' as a new request with identical options was initiated`;
 
 			const reason = new DOMException(message, "AbortError");
 
@@ -149,7 +157,7 @@ export const createFetchClientWithOptions = <
 		const fetch = getFetchImpl(options.customFetchImpl);
 
 		try {
-			await executeInterceptors(options.onRequest({ options, request }));
+			await executeHooks(options.onRequest({ options, request }));
 
 			// == Apply determined headers
 			request.headers = mergeAndResolveHeaders({
@@ -212,7 +220,7 @@ export const createFetchClientWithOptions = <
 				options.responseValidator
 			);
 
-			await executeInterceptors(
+			await executeHooks(
 				options.onSuccess({
 					data: successData,
 					options,
@@ -265,7 +273,7 @@ export const createFetchClientWithOptions = <
 				const possibleHttpError = (generalErrorResult as { error: PossibleHTTPError<TErrorData> })
 					.error;
 
-				await executeInterceptors(
+				await executeHooks(
 					options.onResponseError({
 						error: possibleHttpError,
 						options,
@@ -316,7 +324,7 @@ export const createFetchClientWithOptions = <
 
 			const possibleJavascriptError = (generalErrorResult as { error: PossibleJavaScriptError }).error;
 
-			await executeInterceptors(
+			await executeHooks(
 				// == At this point only the request errors exist, so the request error interceptor is called
 				options.onRequestError({
 					error: possibleJavascriptError,
