@@ -162,7 +162,7 @@ export const createFetchClient = <
 			request.headers = mergeAndResolveHeaders({
 				auth: options.auth,
 				baseHeaders: baseHeaders ?? headers,
-				body: request.body,
+				body,
 				headers: request.headers,
 			});
 
