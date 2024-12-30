@@ -5,12 +5,12 @@ const plugin = defineCallApiPlugin({
 		onRequest: () => console.info("PLUGIN-OnRequest"),
 	},
 	id: "1",
-	name: "sdew",
+	name: "plugin",
 });
 
 const callApi = createFetchClient({
 	dedupeStrategy: "cancel",
-	onRequest: [() => console.info("OnBaseRequest")],
+	onRequest: () => console.info("OnBaseRequest"),
 	plugins: [plugin],
 });
 
@@ -46,7 +46,7 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 	}),
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
-		onRequest: () => console.info("OnRequest"),
+		onRequest: [() => console.info("OnRequest"), () => console.info("OnRequest")],
 		params: [1],
 	}),
 ]);
