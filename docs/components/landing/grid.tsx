@@ -70,6 +70,7 @@ export function GridPattern({
 			// eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- Not my code
 			setSquares(generateSquares(numSquares));
 		}
+		// eslint-disable-next-line react-compiler/react-compiler -- Not my code
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- Not my code
 	}, [dimensions, numSquares]);
 
