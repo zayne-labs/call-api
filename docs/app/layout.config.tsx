@@ -15,8 +15,6 @@ import { source } from "./source";
  * Docs Layout: app/docs/layout.tsx
  */
 
-const logo = <Image alt="CallApi" src={Logo} width={18} height={18} aria-label="Fumadocs" />;
-
 /* eslint-disable perfectionist/sort-objects -- Ignore sort here */
 const linkItems = [
 	{
@@ -50,7 +48,7 @@ export const docsOptions: DocsLayoutProps = {
 	nav: {
 		title: (
 			<>
-				{logo}
+				<Image alt="CallApi" src={Logo} width={18} height={18} aria-label="CallApi" />
 				<p className="font-medium [header_&]:text-[15px]">CallApi</p>
 			</>
 		),
