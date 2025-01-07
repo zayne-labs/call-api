@@ -136,7 +136,7 @@ export const mergeAndResolveHeaders = (options: {
 		return headersObject;
 	}
 
-	if (isPlainObject(body)) {
+	if (isPlainObject(body) || (isString(body) && body.startsWith("{"))) {
 		headersObject["Content-Type"] = "application/json";
 		headersObject.Accept = "application/json";
 	}
