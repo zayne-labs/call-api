@@ -2,5 +2,6 @@
 	"root": "true",
 	"title": "Latest",
 	"icon": "tag",
-	"description": "1.0.0"
+	"description": "1.0.0",
+	"pages": ["---Guide---", "index", "...", "---Features---"]
 }

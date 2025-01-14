@@ -1,7 +1,66 @@
 ---
-title: Get Started
+title: Introduction
+description: Understanding what CallApi is all about
+icon: circle-play
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
+## What is CallApi?
 
-<Callout type="warn">Under Construction</Callout>
+CallApi is advanced fetch wrapper designed with one-to-one similarity to fetch API in mind, while still being as convenient as possible to use.
+This means you can use the familiar Fetch API syntax while it offers additional options for convenience.
+
+It includes multiple features out of the box such as hooks/interceptors, request deduplication, retries, error as value, plugins and more. Works on the browser, node (version 18+), workers, deno and bun.
+
+## Why CallApi?
+
+Fetching data is the probably the common task in most applications. But the inbuilt solution for that (fetch API) is way too minimalistic for majority of everyday use cases.
+So much so that I (and many others) have to write a lot of unnecessary code to set it up. Or write some quick and dirty abstraction around it, only for it to end up being too coupled to be reusable.
+
+Adding to that, I found that majority of the existing fetching solutions while established, end up with one or more of the following problems:
+
+- Not based on modern web standards (fetch)
+- Doesn't cover some use cases one often needs (like request deduplication, lifecycle interceptors/hooks, retries, url parameter and query support, auto content type detection, etc.)
+- Have too verbose of an API for the simplest of things
+- Little or no type safety at all
+- Have too large of a bundle size due to legacy constraints, too many dependencies, lack of tree shaking, etc.
+- Impossible to extend, and so on...
+
+So, I decided to create CallApi to address most of these problems, while staying as intuitive and lightweight as possible.
+
+## Features
+
+<Cards>
+	<Card
+		title="Request Deduplication"
+		description="Eliminates duplicate requests and by effect, race conditions"
+	/>
+	<Card
+		title="Request Lifecycle Interceptors/Hooks"
+		description="Callback functions that enables running various side effects at different points in the request lifecycle"
+	/>
+	<Card title="Smart Response Parser" description="Smart response parser for any content type" />
+	<Card
+		title="Content Type Detection"
+		description="Automatically detects the content type header of the response for common types"
+	/>
+	<Card
+		title="URL Params and Query Support"
+		description="Convenient syntax for adding url parameters as well as query strings to the request url"
+	/>
+	<Card title="Extensible" description="Plugins and hooks to extend the functionality" />
+	<Card
+		title="Response Validation"
+		description="Allows you to validate the response before returning it"
+	/>
+	<Card title="Timeout" description="Enables setting a timeout for the request" />
+	<Card
+		title="Retries"
+		description="Advanced retry mechanisms with linear and exponential backoff strategies or custom retry conditions"
+	/>
+	<Card
+		title="Compatible with fetch and fetch-like APIs"
+		description="Wraps around fetch and works on the browser, node (version 18+), workers, deno and bun out of the box but can also use custom fetch implementations like node-fetch"
+	/>
+</Cards>
+
+CallApi aims to be the most comprehensive as well as intuitive fetching library out there. It provides a wide range of features out of the box and still allows you to extend it with plugins. Here are some of the features:

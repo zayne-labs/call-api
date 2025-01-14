@@ -9,6 +9,9 @@ const config = {
 	devIndicators: {
 		appIsrStatus: false,
 	},
+	experimental: {
+		reactOwnerStack: true,
+	},
 	reactStrictMode: true,
 };
 

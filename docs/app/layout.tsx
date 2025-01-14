@@ -1,19 +1,18 @@
 import { RootProvider as FumaThemeProvider } from "fumadocs-ui/provider";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
-import type { ReactNode } from "react";
 import "../tailwind.css";
 
-// TODO - add metadata for seo
+// TODO - add metadata for seo  (steal fumadocs own)
 
-function RootLayout({ children }: { children: ReactNode }) {
+function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html
 			lang="en"
 			className={`${GeistSans.variable} ${GeistMono.variable}`}
 			suppressHydrationWarning={true}
 		>
-			<body className="flex min-h-screen flex-col">
+			<body>
 				<FumaThemeProvider>{children}</FumaThemeProvider>
 			</body>
 		</html>

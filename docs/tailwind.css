@@ -4,48 +4,98 @@
 
 @layer base {
 	:root {
-		--foreground: 20 14.3% 4.1%;
-		--card: 0 0% 100%;
-		--card-foreground: 20 14.3% 4.1%;
-		--popover: 0 0% 100%;
-		--popover-foreground: 20 14.3% 4.1%;
-		--primary: 24.6 95% 53.1%;
-		--primary-foreground: 60 9.1% 97.8%;
-		--secondary: 60 4.8% 95.9%;
-		--secondary-foreground: 24 9.8% 10%;
-		--muted: 60 4.8% 95.9%;
-		--muted-foreground: 25 5.3% 44.7%;
-		--accent: 60 4.8% 95.9%;
-		--accent-foreground: 24 9.8% 10%;
-		--destructive: 0 84.2% 60.2%;
-		--destructive-foreground: 60 9.1% 97.8%;
-		--border: 20 5.9% 90%;
-		--input: 20 5.9% 90%;
-		--ring: 24.6 95% 53.1%;
-		--radius: 0.5rem;
+		/* --fd-foreground: 20 14.3% 4.1%; */
+		/* --fd-background: 0 0% 100%; */
+		/* --fd-card: 251 50% 0%; */
+		/* --fd-card-foreground: 251 5% 90%; */
+		--fd-popover: 0 0% 100%;
+		--fd-popover-foreground: 20 14.3% 4.1%;
+		--fd-primary: 24.6 95% 53.1%;
+		--fd-primary-foreground: 60 9.1% 97.8%;
+		--fd-secondary: 60 4.8% 95.9%;
+		--fd-secondary-foreground: 24 9.8% 10%;
+		--fd-muted: 60 4.8% 95.9%;
+		--fd-muted-foreground: 25 5.3% 44.7%;
+		--fd-accent: 60 4.8% 95.9%;
+		--fd-accent-foreground: 24 9.8% 10%;
+		--fd-destructive: 0 84.2% 60.2%;
+		--fd-destructive-foreground: 60 9.1% 97.8%;
+		--fd-border: 20 5.9% 90%;
+		--fd-input: 20 5.9% 90%;
+		--fd-ring: 24.6 95% 53.1%;
+		--fd-radius: 0.5rem;
 	}
 
 	.dark {
 		/* --background: 20 14.3% 4.1%; */
-		/* --background: 217 92% 76%; */
-		--foreground: 251 5% 90%;
-		--card: 251 50% 0%;
-		--card-foreground: 251 5% 90%;
-		--popover: 251 50% 5%;
-		--popover-foreground: 251 5% 90%;
-		--primary: 250 100% 80%;
-		--primary-foreground: 0 0% 0%;
-		--secondary: 251 30% 10%;
-		--secondary-foreground: 0 0% 100%;
-		--muted: 213 30% 15%;
-		--muted-foreground: 251 5% 60%;
-		--accent: 213 30% 15%;
-		--accent-foreground: 251 5% 90%;
-		--destructive: 0 100% 30%;
-		--destructive-foreground: 251 5% 90%;
-		--border: 251 30% 18%;
-		--input: 251 30% 18%;
-		--ring: 251 67.7% 93.9%;
-		--radius: 0.5rem;
+		--fd-background: 0 0% 8.04%;
+		--fd-foreground: 251 5% 90%;
+		--fd-card: 251 50% 0%;
+		--fd-card-foreground: 251 5% 90%;
+		--fd-popover: 251 50% 5%;
+		--fd-popover-foreground: 251 5% 90%;
+		--fd-primary: 250 100% 80%;
+		--fd-primary-foreground: 0 0% 0%;
+		--fd-secondary: 251 30% 10%;
+		--fd-secondary-foreground: 0 0% 100%;
+		--fd-muted: 213 30% 15%;
+		--fd-muted-foreground: 251 5% 60%;
+		--fd-accent: 213 30% 15%;
+		--fd-accent-foreground: 60 9.1% 97.8%;
+		--fd-destructive: 0 100% 30%;
+		--fd-destructive-foreground: 251 5% 90%;
+		--fd-border: 251 30% 18%;
+		--fd-input: 251 30% 18%;
+		--fd-ring: 251 67.7% 93.9%;
+		--fd-radius: 0.5rem;
+	}
+}
+
+/* -------------1-----*/
+/* General CSS Reset */
+/*-------------------*/
+@layer base {
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
+
+	html {
+		scroll-behavior: smooth;
+		-webkit-tap-highlight-color: transparent;
+		font-synthesis: none;
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	html {
+		height: 100%;
+	}
+
+	body {
+		display: flex;
+		flex-direction: column;
+		min-height: 100%;
+	}
+
+	input:focus-visible {
+		outline: 2px solid transparent;
+		outline-offset: 2px;
+	}
+
+	/* img {
+      width: 100%;
+      max-inline-size: 100%;
+      max-width: unset;
+   } */
+
+	button {
+		outline: transparent;
+	}
+
+	body {
+		line-height: 1.5;
 	}
 }

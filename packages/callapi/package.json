@@ -1,7 +1,7 @@
 {
 	"name": "@zayne-labs/callapi",
 	"type": "module",
-	"version": "1.0.0-rc.72",
+	"version": "1.0.0-rc.74",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"author": "Ryan Zayne",
 	"license": "MIT",
@@ -52,16 +52,16 @@
 		"test:release": "pkg-pr-new publish"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "0.17.0",
+		"@arethetypeswrong/cli": "0.17.2",
 		"@size-limit/esbuild-why": "11.1.6",
 		"@size-limit/preset-small-lib": "11.1.6",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@zayne-labs/tsconfig": "catalog:",
 		"concurrently": "^9.0.1",
 		"cross-env": "^7.0.3",
-		"publint": "^0.2.11",
+		"publint": "^0.3.1",
 		"size-limit": "11.1.6",
-		"terser": "5.36.0",
+		"terser": "5.37.0",
 		"tsup": "8.3.5",
 		"typescript": "catalog:"
 	},

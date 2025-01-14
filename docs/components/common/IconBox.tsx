@@ -1,3 +1,1 @@
-"use client";
-
-export { Icon as IconBox } from "@iconify/react";
+export { Icon as IconBox } from "@iconify-icon/react";

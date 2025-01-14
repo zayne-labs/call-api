@@ -1,11 +1,11 @@
 import { BgPattern } from "@/components/icons";
-import { DocsLayout as FumaDocsLayout } from "fumadocs-ui/layouts/docs";
-import type { ReactNode } from "react";
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { docsOptions } from "../layout.config";
+import "fumadocs-twoslash/twoslash.css";
 
-function DocsLayout({ children }: { children: ReactNode }) {
+function Layout({ children }: { children: React.ReactNode }) {
 	return (
-		<FumaDocsLayout {...docsOptions}>
+		<DocsLayout {...docsOptions}>
 			<span
 				className="absolute inset-0 z-[-1] h-[64rem] max-h-screen overflow-hidden"
 				style={{
@@ -17,8 +17,8 @@ function DocsLayout({ children }: { children: ReactNode }) {
 			</span>
 
 			{children}
-		</FumaDocsLayout>
+		</DocsLayout>
 	);
 }
 
-export default DocsLayout;
+export default Layout;

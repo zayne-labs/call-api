@@ -19,7 +19,7 @@ import { source } from "./source";
 const linkItems = [
 	{
 		text: "Documentation",
-		url: "/docs/v0",
+		url: "/docs/v1",
 		active: "nested-url",
 	},
 	{
@@ -48,7 +48,14 @@ export const docsOptions: DocsLayoutProps = {
 	nav: {
 		title: (
 			<>
-				<Image alt="CallApi" src={Logo} width={18} height={18} aria-label="CallApi" />
+				<Image
+					alt="CallApi"
+					src={Logo}
+					width={18}
+					height={18}
+					className="rounded-[5px]"
+					aria-label="CallApi"
+				/>
 				<p className="font-medium [header_&]:text-[15px]">CallApi</p>
 			</>
 		),
@@ -57,6 +64,7 @@ export const docsOptions: DocsLayoutProps = {
 	sidebar: {
 		collapsible: false,
 		defaultOpenLevel: 1,
+
 		footer: (
 			<Link
 				href="https://github.com/zayne-labs/callapi"
@@ -66,6 +74,7 @@ export const docsOptions: DocsLayoutProps = {
 				<GitHubIcon width={20} height={20} />
 			</Link>
 		),
+
 		tabs: {
 			transform: (option, node) => {
 				const meta = source.getNodeMeta(node);
@@ -78,8 +87,8 @@ export const docsOptions: DocsLayoutProps = {
 					...option,
 					icon: (
 						<div
-							className="rounded-md border bg-gradient-to-t from-fd-background/80 p-1 text-primary
-								shadow-md [&_svg]:size-5"
+							className="grid size-[30px] place-items-center rounded-md border bg-gradient-to-t
+								from-fd-background/80 p-1 text-primary shadow-md [&_svg]:size-full"
 						>
 							{node.icon}
 						</div>

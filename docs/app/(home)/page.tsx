@@ -17,11 +17,11 @@ export default function HomePage() {
 
 				<p className="mx-auto max-w-2xl text-center text-muted-foreground">
 					A minimal Fetch API wrapper with dozens of convenience features. Built for developers who
-					want a lightweight but convenient interface for making HTTP requests.
+					want a lightweight, but convenient interface for making HTTP requests.
 				</p>
 
 				<div className="flex w-full items-center justify-center gap-4 py-4">
-					<Link href="/docs/v0">
+					<Link href="/docs/v1">
 						<Button className="flex gap-2">
 							{/* <ShinyButton> */}
 							<DocsIcon />

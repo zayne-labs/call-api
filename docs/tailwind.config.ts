@@ -20,35 +20,35 @@ const config = {
 			},
 
 			colors: {
-				background: "hsl(var(--background))",
-				foreground: "hsl(var(--foreground))",
+				background: "hsl(var(--fd-background))",
+				foreground: "hsl(var(--fd-foreground))",
 				destructive: {
-					DEFAULT: "hsl(var(--destructive))",
-					foreground: "hsl(var(--destructive-foreground))",
+					DEFAULT: "hsl(var(--fd-destructive))",
+					foreground: "hsl(var(--fd-destructive-foreground))",
 				},
 				primary: {
-					DEFAULT: "hsl(var(--primary))",
-					foreground: "hsl(var(--primary-foreground))",
+					DEFAULT: "hsl(var(--fd-primary))",
+					foreground: "hsl(var(--fd-primary-foreground))",
 				},
 				secondary: {
-					DEFAULT: "hsl(var(--secondary))",
-					foreground: "hsl(var(--secondary-foreground))",
+					DEFAULT: "hsl(var(--fd-secondary))",
+					foreground: "hsl(var(--fd-secondary-foreground))",
 				},
 				popover: {
-					DEFAULT: "hsl(var(--popover))",
-					foreground: "hsl(var(--popover-foreground))",
+					DEFAULT: "hsl(var(--fd-popover))",
+					foreground: "hsl(var(--fd-popover-foreground))",
 				},
 				accent: {
-					DEFAULT: "hsl(var(--accent))",
-					foreground: "hsl(var(--accent-foreground))",
+					DEFAULT: "hsl(var(--fd-accent))",
+					foreground: "hsl(var(--fd-accent-foreground))",
 				},
 				muted: {
-					DEFAULT: "hsl(var(--muted))",
-					foreground: "hsl(var(--muted-foreground))",
+					DEFAULT: "hsl(var(--fd-muted))",
+					foreground: "hsl(var(--fd-muted-foreground))",
 				},
-				input: "hsl(var(--input))",
-				border: "hsl(var(--border))",
-				ring: "hsl(var(--ring))",
+				input: "hsl(var(--fd-input))",
+				border: "hsl(var(--fd-border))",
+				ring: "hsl(var(--fd-ring))",
 			},
 
 			backgroundImage: {

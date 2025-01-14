@@ -1,7 +1,7 @@
 "use client";
 
+import { Slot } from "@/components/common";
 import { cnMerge } from "@/lib/utils/cn";
-import { Slot } from "@zayne-labs/toolkit/react/ui/slot";
 import type { InferProps } from "@zayne-labs/toolkit/react/utils";
 import type { Prettify } from "@zayne-labs/toolkit/type-helpers";
 import { type VariantProps, tv } from "tailwind-variants";
