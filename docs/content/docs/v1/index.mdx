@@ -6,15 +6,14 @@ icon: circle-play
 
 ## What is CallApi?
 
-CallApi is advanced fetch wrapper designed with one-to-one similarity to fetch API in mind, while still being as convenient as possible to use.
-This means you can use the familiar Fetch API syntax while it offers additional options for convenience.
+CallApi is a powerful HTTP client that enhances the Fetch API while maintaining its familiar syntax. It's designed to be a drop-in replacement that feels natural to Fetch API users, yet provides advanced features for modern web development needs.
 
-It includes multiple features out of the box such as hooks/interceptors, request deduplication, retries, error as value, plugins and more. Works on the browser, node (version 18+), workers, deno and bun.
+By preserving Fetch API's syntax patterns, CallApi ensures a smooth transition for developers while offering powerful additional capabilities that make HTTP requests more manageable and feature-rich.
 
 ## Why CallApi?
 
-Fetching data is the probably the common task in most applications. But the inbuilt solution for that (fetch API) is way too minimalistic for majority of everyday use cases.
-So much so that I (and many others) have to write a lot of unnecessary code to set it up. Or write some quick and dirty abstraction around it, only for it to end up being too coupled to be reusable.
+Fetching data is the probably the common task in most applications. But the inbuilt solution for that (Fetch API) is way too primitive and minimalistic for majority of our fetching needs.
+So much so that one might have to write lots of unnecessary code to use it properly, or write some quick and dirty abstraction around it, which often isn't really comprehensive enough.
 
 Adding to that, I found that majority of the existing fetching solutions while established, end up with one or more of the following problems:
 
@@ -35,8 +34,8 @@ So, I decided to create CallApi to address most of these problems, while staying
 		description="Eliminates duplicate requests and by effect, race conditions"
 	/>
 	<Card
-		title="Request Lifecycle Interceptors/Hooks"
-		description="Callback functions that enables running various side effects at different points in the request lifecycle"
+		title="Interceptors/Hooks"
+		description="Callback functions that allows running of side effects at different points in the request/response lifecycle"
 	/>
 	<Card title="Smart Response Parser" description="Smart response parser for any content type" />
 	<Card

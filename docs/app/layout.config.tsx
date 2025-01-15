@@ -50,7 +50,7 @@ export const docsOptions: DocsLayoutProps = {
 			<>
 				<Image
 					alt="CallApi"
-					src={Logo}
+					src={Logo as unknown as string}
 					width={18}
 					height={18}
 					className="rounded-[5px]"

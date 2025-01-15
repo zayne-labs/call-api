@@ -42,7 +42,7 @@ You can define the response and error types using generics or validate them via 
 import { callApi } from "@zayne-labs/callapi";
 import { z } from "zod";
 
-//Using generic type
+// Using generic type
 
 type Todo = {
 	userId: string;
@@ -53,7 +53,7 @@ type Todo = {
 
 const { data, error, response } = await callApi<Todo>("https://jsonplaceholder.typicode.com/todos/1");
 
-//Using zod schema
+// Using Zod (or any validation lib of your choice)
 
 const todoSchema = z.object({
 	userId: z.string(),
