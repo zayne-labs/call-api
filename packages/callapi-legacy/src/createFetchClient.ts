@@ -101,7 +101,7 @@ export const createFetchClient = <
 		const options = {
 			...resolvedOptions,
 			...interceptors,
-			url,
+			initURL,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof interceptors;
 
 		// == Default Request Options
@@ -253,9 +253,10 @@ export const createFetchClient = <
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
 				? options.throwOnError({
-						error: apiDetails.error,
+						error: apiDetails.error as never,
 						options,
 						request,
+						response: apiDetails.response,
 					})
 				: options.throwOnError;
 

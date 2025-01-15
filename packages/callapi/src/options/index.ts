@@ -1,3 +1,3 @@
 export { callApiWithOptions, createFetchClientWithOptions } from "./createFetchClientWithOptions";
-export { defineCallApiOptions } from "./defineCallApiOptions";
+export { defineOptions } from "./defineOptions";
 export type { CallApiConfigWithRequiredURL } from "./types";

@@ -6,14 +6,13 @@ icon: git-compare-arrows
 
 ## Philosophy
 
-**Lightweight:** CallApi strives to remain as lightweight as possible despite all it offers (currently < 3kb).
-It achieves this by shipping strictly ESM, with no external dependencies. This is so that even users under a strict bundle size budget can use it without qualms. It also supports tree-shaking, meaning that unused code is removed from the bundle, resulting in even smaller bundles. CJS is still supported under a legacy subpath (might be removed in the future), but is not recommended for new projects.
+**Lightweight:** Despite its rich feature set, CallApi maintains a tiny footprint (< 3kb). Built with pure ESM and zero dependencies, it's perfect for bundle-size conscious projects. Tree-shaking ensures you only ship what you use. While CJS is supported via a legacy subpath, ESM is recommended for new projects.
 
-**Intuitive:** CallApi is designed to be as intuitive as possible, modelling the Fetch API to a 1-to-1 similarity. This means you can simply use it as a drop in replacement for fetch, but with extra options in addition to the bare Fetch options for convenience. The additional options are also designed to be pretty intuitive, with sensible defaults.
+**Intuitive:** CallApi mirrors the Fetch API's design patterns, making it a natural drop-in replacement. It extends Fetch's capabilities through additional options that are designed to be pretty intuitive, with sensible defaults that just work.
 
-**Type-safe:** CallApi is full written in Typescript, allowing for proper type hints and intellisense during usage. The types for responses and errors can also be augmented via generics, making it easy to work with typed data (in the next version of callApi, this will automatically inferred via openApi typescript helpers, ensuring total type safety of the library).
+**Type-safe:** Built from the ground up with TypeScript, CallApi provides proper type hints and intellisense. Response and error types are customizable via generics (with automatic type inference from OpenAPI specs coming in the next version). Even for non-TypeScript users, the DX remains consistent.
 
-**Extensible:** CallApi is extensible, with plugins and hooks to extend its functionality. This allows you to add new features or customize existing ones without having to rewrite the entire library.
+**Extensible:** A plugin system and lifecycle hooks let you customize or add functionality without touching the core library. This lets you to add new features or customize existing ones to your specific needs without having to rewrite the entire library.
 
 ## vs Axios
 
@@ -23,7 +22,7 @@ But major issues with axios in this day and age are involve the facts that:
 
 - It's not based on the modern Fetch API, which is a key part of web development today.
 - It's overall API for some use cases is a bit verbose.
-- It's lacks type safety, which is a real problem for typescript users.
+- It's lacks type safety, which is a real DX problem.
 - It's not lightweight, meaning it might not be suitable for smaller projects under a bundle size constraint.
 
 ## vs Ofetch

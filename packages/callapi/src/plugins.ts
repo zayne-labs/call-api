@@ -190,7 +190,7 @@ export const initializePlugins = async <TData, TErrorData>(
 	};
 };
 
-export const defineCallApiPlugin = <
+export const definePlugin = <
 	// eslint-disable-next-line perfectionist/sort-union-types -- I want the first one to be first
 	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
 >(

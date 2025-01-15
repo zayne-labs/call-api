@@ -1,6 +1,6 @@
-import { createFetchClient, defineCallApiPlugin } from "@zayne-labs/callapi";
+import { createFetchClient, definePlugin } from "@zayne-labs/callapi";
 
-const plugin = defineCallApiPlugin({
+const plugin = definePlugin({
 	hooks: {
 		onRequest: () => console.info("PLUGIN-OnRequest"),
 	},
@@ -46,8 +46,8 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 	}),
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
-		onRequest: [() => console.info("OnRequest"), () => console.info("OnRequest")],
-		params: [1],
+		onRequest: () => console.info("OnRequest"),
+		params: [1320],
 	}),
 ]);
 

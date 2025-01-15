@@ -3,5 +3,5 @@
 	"title": "Latest",
 	"icon": "tag",
 	"description": "1.0.0",
-	"pages": ["---Guide---", "index", "...", "---Features---"]
+	"pages": ["---Guide---", "index", "comparisons", "getting-started", "error-handling", "---Features---"]
 }

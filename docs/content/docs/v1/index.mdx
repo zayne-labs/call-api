@@ -6,27 +6,28 @@ icon: book-open-text
 
 ## What is CallApi?
 
-CallApi is a Fetch API wrapper that keeps the original Fetch syntax you know, while adding the extra features you actually nebook-open-texted. It works as a drop-in replacement - if you know Fetch, you already know the basics of CallApi.
+CallApi is a Fetch API wrapper that keeps the original Fetch syntax you know, while adding the extra features you actually need. It works as a drop-in replacement - if you know Fetch, you already know the basics of CallApi.
 
 It comes with built-in request deduplication, retries, error handling, hooks, plugins and more. Runs everywhere JavaScript does: browsers, Node.js (18+), workers, Deno, and Bun.
 
 ## Why CallApi?
 
-Fetching data is the probably the common task in most applications. But the inbuilt solution for that (Fetch API) is way too primitive and minimalistic for majority of our fetching needs.
-So much so that one might have to write lots of unnecessary code to use it properly, or write some quick and dirty abstraction around it, which often isn't really comprehensive enough.
+Data fetching is at the core of most web applications. While the Fetch API provides a standard way to make HTTP requests, it's too primitive or rather too basic for most real-world use cases. Developers often end up writing boilerplate code or creating incomplete abstractions to fill the gaps.
 
-Adding to that, I found that majority of the existing fetching solutions while established, end up with one or more of the following problems:
+Many existing HTTP clients I've used in the past to solve this problem had one or more of the following drawbacks:
 
-- Not based on modern web standards (fetch)
-- Doesn't cover some use cases one often needs (like request deduplication, lifecycle interceptors/hooks, retries, url parameter and query support, auto content type detection, etc.)
-- Have too verbose of an API for the simplest of things
-- Little or no type safety at all
-- Have too large of a bundle size due to legacy constraints, too many dependencies, lack of tree shaking, etc.
-- Impossible to extend, and so on...
+- They are not based on modern web standards (like the Fetch API in this case)
+- Miss crucial features like request deduplication, interceptors, retries, ergonomic error handling etc.
+- Have clunky or verbose APIs for the simplest of things
+- Lack proper TypeScript support
+- Ship with bloated bundles due to things like legacy/backwards-compat constraints, large external dependencies, little to no tree-shaking support etc.
+- Hard to extend or customize to suit specific requirements and so on...
 
-So, I decided to create CallApi to address most of these problems, while staying as intuitive and lightweight as possible.
+So in the end, I decided to create CallApi in order to address these pain points.
 
 ## Features
+
+CallApi aims to be the most comprehensive as well as intuitive fetching library out there. It provides a wide range of features out of the box and still allows you to extend it with plugins. Here are some of the features:
 
 <Cards>
 	<Card
@@ -61,5 +62,3 @@ So, I decided to create CallApi to address most of these problems, while staying
 		description="Wraps around fetch and works on the browser, node (version 18+), workers, deno and bun out of the box but can also use custom fetch implementations like node-fetch"
 	/>
 </Cards>
-
-CallApi aims to be the most comprehensive as well as intuitive fetching library out there. It provides a wide range of features out of the box and still allows you to extend it with plugins. Here are some of the features:

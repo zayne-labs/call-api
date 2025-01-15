@@ -74,7 +74,11 @@ CallApi by default returns a Promise that resolves to an object of data, error a
 
 ### CreateFetchClient
 
-CreateFetchClient allows you to create a callApi fetch instance with custom base configurations.
+`CreateFetchClient` allows you to create a callApi instance with custom base configurations. You can also use `callApi.create` to create an instance of callApi.
+
+You can pass any of the [Fetch API options](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters) as the first argument to the `createFetchClient` function along with any of the [CallApi Options](/docs/callapi-options).
+
+Any similar options passed to the `callApi` instance created will override the options passed to the `createFetchClient` function, since they both take in the same options.
 
 ```ts twoslash title="callBackendApi.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
@@ -96,4 +100,24 @@ type Todo = {
 const { data, error } = await callBackendApi<Todo>("/todos/10");
 ```
 
-You can pass more options see the [CallApi Options](/docs/callapi-options) section for more details.
+### Throwing Errors
+
+You can throw errors instead of returning them by passing the `throwOnError` option.
+
+If you set the `throwOnError` option to `true`, the `callApi` function will throw the error.
+
+If set it to a function instead, it will be passed the error context object, and it should return a boolean indicating whether to throw the error or not.
+
+```ts twoslash title="callBackendApi.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+export const callBackendApi = createFetchClient({
+	baseURL: "https://jsonplaceholder.typicode.com",
+	throwOnError: true,
+});
+
+// @warn: This will throw an error if the request fails or there is an error response
+const { data } = await callBackendApi<{ userId: number }>("https://jsonplaceholder.typicode.com/todos/1");
+```
+
+Learn more about handling errors in [Error Handling](./error-handling) section.

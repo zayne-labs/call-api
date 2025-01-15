@@ -1,7 +1,7 @@
 import type { CallApiResultModeUnion } from "@/types";
 import type { CallApiConfigWithRequiredURL } from "./types";
 
-const defineCallApiOptions = <
+const defineOptions = <
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
@@ -11,4 +11,4 @@ const defineCallApiOptions = <
 	return config;
 };
 
-export { defineCallApiOptions };
+export { defineOptions };

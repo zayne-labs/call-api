@@ -7,5 +7,5 @@ export interface CallApiConfigWithRequiredURL<
 	TErrorData = unknown,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 > extends CallApiConfig<TData, TErrorData, TResultMode> {
-	url: string;
+	initURL: string;
 }

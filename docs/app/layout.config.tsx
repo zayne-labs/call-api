@@ -61,6 +61,7 @@ export const docsOptions: DocsLayoutProps = {
 		),
 		transparentMode: "top",
 	},
+
 	sidebar: {
 		collapsible: false,
 		defaultOpenLevel: 1,
@@ -75,27 +76,27 @@ export const docsOptions: DocsLayoutProps = {
 			</Link>
 		),
 
-		tabs: {
-			transform: (option, node) => {
-				const meta = source.getNodeMeta(node);
+		// tabs: {
+		// 	transform: (option, node) => {
+		// 		const meta = source.getNodeMeta(node);
 
-				if (!meta) {
-					return option;
-				}
+		// 		if (!meta) {
+		// 			return option;
+		// 		}
 
-				return {
-					...option,
-					icon: (
-						<div
-							className="grid size-[30px] place-items-center rounded-md border bg-gradient-to-t
-								from-fd-background/80 p-1 text-primary shadow-md [&_svg]:size-full"
-						>
-							{node.icon}
-						</div>
-					),
-				};
-			},
-		},
+		// 		return {
+		// 			...option,
+		// 			icon: (
+		// 				<div
+		// 					className="grid size-[30px] place-items-center rounded-md border bg-gradient-to-t
+		// 						from-fd-background/80 p-1 text-primary shadow-md [&_svg]:size-full"
+		// 				>
+		// 					{node.icon}
+		// 				</div>
+		// 			),
+		// 		};
+		// 	},
+		// },
 	},
 	tree: source.pageTree,
 };

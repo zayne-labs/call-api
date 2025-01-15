@@ -7,6 +7,7 @@ import {
 	type ErrorObjectUnion,
 	type PossibleHTTPError,
 	type PossibleJavascriptErrorNames,
+	type ResultModeMap,
 	optionsEnumToOmitFromBase,
 	optionsEnumToOmitFromInstance,
 } from "../types";
@@ -226,22 +227,21 @@ type SuccessInfo = {
 export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiResult => {
 	const { data, response, resultMode } = info;
 
-	const apiDetails = {
-		data,
-		error: null,
-		response,
-	};
+	const apiDetails = { data, error: null, response };
 
 	if (!resultMode) {
 		return apiDetails as CallApiResult;
 	}
 
-	return {
+	const resultModeMap: ResultModeMap = {
 		all: apiDetails,
 		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
 		onlySuccess: apiDetails.data,
-	}[resultMode] as CallApiResult;
+		onlySuccessWithException: apiDetails.data,
+	};
+
+	return resultModeMap[resultMode] as CallApiResult;
 };
 
 type ErrorInfo = {
@@ -254,7 +254,15 @@ type ErrorInfo = {
 export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 	const { defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
 
-	let apiDetails!: CallApiResultErrorVariant<unknown>;
+	let apiDetails: CallApiResultErrorVariant<unknown> = {
+		data: null,
+		error: {
+			errorData: error as Error,
+			message: customErrorMessage ?? (error as Error).message,
+			name: (error as Error).name as PossibleJavascriptErrorNames,
+		},
+		response: null,
+	};
 
 	if (isHTTPErrorInstance(error)) {
 		const { errorData, message = defaultErrorMessage, name, response } = error;
@@ -270,26 +278,15 @@ export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
 		};
 	}
 
-	if (!isHTTPErrorInstance(error)) {
-		const { message, name } = error as Error;
-
-		apiDetails = {
-			data: null,
-			error: {
-				errorData: error as Error,
-				message: customErrorMessage ?? message,
-				name: name as PossibleJavascriptErrorNames,
-			},
-			response: null,
-		};
-	}
-
-	const generalErrorResult = ({
+	const resultModeMap: ResultModeMap = {
 		all: apiDetails,
 		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
 		onlySuccess: apiDetails.data,
-	}[resultMode ?? "all"] ?? apiDetails) as TCallApiResult;
+		onlySuccessWithException: apiDetails.data,
+	};
+
+	const generalErrorResult = resultModeMap[resultMode ?? "all"] as TCallApiResult;
 
 	// prettier-ignore
 	const resolveCustomErrorInfo = ({ message }: Pick<ErrorInfo, "message">) => {

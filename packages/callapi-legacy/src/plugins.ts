@@ -53,15 +53,6 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	version?: string;
 };
 
-export const defineCallApiPlugin = <
-	// eslint-disable-next-line perfectionist/sort-union-types -- I want the first one to be first
-	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
->(
-	plugin: TPlugin
-) => {
-	return plugin;
-};
-
 const createMergedInterceptor = (
 	interceptors: Array<AnyFunction<Awaitable<unknown>> | undefined>,
 	mergedInterceptorsExecutionMode: CombinedCallApiExtraOptions["mergedInterceptorsExecutionMode"]
@@ -84,10 +75,13 @@ const createMergedInterceptor = (
 	};
 };
 
+type InterceptorsOrInterceptorsArray<TData, TErrorData> =
+	| Interceptors<TData, TErrorData>
+	| InterceptorsArray<TData, TErrorData>;
+
+// prettier-ignore
 type PluginHooks<TData, TErrorData> = {
-	[Key in keyof Interceptors<TData, TErrorData>]: Array<
-		Interceptors<TData, TErrorData>[Key] | InterceptorsArray<TData, TErrorData>[Key]
-	>;
+	[Key in keyof Interceptors<TData, TErrorData>]: Set<InterceptorsOrInterceptorsArray<TData, TErrorData>[Key]>;
 };
 
 export const initializePlugins = async <TData, TErrorData>(
@@ -96,30 +90,30 @@ export const initializePlugins = async <TData, TErrorData>(
 	const { initURL, options, request } = context;
 
 	const hookRegistry = {
-		onError: [],
-		onRequest: [],
-		onRequestError: [],
-		onResponse: [],
-		onResponseError: [],
-		onSuccess: [],
+		onError: new Set([]),
+		onRequest: new Set([]),
+		onRequestError: new Set([]),
+		onResponse: new Set([]),
+		onResponseError: new Set([]),
+		onSuccess: new Set([]),
 	} satisfies PluginHooks<TData, TErrorData> as Required<PluginHooks<TData, TErrorData>>;
 
 	const addMainInterceptors = () => {
-		hookRegistry.onRequest.push(options.onRequest);
-		hookRegistry.onRequestError.push(options.onRequestError);
-		hookRegistry.onResponse.push(options.onResponse);
-		hookRegistry.onResponseError.push(options.onResponseError);
-		hookRegistry.onSuccess.push(options.onSuccess);
-		hookRegistry.onError.push(options.onError);
+		hookRegistry.onRequest.add(options.onRequest);
+		hookRegistry.onRequestError.add(options.onRequestError);
+		hookRegistry.onResponse.add(options.onResponse);
+		hookRegistry.onResponseError.add(options.onResponseError);
+		hookRegistry.onSuccess.add(options.onSuccess);
+		hookRegistry.onError.add(options.onError);
 	};
 
 	const addPluginInterceptors = (pluginHooks: Interceptors<TData, TErrorData>) => {
-		hookRegistry.onRequest.push(pluginHooks.onRequest);
-		hookRegistry.onRequestError.push(pluginHooks.onRequestError);
-		hookRegistry.onResponse.push(pluginHooks.onResponse);
-		hookRegistry.onResponseError.push(pluginHooks.onResponseError);
-		hookRegistry.onSuccess.push(pluginHooks.onSuccess);
-		hookRegistry.onError.push(pluginHooks.onError);
+		hookRegistry.onRequest.add(pluginHooks.onRequest);
+		hookRegistry.onRequestError.add(pluginHooks.onRequestError);
+		hookRegistry.onResponse.add(pluginHooks.onResponse);
+		hookRegistry.onResponseError.add(pluginHooks.onResponseError);
+		hookRegistry.onSuccess.add(pluginHooks.onSuccess);
+		hookRegistry.onError.add(pluginHooks.onError);
 	};
 
 	if (options.mergedInterceptorsExecutionOrder === "mainInterceptorFirst") {
@@ -155,7 +149,7 @@ export const initializePlugins = async <TData, TErrorData>(
 	};
 
 	for (const plugin of options.override?.plugins ?? resolvedPlugins) {
-		// eslint-disable-next-line no-await-in-loop -- This is necessary in this case
+		// eslint-disable-next-line no-await-in-loop -- Await is necessary in this case.
 		await executePluginInit(plugin.init);
 
 		if (!plugin.hooks) continue;
@@ -180,12 +174,12 @@ export const initializePlugins = async <TData, TErrorData>(
 	};
 
 	const interceptors = {
-		onError: handleInterceptorsMerge(hookRegistry.onError.flat()),
-		onRequest: handleInterceptorsMerge(hookRegistry.onRequest.flat()),
-		onRequestError: handleInterceptorsMerge(hookRegistry.onRequestError.flat()),
-		onResponse: handleInterceptorsMerge(hookRegistry.onResponse.flat()),
-		onResponseError: handleInterceptorsMerge(hookRegistry.onResponseError.flat()),
-		onSuccess: handleInterceptorsMerge(hookRegistry.onSuccess.flat()),
+		onError: handleInterceptorsMerge([...hookRegistry.onError].flat()),
+		onRequest: handleInterceptorsMerge([...hookRegistry.onRequest].flat()),
+		onRequestError: handleInterceptorsMerge([...hookRegistry.onRequestError].flat()),
+		onResponse: handleInterceptorsMerge([...hookRegistry.onResponse].flat()),
+		onResponseError: handleInterceptorsMerge([...hookRegistry.onResponseError].flat()),
+		onSuccess: handleInterceptorsMerge([...hookRegistry.onSuccess].flat()),
 	} satisfies Interceptors<TData, TErrorData>;
 
 	return {
@@ -194,4 +188,13 @@ export const initializePlugins = async <TData, TErrorData>(
 		resolvedRequestOptions,
 		url: resolvedUrl,
 	};
+};
+
+export const definePlugin = <
+	// eslint-disable-next-line perfectionist/sort-union-types -- I want the first one to be first
+	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
+>(
+	plugin: TPlugin
+) => {
+	return plugin;
 };

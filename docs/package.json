@@ -10,7 +10,7 @@
 		"start": "next start"
 	},
 	"dependencies": {
-		"@zayne-labs/callapi": "1.0.0-rc.74",
+		"@zayne-labs/callapi": "workspace:*",
 		"@zayne-labs/toolkit": "^0.8.32",
 		"@zayne-labs/ui-react": "^0.2.1",
 		"clsx": "^2.1.1",

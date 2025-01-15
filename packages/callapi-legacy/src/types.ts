@@ -190,6 +190,11 @@ export type ExtraOptions<
 	defaultErrorMessage?: string;
 
 	/**
+	 * @description URL to be used in the request.
+	 */
+	readonly initURL?: string;
+
+	/**
 	 * @description Defines the mode in which the merged interceptors are executed, can be set to "parallel" | "sequential".
 	 * - If set to "parallel", both plugin and main interceptors will be executed in parallel.
 	 * - If set to "sequential", the plugin interceptors will be executed first, followed by the main interceptor.
@@ -308,23 +313,12 @@ export type ExtraOptions<
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
 	 */
-	throwOnError?:
-		| boolean
-		| ((ctx: {
-				error: ErrorContext<TErrorData>["error"];
-				options: CallApiExtraOptions;
-				request: CallApiRequestOptions;
-		  }) => boolean);
+	throwOnError?: boolean | ((context: ErrorContext<TErrorData>) => boolean);
 
 	/**
 	 * @description Request timeout in milliseconds
 	 */
 	timeout?: number;
-
-	/**
-	 * @description URL to be used in the request.
-	 */
-	readonly url?: string;
 };
 
 export const optionsEnumToOmitFromBase = defineEnum(["extend", "override", "requestKey"]);
@@ -461,27 +455,21 @@ export type PossibleJavascriptErrorNames =
 	| "TypeError"
 	| (`${string}Error` & {});
 
+export type PossibleJavaScriptError = UnmaskType<{
+	errorData: DOMException | Error | SyntaxError | TypeError;
+	message: string;
+	name: PossibleJavascriptErrorNames;
+}>;
+
+export type PossibleHTTPError<TErrorData> = UnmaskType<{
+	errorData: TErrorData;
+	message: string;
+	name: "HTTPError";
+}>;
+
 export type ErrorObjectUnion<TErrorData = unknown> =
-	| {
-			errorData: DOMException | Error | SyntaxError | TypeError;
-			message: string;
-			name:
-				| "AbortError"
-				| "Error"
-				| "SyntaxError"
-				| "TimeoutError"
-				| "TypeError"
-				| (`${string}Error` & {});
-	  }
-	| {
-			errorData: TErrorData;
-			message: string;
-			name: "HTTPError";
-	  };
-
-export type PossibleHTTPError<TErrorData> = Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;
-
-export type PossibleJavaScriptError = Extract<ErrorObjectUnion, { errorData: Error }>;
+	| PossibleHTTPError<TErrorData>
+	| PossibleJavaScriptError;
 
 export type CallApiResultSuccessVariant<TData> = {
 	data: TData;
@@ -507,6 +495,7 @@ export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
 	onlyError: CallApiResultErrorVariant<TErrorData>["error"] | null;
 	onlyResponse: CallApiResultSuccessVariant<TData>["response"] | null;
 	onlySuccess: CallApiResultSuccessVariant<TData>["data"] | null;
+	onlySuccessWithException: CallApiResultSuccessVariant<TData>["data"];
 };
 
 export type CallApiResultModeUnion =
@@ -514,7 +503,7 @@ export type CallApiResultModeUnion =
 	| undefined;
 
 export type GetCallApiResult<TData, TErrorData, TResultMode> = TErrorData extends false
-	? ResultModeMap<TData, TErrorData>["onlySuccess"]
+	? ResultModeMap<TData, TErrorData>["onlySuccessWithException"]
 	: undefined extends TResultMode
 		? ResultModeMap<TData, TErrorData>["all"]
 		: TResultMode extends NonNullable<CallApiResultModeUnion>

@@ -10,8 +10,9 @@ import { defaultHandlers, toHast } from "mdast-util-to-hast";
 import type { ShikiTransformer, ShikiTransformerContextCommon } from "shiki";
 
 /**
- * @copied from fumadocs-twoslash package, but with modifications to make it work with @annotate tags.
- * I achieved this by removing the twoSlashOptions completely,
+ * @description This was copied from fumadocs-twoslash package, but with modifications to make it work with annotation tags.
+ *
+ * I achieved this by removing the twoSlashOptions completely from the twoslash transformer.
  *
  * @see https://github.com/fuma-nama/fumadocs/blob/dev/packages/twoslash/src/index.ts
  */
@@ -84,6 +85,7 @@ export function transformerTwoslash(options?: TransformerTwoslashIndexOptions): 
 			renderMarkdownInline,
 			...options?.rendererRich,
 		},
+
 		// == twoslashOptions causes errors when using @annotate tags and co, so I removed it
 		// twoslashOptions: {
 		// 	...options?.twoslashOptions,

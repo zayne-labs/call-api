@@ -59,7 +59,7 @@ export const createFetchClientWithOptions = <
 	>(
 		configWithRequiredURL: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
-		const { url: initURL, ...config } = configWithRequiredURL;
+		const { initURL, ...config } = configWithRequiredURL;
 
 		type CallApiResult = never;
 
@@ -102,7 +102,7 @@ export const createFetchClientWithOptions = <
 		const options = {
 			...resolvedOptions,
 			...interceptors,
-			url,
+			initURL,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof interceptors;
 
 		// == Default Request Options
@@ -254,9 +254,10 @@ export const createFetchClientWithOptions = <
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
 				? options.throwOnError({
-						error: apiDetails.error,
+						error: apiDetails.error as never,
 						options,
 						request,
+						response: apiDetails.response,
 					})
 				: options.throwOnError;
 
