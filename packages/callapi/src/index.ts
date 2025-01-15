@@ -15,6 +15,7 @@ export type {
 	CallApiResultModeUnion,
 	CallApiResultSuccessVariant,
 	CombinedCallApiExtraOptions,
+	PossibleJavascriptErrorNames,
 	ErrorContext,
 	Register,
 	RequestContext,

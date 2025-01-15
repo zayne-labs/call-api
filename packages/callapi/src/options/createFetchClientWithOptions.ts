@@ -77,7 +77,7 @@ export const createFetchClientWithOptions = <
 			mergedInterceptorsExecutionOrder: "mainInterceptorLast",
 			responseType: "json",
 			resultMode: "all",
-			retries: 0,
+			retryAttempts: 0,
 			retryCodes: defaultRetryCodes,
 			retryDelay: 0,
 			retryMethods: defaultRetryMethods,
@@ -180,14 +180,14 @@ export const createFetchClientWithOptions = <
 			const shouldRetry =
 				!response.ok &&
 				!combinedSignal.aborted &&
-				options.retries > 0 &&
+				options.retryAttempts > 0 &&
 				options.retryCodes.includes(response.status) &&
 				options.retryMethods.includes(request.method);
 
 			if (shouldRetry) {
 				await waitUntil(options.retryDelay);
 
-				return await callApi({ ...configWithRequiredURL, retries: options.retries - 1 });
+				return await callApi({ ...configWithRequiredURL, retryAttempts: options.retryAttempts - 1 });
 			}
 
 			// == Clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once

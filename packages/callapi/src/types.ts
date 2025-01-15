@@ -283,7 +283,7 @@ export type ExtraOptions<
 	 * @description Number of retry attempts for failed requests
 	 * @default 0
 	 */
-	retries?: number;
+	retryAttempts?: number;
 
 	/**
 	 * @description HTTP status codes that trigger a retry
@@ -463,12 +463,6 @@ export type PossibleJavascriptErrorNames =
 
 export type ErrorObjectUnion<TErrorData = unknown> =
 	| {
-			errorData: TErrorData;
-			message: string;
-			name: "HTTPError";
-	  }
-	// eslint-disable-next-line perfectionist/sort-union-types -- Let the first one be first
-	| {
 			errorData: DOMException | Error | SyntaxError | TypeError;
 			message: string;
 			name:
@@ -478,6 +472,11 @@ export type ErrorObjectUnion<TErrorData = unknown> =
 				| "TimeoutError"
 				| "TypeError"
 				| (`${string}Error` & {});
+	  }
+	| {
+			errorData: TErrorData;
+			message: string;
+			name: "HTTPError";
 	  };
 
 export type PossibleHTTPError<TErrorData> = Extract<ErrorObjectUnion<TErrorData>, { name: "HTTPError" }>;

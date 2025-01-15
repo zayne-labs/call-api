@@ -1,7 +1,7 @@
 ---
 title: Getting Started
 description: How to get started with CallApi
-icon: "play"
+icon: circle-play
 ---
 
 ## Installation
@@ -28,7 +28,7 @@ _If you want to use a specific version, you can specify it in the URL like this:
 
 ```html
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi@0.7.7";
+	import { callApi } from "https://esm.run/@zayne-labs/callapi@0.8.0";
 </script>
 ```
 
@@ -40,9 +40,8 @@ You can define the response and error types using generics or validate them via 
 
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
-import { z } from "zod";
 
-// Using generic type
+// @log: Using generic type
 
 type Todo = {
 	userId: string;
@@ -53,7 +52,9 @@ type Todo = {
 
 const { data, error, response } = await callApi<Todo>("https://jsonplaceholder.typicode.com/todos/1");
 
-// Using Zod (or any validation lib of your choice)
+//@log: Using Zod (or any validation lib of your choice)
+
+import { z } from "zod";
 
 const todoSchema = z.object({
 	userId: z.string(),
@@ -65,4 +66,34 @@ const todoSchema = z.object({
 const { data: todos, error: todoError } = await callApi("https://jsonplaceholder.typicodei.com/todos/1", {
 	responseValidator: todoSchema.parse,
 });
+
+// @annotate: Hover over the data or error object to see the type
 ```
+
+CallApi by default returns a Promise that resolves to an object of data, error and the original response object. But this can be customized using the `resultMode` option.
+
+### CreateFetchClient
+
+CreateFetchClient allows you to create a callApi fetch instance with custom base configurations.
+
+```ts twoslash title="callBackendApi.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+export const callBackendApi = createFetchClient({
+	baseURL: "https://jsonplaceholder.typicode.com",
+	retryAttempts: 3,
+	credentials: "same-origin",
+	timeout: 10000,
+});
+
+type Todo = {
+	userId: string;
+	id: number;
+	title: string;
+	completed: boolean;
+};
+
+const { data, error } = await callBackendApi<Todo>("/todos/10");
+```
+
+You can pass more options see the [CallApi Options](/docs/callapi-options) section for more details.
