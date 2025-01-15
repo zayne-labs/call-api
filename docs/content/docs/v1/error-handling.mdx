@@ -11,3 +11,12 @@ CallApi by default returns response errors and request errors as a value. The er
 1. `errorData`: The error data, which can either be an error response from the API or a standard JavaScript error object.
 2. `name`: The name of the error (e.g., 'TypeError', 'SyntaxError', 'HTTPError').
 3. `message`: The error message describing what went wrong.
+
+```ts twoslash title="fetch.ts"
+import { callApi } from "@zayne-labs/callapi";
+
+const { error } = await callApi("https://jsonplaceholder.typicode.com/todos/1");
+// @annotate: Hover over the error object to see the type
+```
+
+## Custom Error Type
