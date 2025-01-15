@@ -21,13 +21,14 @@ export const buttonVariants = tv({
 		},
 
 		theme: {
-			default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
-			destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-			ghost: "hover:bg-accent hover:text-accent-foreground",
-			link: "text-primary underline-offset-4 hover:underline",
-			outline:
-				"border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-			secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+			default: "bg-fd-primary text-fd-primary-foreground shadow hover:bg-fd-primary/90",
+			destructive:
+				"bg-fd-destructive text-fd-destructive-foreground shadow-sm hover:bg-fd-destructive/90",
+			ghost: "hover:bg-fd-accent hover:text-fd-accent-foreground",
+			link: "text-fd-primary underline-offset-4 hover:underline",
+			outline: `border border-fd-input bg-fd-background shadow-sm hover:bg-fd-accent
+			hover:text-fd-accent-foreground`,
+			secondary: "bg-fd-secondary text-fd-secondary-foreground shadow-sm hover:bg-fd-secondary/80",
 		},
 	},
 

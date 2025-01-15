@@ -29,7 +29,7 @@
 		"@types/node": "^22.10.5",
 		"@zayne-labs/eslint-config": "0.5.1",
 		"eslint": "9.18.0",
-		"eslint-plugin-react-compiler": "19.0.0-beta-63e3235-20250105",
+		"eslint-plugin-react-compiler": "19.0.0-beta-e552027-20250112",
 		"eslint-plugin-react-hooks": "^5.1.0",
 		"eslint-plugin-react-refresh": "^0.4.18",
 		"eslint-plugin-tailwindcss": "^3.17.5",

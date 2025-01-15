@@ -4,10 +4,10 @@
 
 @layer base {
 	:root {
-		/* --fd-foreground: 20 14.3% 4.1%; */
-		/* --fd-background: 0 0% 100%; */
-		/* --fd-card: 251 50% 0%; */
-		/* --fd-card-foreground: 251 5% 90%; */
+		--fd-background: 0 0% 100%;
+		--fd-foreground: 20 14.3% 4.1%;
+		--fd-card: 0 0% 100%;
+		--fd-card-foreground: 20 14.3% 4.1%;
 		--fd-popover: 0 0% 100%;
 		--fd-popover-foreground: 20 14.3% 4.1%;
 		--fd-primary: 24.6 95% 53.1%;
