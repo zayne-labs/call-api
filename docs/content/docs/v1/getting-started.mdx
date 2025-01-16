@@ -41,7 +41,7 @@ You can define the response and error types using generics or validate them via 
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
 
-// @log: Using generic type
+// @log: Manually provide the generic type
 
 type Todo = {
 	userId: string;
@@ -63,11 +63,11 @@ const todoSchema = z.object({
 	completed: z.boolean(),
 });
 
+// @annotate: Hover over the data or error object to see the type
+
 const { data: todos, error: todoError } = await callApi("https://jsonplaceholder.typicodei.com/todos/1", {
 	responseValidator: todoSchema.parse,
 });
-
-// @annotate: Hover over the data or error object to see the type
 ```
 
 CallApi by default returns a Promise that resolves to an object of data, error and the original response object. But this can be customized using the `resultMode` option.
@@ -120,4 +120,4 @@ export const callBackendApi = createFetchClient({
 const { data } = await callBackendApi<{ userId: number }>("https://jsonplaceholder.typicode.com/todos/1");
 ```
 
-Learn more about handling errors in [Error Handling](./error-handling) section.
+Learn more about handling errors in the [Error Handling](./error-handling) section.

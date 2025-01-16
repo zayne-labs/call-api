@@ -1,5 +1,5 @@
 {
 	"typescript.tsdk": "node_modules\\typescript\\lib",
-	"cSpell.words": ["attw", "callapi", "Fuma", "publint", "treeshake", "TSUP", "Twoslash"],
+	"cSpell.words": ["attw", "callapi", "Fuma", "publint", "Shiki", "treeshake", "TSUP", "Twoslash"],
 	"arrayIndexInlay.enabled": false
 }
