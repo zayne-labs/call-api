@@ -8,15 +8,182 @@ icon: shield-alert
 
 CallApi by default returns response errors and request errors as a value. The error object has 3 properties:
 
-1. `errorData`: The error data, which can either be an error response from the API or a standard JavaScript error object.
-2. `name`: The name of the error (e.g., 'TypeError', 'SyntaxError', 'HTTPError').
-3. `message`: The error message describing what went wrong.
+1. **`name`**: The type of error (e.g., `'HTTPError'`, `'TypeError'`, `'SyntsaxError'`).
+2. **`message`**: A brief description of what went wrong. This could be:
+   - The error message from the JavaScript error object if it's a non-HTTP error.
+   - The error message from the server if it's an HTTP error. If there was no message property on the error response, the error message specified in the `defaultErrorMessage` option will be used.
+3. **`errorData`**: The detailed error information, which can either be:
+   - The parsed response from the API if it's an HTTP error.
+   - The JavaScript error object that caused the error for non-HTTP errors.
 
-```ts twoslash title="fetch.ts"
+```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
 
-const { error } = await callApi("https://jsonplaceholder.typicode.com/todos/1");
-// @ annotate: Hover over the error object to see the type
+const { error } = await callApi("https://my-api.com/api/v1/session");
+// @annotate: Hover over the error object to see the type
 ```
 
-## Custom Error Type
+## Custom ErrorData Type
+
+For HTTP errors, you can customize the error response data type by providing a second generic type argument to the `callApi` function.
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+
+type UserData = {
+	id: number;
+	userId: string;
+	title: string;
+	completed: boolean;
+};
+
+type ErrorResponseData = {
+	message?: string;
+	errors?: Array<string | string[]>;
+};
+
+const { error } = await callApi<
+	UserData,
+	ErrorResponseData // [!code highlight]
+>("https://my-api.com/api/v1/session");
+
+// @annotate: Hover over the error object to see the type of the `errorData` property
+```
+
+Similar to response data, you can also validate the error response using zod or any other validation library, which will also automatically infer the error data type.
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+import { z } from "zod";
+
+const userDataSchema = z.object({
+	id: z.number(),
+	userId: z.string(),
+	title: z.string(),
+	completed: z.boolean(),
+});
+
+const errorResponseSchema = z.object({
+	message: z.string(),
+	errors: z.array(z.union([z.string(), z.array(z.string())])),
+});
+
+const { error } = await callApi("https://my-api.com/api/v1/session", {
+	responseValidator: userDataSchema.parse,
+	responseErrorValidator: errorResponseSchema.parse, // [!code highlight]
+});
+
+// @annotate: Hover over the error object to see the type of the `errorData` property
+```
+
+## Handling Errors
+
+## The `error` object as a discriminated union
+
+Since the error object returned from `callApi` is a discriminated union, you can use the `isHTTPError` utility provided by `@zayne-labs/callapi/utils` to check if it's an HTTP error. It will also help narrow down the union down to the one that contains `HTTPError` error name.
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+import { isHTTPError } from "@zayne-labs/callapi/utils";
+
+type UserData = {
+	id: number;
+	userId: string;
+	title: string;
+	completed: boolean;
+};
+
+type ErrorResponseData = {
+	message?: string;
+	errors?: Array<string | string[]>;
+};
+
+const { data, error } = await callApi<UserData, ErrorResponseData>("https://my-api.com/api/v1/session");
+
+// @annotate: Hover over the error object to see its type narrowed specifically to HTTPError union
+if (isHTTPError(error)) {
+	console.error(error);
+
+	console.error(error.name); // 'HTTPError'
+	console.error(error.message);
+	console.error(error.errorData); // Will be set to the error response data
+} else if (error) {
+	console.error(error);
+	console.error(error.name); // PossibleJavascriptErrorNames
+	console.error(error.message);
+	console.error(error.errorData); // Will be set to the JS error object that caused the error
+}
+```
+
+If you're using the `throwOnError` option, the `callApi` function will throw the error instead of returning it.
+
+This error will be an instance of the `HTTPError` class, which is a subclass of the JavaScript `Error` class.
+
+In such case you can handle the error using a try-catch block with the help of a `isHTTPErrorInstance` utility provided by `@zayne-labs/callapi/utils`. Or you can use the `instanceof` operator with HTTPError class from `@zayne-labs/callapi/utils`.
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+import { isHTTPErrorInstance } from "@zayne-labs/callapi/utils";
+
+type UserData = {
+	id: number;
+	userId: string;
+	title: string;
+	completed: boolean;
+};
+
+type ErrorResponseData = {
+	message?: string;
+	errors?: Array<string | string[]>;
+};
+
+try {
+	const { data } = await callApi<UserData>("https://my-api.com/api/v1/session", {
+		throwOnError: true,
+	});
+} catch (error) {
+	if (isHTTPErrorInstance<ErrorResponseData>(error)) {
+		console.error(error);
+		console.error(error.name);
+		console.error(error.message);
+		console.error(error.errorData);
+	}
+}
+```
+
+With this setup, you can handle errors in a unified way, regardless of whether they're HTTP errors or not and not lose any valuable info about the error.
+
+### The `data` and `error` properties are members of a discriminated union
+
+If you hover over the types of the `data` and `error` properties in the examples above, you'll notice they can be `null`.
+This is because when an error occurs, `data` will be null, and when the response is successful, `error` will be null.
+
+By checking for errors first, TypeScript will narrow down the type of `data` to exclude `null`. So simply checking and handling the errors should eliminate the null from the data.
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+import { isHTTPError } from "@zayne-labs/callapi/utils";
+
+type UserData = {
+	id: number;
+	userId: string;
+	title: string;
+	completed: boolean;
+};
+
+type ErrorResponseData = {
+	message?: string;
+	errors?: Array<string | string[]>;
+};
+
+const { data, error } = await callApi<UserData, ErrorResponseData>("https://my-api.com/api/v1/session");
+
+if (isHTTPError(error)) {
+	console.error(error);
+} else if (error) {
+	console.error(error);
+} else {
+	console.log(data);
+}
+// @annotate: Hover over the data object to the narrowed type
+```
