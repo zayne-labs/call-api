@@ -1,0 +1,61 @@
+---
+title: Request Deduplication
+description: Optimize your API calls by preventing duplicate requests
+---
+
+## Overview
+
+Request deduplication helps prevent redundant API calls by managing concurrent requests to the same endpoint. This is particularly useful in scenarios where multiple components might trigger the same API call simultaneously.
+
+## Configuration
+
+CallApi provides three deduplication strategies through the `dedupeStrategy` option:
+
+```ts
+const client = createFetchClient({
+  dedupeStrategy: "cancel" // "cancel" | "defer" | "none"
+});
+```
+
+### Strategies
+
+1. **cancel** (default)
+   - Cancels any existing request when a new identical request is made
+   - Best for scenarios where you only need the latest data
+   ```ts
+   const { data } = await client("/users/123", {
+     dedupeStrategy: "cancel"
+   });
+   ```
+
+2. **defer**
+   - Reuses the promise from an in-flight request
+   - Multiple calls get the same response
+   - Useful when multiple components need the same data
+   ```ts
+   const { data } = await client("/users/123", {
+     dedupeStrategy: "defer"
+   });
+   ```
+
+3. **none**
+   - Disables deduplication
+   - Each request runs independently
+   ```ts
+   const { data } = await client("/users/123", {
+     dedupeStrategy: "none"
+   });
+   ```
+
+## How It Works
+
+Request deduplication works by:
+1. Generating a unique key for each request based on URL and parameters
+2. Tracking in-flight requests using this key
+3. Applying the chosen strategy when duplicate requests are detected
+
+## Best Practices
+
+- Use `cancel` when you only need the most recent data
+- Use `defer` when multiple components need the same data simultaneously
+- Use `none` when requests must be independent, like in polling scenarios

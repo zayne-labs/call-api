@@ -1,0 +1,61 @@
+---
+title: URL helpers
+description: Learn about various convenient ways to build request URLs in CallApi
+---
+
+## Base URL
+
+You can also set a base URL for requests using the `baseURL` option on `createFetchClient`:
+
+```ts twoslash title="api.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const callBackendApi = createFetchClient({
+	baseURL: "https://api.example.com",
+});
+
+const { data } = await callBackendApi("/users/123/posts");
+
+// @log: The resolved URL will be: https://api.example.com/users/123/posts
+```
+
+## Dynamic Parameters
+
+Dynamic parameters enable you to include variable segments in your URL paths using the `:` prefix. For example, in a URL like `/users/:userId`, the `:userId` segment is a dynamic parameter. When making a request, these parameters are automatically replaced with the actual values provided in the `params` option.
+
+The `params` option can take in an object where the keys are the dynamic parameters and the values are the corresponding values to replace them with. It can also take in an array where the values are the values to replace the dynamic parameters in the order they appear in the URL path.
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+
+const { data } = await callApi("https://api.example.com/users/:userId/posts/:postId", {
+	params: {
+		userId: 123,
+		postId: 456,
+	},
+});
+
+const { data: userData } = await callApi("https://api.example.com/users/:userId/posts/:postId", {
+	params: [123, 456],
+});
+
+// @log: The resolved URL for both cases will be: https://api.example.com/users/123/posts/456
+```
+
+## Query Parameters
+
+In addition to dynamic parameters, you can also include query parameters to the URL using the `query` option:
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+
+const { data } = await callApi("https://api.example.com/users/123/posts", {
+	query: {
+		page: 1,
+		limit: 10,
+		sort: "latest",
+	},
+});
+
+// @log: The resolved URL will be: https://api.example.com/users/123/posts?page=1&limit=10&sort=latest
+```

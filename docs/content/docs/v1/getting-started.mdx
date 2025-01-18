@@ -116,7 +116,7 @@ export const callBackendApi = createFetchClient({
 	throwOnError: true,
 });
 
-// @warn: This will throw an error if the request fails or there is an error response
+// @error: This will throw an error if the request fails or there is an error response
 const { data } = await callBackendApi<{ userId: number }>("https://jsonplaceholder.typicode.com/todos/1");
 ```
 
