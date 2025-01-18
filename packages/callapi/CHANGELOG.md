@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 1.1.0
+
+### Minor Changes
+
+- 4ff75bc: feat!: rename requestKey to dedupeKey
+
 ## 1.0.0
 
 ### Major Changes
