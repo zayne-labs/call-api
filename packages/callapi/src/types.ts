@@ -173,6 +173,12 @@ export type ExtraOptions<
 	customFetchImpl?: FetchImpl;
 
 	/**
+	 * @description Custom request key to be used to identify a request in the fetch deduplication strategy.
+	 * @default the full request url + string formed from the request options
+	 */
+	dedupeKey?: string;
+
+	/**
 	 * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
 	 * - If set to "none", deduplication is disabled.
 	 *
@@ -250,12 +256,6 @@ export type ExtraOptions<
 	query?: Record<string, boolean | number | string>;
 
 	/**
-	 * @description Custom request key to be used to identify a request in the fetch deduplication strategy.
-	 * @default the full request url + string formed from the request options
-	 */
-	requestKey?: string;
-
-	/**
 	 * @description Custom function to validate the response error data, stemming from the api.
 	 * This only runs if the api actually sends back error status codes, else it will be ignored, in which case you should only use the `responseValidator` option.
 	 */
@@ -321,7 +321,7 @@ export type ExtraOptions<
 	timeout?: number;
 };
 
-export const optionsEnumToOmitFromBase = defineEnum(["extend", "override", "requestKey"]);
+export const optionsEnumToOmitFromBase = defineEnum(["extend", "override", "dedupeKey"]);
 
 // prettier-ignore
 export interface BaseCallApiExtraOptions<

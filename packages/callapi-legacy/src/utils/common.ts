@@ -74,11 +74,11 @@ export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string
 	return Object.fromEntries(headers);
 };
 
-export const generateRequestKey = (
+export const generateDedupeKey = (
 	url: string,
-	config: Record<string, unknown> & { shouldHaveRequestKey: boolean }
+	config: Record<string, unknown> & { shouldHaveDedupeKey: boolean }
 ) => {
-	if (!config.shouldHaveRequestKey) {
+	if (!config.shouldHaveDedupeKey) {
 		return null;
 	}
 

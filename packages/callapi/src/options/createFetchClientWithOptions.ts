@@ -15,7 +15,7 @@ import {
 	HTTPError,
 	executeHooks,
 	flattenHooks,
-	generateRequestKey,
+	generateDedupeKey,
 	getFetchImpl,
 	getResponseData,
 	isHTTPErrorInstance,
@@ -116,25 +116,25 @@ export const createFetchClientWithOptions = <
 		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
 
 		// prettier-ignore
-		const shouldHaveRequestKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
+		const shouldHaveDedupeKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
 
-		const requestKey =
-			options.requestKey ??
-			generateRequestKey(fullURL, { shouldHaveRequestKey, ...resolvedRequestOptions, ...options });
+		const dedupeKey =
+			options.dedupeKey ??
+			generateDedupeKey(fullURL, { shouldHaveDedupeKey, ...resolvedRequestOptions, ...options });
 
 		// == This is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key start at the same time
-		if (requestKey != null) {
+		if (dedupeKey != null) {
 			await waitUntil(0.1);
 		}
 
 		// == This ensures cache operations only occur when key is available
-		const requestInfoCacheOrNull = requestKey != null ? requestInfoCache : null;
+		const requestInfoCacheOrNull = dedupeKey != null ? requestInfoCache : null;
 
-		const prevRequestInfo = requestInfoCacheOrNull?.get(requestKey);
+		const prevRequestInfo = requestInfoCacheOrNull?.get(dedupeKey);
 
 		if (prevRequestInfo && options.dedupeStrategy === "cancel") {
-			const message = options.requestKey
-				? `Duplicate request detected - Aborting previous request with key '${requestKey}' as a new request was initiated`
+			const message = options.dedupeKey
+				? `Duplicate request detected - Aborting previous request with key '${dedupeKey}' as a new request was initiated`
 				: `Duplicate request detected - Aborting previous request to '${fullURL}' as a new request with identical options was initiated`;
 
 			const reason = new DOMException(message, "AbortError");
@@ -173,7 +173,7 @@ export const createFetchClientWithOptions = <
 				? prevRequestInfo.responsePromise
 				: fetch(fullURL, request as RequestInit);
 
-			requestInfoCacheOrNull?.set(requestKey, { controller: newFetchController, responsePromise });
+			requestInfoCacheOrNull?.set(dedupeKey, { controller: newFetchController, responsePromise });
 
 			const response = await responsePromise;
 
@@ -348,7 +348,7 @@ export const createFetchClientWithOptions = <
 
 			// == Removing the now unneeded AbortController from store
 		} finally {
-			requestInfoCacheOrNull?.delete(requestKey);
+			requestInfoCacheOrNull?.delete(dedupeKey);
 		}
 	};
 

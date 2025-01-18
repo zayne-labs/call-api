@@ -55,7 +55,7 @@ const client = createFetchClient({
 
 Request deduplication works by:
 
-1. Generating a unique key for each request based on URL and parameters
+1. Generating a unique key for each request based on URL and parameters. You can also manually specify the key using the `dedupeKey` option
 2. Tracking in-flight requests using this key
 3. Applying the chosen strategy when duplicate requests are detected
 
