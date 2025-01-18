@@ -1,0 +1,125 @@
+---
+title: Authorization
+description: Learn how to use convenience authorization helpers callApi provides
+---
+
+CallApi allows you to generate authorization headers conveniently by using an `auth` property.
+
+## Bearer
+
+The bearer authorization is used to add a bearer token to the request. Since this is the more commonly used authorization, passing a string to the `auth` property will generate a `Bearer` Authorization header. You can also pass an object with a `bearer` property to achieve the same result.
+
+```ts title="api.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+// Passing a string
+const callBackendApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+	auth: "my-token", // [!code highlight]
+});
+
+// Passing an object
+const result = await callBackendApi("/users/123", {
+	auth: {
+		bearer: "my-token",
+	},
+});
+```
+
+The above is equivalent to writing the following with Fetch:
+
+```ts
+fetch("http://localhost:3000/users/123", {
+	headers: { Authorization: `Bearer my-token` },
+});
+```
+
+You can also pass a function that returns a string.
+
+```ts title="api.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const callBackendApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+});
+
+const result = callBackendApi("/users/123", {
+	auth: {
+		bearer: () => authStore.getToken(),
+	},
+});
+```
+
+<Callout type="info">
+	The function will be called only once when the request is made. If it returns undefined, the header will
+	not be added to the request.
+</Callout>
+
+## Token
+
+This is similar to the bearer authorization, but the header prefix is named `Token` instead of `Bearer`. To use it, you can pass an object with a `token` property.
+
+```ts title="api.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const callBackendApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+	auth: {
+		token: "my-token",
+	},
+});
+
+const result = await callBackendApi("/users/123");
+```
+
+The above is equivalent to writing the following with Fetch:
+
+```ts
+fetch("http://localhost:3000/users/123", {
+	headers: { Authorization: `Token my-token` },
+});
+```
+
+## Basic
+
+The basic authorization is used to add a basic authentication to the request. The username and password are added to the `Authorization` header.
+
+```ts title="api.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const callBackendApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+	auth: {
+		type: "Basic",
+		username: "my-username",
+		password: "my-password",
+	},
+});
+```
+
+## Custom
+
+To use a custom authorization not supported by default, you can pass an object with a `type` property set to `Custom` together with `prefix` and `value` properties.
+
+```ts title="api.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const callBackendApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+	auth: {
+		type: "Custom",
+		prefix: "SomePrefix",
+		value: "my-token",
+	},
+});
+
+const result = await callBackendApi("/users/123");
+```
+
+The above is equivalent to writing the following with Fetch:
+
+```ts
+fetch("http://localhost:3000/users/123", {
+	headers: { Authorization: `SomePrefix my-token` },
+});
+```

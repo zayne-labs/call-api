@@ -1,4 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import type { Auth } from "./auth";
 import type { CallApiPlugin, PluginInitContext } from "./plugins";
 import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
@@ -138,17 +139,7 @@ export type ExtraOptions<
 	/**
 	 * @description Authorization header value.
 	 */
-	auth?:
-		| string
-		| {
-				bearer: string | null;
-				token?: never;
-		  }
-		| {
-				bearer?: never;
-				token: string | null;
-		  }
-		| null;
+	auth?: string | Auth | null;
 
 	/**
 	 * @description Base URL to be prepended to all request URLs

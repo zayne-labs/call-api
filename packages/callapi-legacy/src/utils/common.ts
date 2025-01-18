@@ -1,3 +1,4 @@
+import { getAuthHeader } from "@/auth";
 import {
 	type BaseCallApiExtraOptions,
 	type CallApiConfig,
@@ -120,13 +121,7 @@ export const mergeAndResolveHeaders = (options: {
 	if (!shouldResolveHeaders) return;
 
 	const headersObject: Record<string, string> = {
-		...((isString(auth) || auth === null) && {
-			Authorization: `Bearer ${auth}`,
-		}),
-		...(isPlainObject(auth) && {
-			Authorization: "bearer" in auth ? `Bearer ${auth.bearer}` : `Token ${auth.token}`,
-		}),
-
+		...getAuthHeader(auth),
 		...objectifyHeaders(baseHeaders),
 		...objectifyHeaders(headers),
 	};

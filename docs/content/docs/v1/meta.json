@@ -10,7 +10,9 @@
 		"getting-started",
 		"error-handling",
 		"---Features---",
+		"request-dedupe",
 		"url-helpers",
+		"authorization",
 		"---Advanced---",
 		"interceptors"
 	]
