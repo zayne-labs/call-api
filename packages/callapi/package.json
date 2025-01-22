@@ -77,7 +77,7 @@
 		},
 		{
 			"path": "./src/options/index.ts",
-			"limit": "3.5 kb"
+			"limit": "3.7 kb"
 		},
 		{
 			"path": "./src/utils/index.ts",

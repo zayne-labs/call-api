@@ -10,7 +10,7 @@ const plugin = definePlugin({
 
 const callApi = createFetchClient({
 	dedupeStrategy: "cancel",
-	onRequest: () => console.info("OnBaseRequest"),
+	onRequest: [() => console.info("OnBaseRequest")],
 	plugins: [plugin],
 });
 

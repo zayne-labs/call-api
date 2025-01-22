@@ -10,7 +10,6 @@ import {
 	type PossibleJavascriptErrorNames,
 	type ResultModeMap,
 	optionsEnumToOmitFromBase,
-	optionsEnumToOmitFromInstance,
 } from "../types";
 import { fetchSpecificKeys } from "./constants";
 import { isArray, isFunction, isPlainObject, isQueryString, isString } from "./type-guards";
@@ -64,7 +63,7 @@ export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 export const splitConfig = (config: Record<string, any>) =>
 	[
 		pickKeys(config, fetchSpecificKeys) as CallApiRequestOptions,
-		omitKeys(config, [...fetchSpecificKeys, ...optionsEnumToOmitFromInstance]) as CallApiExtraOptions,
+		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
 	] as const;
 
 export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {
@@ -73,17 +72,6 @@ export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string
 	}
 
 	return Object.fromEntries(headers);
-};
-
-export const generateDedupeKey = (
-	url: string,
-	config: Record<string, unknown> & { shouldHaveDedupeKey: boolean }
-) => {
-	if (!config.shouldHaveDedupeKey) {
-		return null;
-	}
-
-	return `${url}-${JSON.stringify(config)}`;
 };
 
 type ToQueryStringFn = {
@@ -140,15 +128,12 @@ export const mergeAndResolveHeaders = (options: {
 	return headersObject;
 };
 
-export const flattenHooks = <
-	TBaseInterceptor extends
-		| AnyFunction<Awaitable<unknown>>
-		| Array<AnyFunction<Awaitable<unknown>> | undefined>,
+export const combineHooks = <
 	TInterceptor extends
 		| AnyFunction<Awaitable<unknown>>
 		| Array<AnyFunction<Awaitable<unknown>> | undefined>,
 >(
-	baseInterceptor: TBaseInterceptor | undefined,
+	baseInterceptor: TInterceptor | undefined,
 	interceptor: TInterceptor | undefined
 ) => {
 	if (isArray(baseInterceptor)) {
@@ -219,13 +204,13 @@ type SuccessInfo = {
 
 // == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
 // LINK - See https://www.zhenghao.io/posts/type-functions for more info
-export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiResult => {
+export const resolveSuccessResult = <TCallApiResult>(info: SuccessInfo): TCallApiResult => {
 	const { data, response, resultMode } = info;
 
 	const apiDetails = { data, error: null, response };
 
 	if (!resultMode) {
-		return apiDetails as CallApiResult;
+		return apiDetails as TCallApiResult;
 	}
 
 	const resultModeMap: ResultModeMap = {
@@ -236,7 +221,7 @@ export const resolveSuccessResult = <CallApiResult>(info: SuccessInfo): CallApiR
 		onlySuccessWithException: apiDetails.data,
 	};
 
-	return resultModeMap[resultMode] as CallApiResult;
+	return resultModeMap[resultMode] as TCallApiResult;
 };
 
 type ErrorInfo = {
@@ -246,7 +231,7 @@ type ErrorInfo = {
 	resultMode: CallApiExtraOptions["resultMode"];
 };
 
-export const resolveErrorResult = <TCallApiResult>(info: ErrorInfo) => {
+export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 	const { defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
 
 	let apiDetails: CallApiResultErrorVariant<unknown> = {

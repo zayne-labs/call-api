@@ -1,8 +1,9 @@
 import type {
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
+	ExtraOptions,
 	Interceptors,
-	InterceptorsArray,
+	InterceptorsOrInterceptorsArray,
 } from "./types";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
@@ -53,76 +54,82 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	version?: string;
 };
 
-const createMergedInterceptor = (
-	interceptors: Array<AnyFunction<Awaitable<unknown>> | undefined>,
-	mergedInterceptorsExecutionMode: CombinedCallApiExtraOptions["mergedInterceptorsExecutionMode"]
+const createMergedHook = (
+	hooks: Array<AnyFunction<Awaitable<unknown>> | undefined>,
+	mergedHooksExecutionMode: CombinedCallApiExtraOptions["mergedHooksExecutionMode"]
 ) => {
 	return async (ctx: Record<string, unknown>) => {
-		if (mergedInterceptorsExecutionMode === "sequential") {
-			for (const interceptor of interceptors) {
+		if (mergedHooksExecutionMode === "sequential") {
+			for (const hook of hooks) {
 				// eslint-disable-next-line no-await-in-loop -- This is necessary in this case
-				await interceptor?.(ctx);
+				await hook?.(ctx);
 			}
 
 			return;
 		}
 
-		if (mergedInterceptorsExecutionMode === "parallel") {
-			const interceptorArray = [...interceptors];
+		if (mergedHooksExecutionMode === "parallel") {
+			const hookArray = [...hooks];
 
-			await Promise.all(interceptorArray.map((uniqueInterceptor) => uniqueInterceptor?.(ctx)));
+			await Promise.all(hookArray.map((uniqueHook) => uniqueHook?.(ctx)));
 		}
 	};
 };
 
-type InterceptorsOrInterceptorsArray<TData, TErrorData> =
-	| Interceptors<TData, TErrorData>
-	| InterceptorsArray<TData, TErrorData>;
-
 // prettier-ignore
-type PluginHooks<TData, TErrorData> = {
+export type PluginHooks<TData, TErrorData> = {
 	[Key in keyof Interceptors<TData, TErrorData>]: Set<InterceptorsOrInterceptorsArray<TData, TErrorData>[Key]>;
 };
+
+export const hooksEnum = {
+	onError: new Set(),
+	onRequest: new Set(),
+	onRequestError: new Set(),
+	onResponse: new Set(),
+	onResponseError: new Set(),
+	onRetry: new Set(),
+	onSuccess: new Set(),
+} satisfies Required<PluginHooks<unknown, unknown>>;
 
 export const initializePlugins = async <TData, TErrorData>(
 	context: PluginInitContext<TData, TErrorData>
 ) => {
 	const { initURL, options, request } = context;
 
-	const hookRegistry = {
-		onError: new Set([]),
-		onRequest: new Set([]),
-		onRequestError: new Set([]),
-		onResponse: new Set([]),
-		onResponseError: new Set([]),
-		onSuccess: new Set([]),
-	} satisfies PluginHooks<TData, TErrorData> as Required<PluginHooks<TData, TErrorData>>;
+	const hooksRegistry = structuredClone(hooksEnum);
 
-	const addMainInterceptors = () => {
-		hookRegistry.onRequest.add(options.onRequest);
-		hookRegistry.onRequestError.add(options.onRequestError);
-		hookRegistry.onResponse.add(options.onResponse);
-		hookRegistry.onResponseError.add(options.onResponseError);
-		hookRegistry.onSuccess.add(options.onSuccess);
-		hookRegistry.onError.add(options.onError);
+	const addMainHooks = () => {
+		for (const key of Object.keys(hooksEnum)) {
+			const mainHook = options[key as keyof Interceptors] as never;
+
+			hooksRegistry[key as keyof Interceptors].add(mainHook);
+		}
 	};
 
-	const addPluginInterceptors = (pluginHooks: Interceptors<TData, TErrorData>) => {
-		hookRegistry.onRequest.add(pluginHooks.onRequest);
-		hookRegistry.onRequestError.add(pluginHooks.onRequestError);
-		hookRegistry.onResponse.add(pluginHooks.onResponse);
-		hookRegistry.onResponseError.add(pluginHooks.onResponseError);
-		hookRegistry.onSuccess.add(pluginHooks.onSuccess);
-		hookRegistry.onError.add(pluginHooks.onError);
+	const addPluginHooks = (pluginHooks: Interceptors<TData, TErrorData>) => {
+		for (const key of Object.keys(hooksEnum)) {
+			const pluginHook = pluginHooks[key as keyof Interceptors] as never;
+
+			hooksRegistry[key as keyof Interceptors].add(pluginHook);
+		}
 	};
 
-	if (options.mergedInterceptorsExecutionOrder === "mainInterceptorFirst") {
-		addMainInterceptors();
+	if (options.mergedHooksExecutionOrder === "mainHooksFirst") {
+		addMainHooks();
 	}
 
-	const resolvedPlugins = isFunction(options.plugins)
-		? [options.plugins({ initURL, options, request }), options.extend?.plugins ?? []].flat()
-		: [options.plugins ?? [], options.extend?.plugins ?? []].flat();
+	const getPluginArray = (plugins: ExtraOptions<TData, TErrorData>["plugins"]) => {
+		if (!plugins) {
+			return [];
+		}
+
+		return isFunction(plugins) ? plugins({ initURL, options, request }) : plugins;
+	};
+
+	const resolvedPlugins = [
+		...getPluginArray(options.plugins),
+		...getPluginArray(options.extend?.plugins),
+	];
 
 	let resolvedUrl = initURL;
 	let resolvedOptions = options;
@@ -131,59 +138,48 @@ export const initializePlugins = async <TData, TErrorData>(
 	const executePluginInit = async (pluginInit: CallApiPlugin<TData, TErrorData>["init"]) => {
 		if (!pluginInit) return;
 
-		const pluginInitResult = await pluginInit({ initURL, options, request });
+		const initResult = await pluginInit({ initURL, options, request });
 
-		if (!isPlainObject(pluginInitResult)) return;
+		if (!isPlainObject(initResult)) return;
 
-		if (isString(pluginInitResult.url)) {
-			resolvedUrl = pluginInitResult.url;
+		if (isString(initResult.url)) {
+			resolvedUrl = initResult.url;
 		}
 
-		if (isPlainObject(pluginInitResult.request)) {
-			resolvedRequestOptions = pluginInitResult.request;
+		if (isPlainObject(initResult.request)) {
+			resolvedRequestOptions = initResult.request;
 		}
 
-		if (isPlainObject(pluginInitResult.options)) {
-			resolvedOptions = pluginInitResult.options;
+		if (isPlainObject(initResult.options)) {
+			resolvedOptions = initResult.options;
 		}
 	};
 
-	for (const plugin of options.override?.plugins ?? resolvedPlugins) {
+	for (const plugin of resolvedPlugins) {
 		// eslint-disable-next-line no-await-in-loop -- Await is necessary in this case.
 		await executePluginInit(plugin.init);
 
 		if (!plugin.hooks) continue;
 
-		addPluginInterceptors(plugin.hooks);
+		addPluginHooks(plugin.hooks);
 	}
 
-	if (
-		!options.mergedInterceptorsExecutionOrder ||
-		options.mergedInterceptorsExecutionOrder === "mainInterceptorLast"
-	) {
-		addMainInterceptors();
+	if (!options.mergedHooksExecutionOrder || options.mergedHooksExecutionOrder === "mainHooksLast") {
+		addMainHooks();
 	}
 
-	const handleInterceptorsMerge = (interceptors: Array<AnyFunction<Awaitable<unknown>> | undefined>) => {
-		const mergedInterceptor = createMergedInterceptor(
-			interceptors,
-			options.mergedInterceptorsExecutionMode
-		);
+	const resolvedHooks = {} as Required<Interceptors>;
 
-		return mergedInterceptor;
-	};
+	for (const [key, hookSet] of Object.entries(hooksRegistry)) {
+		const flattenedHookArray = [...hookSet].flat();
 
-	const interceptors = {
-		onError: handleInterceptorsMerge([...hookRegistry.onError].flat()),
-		onRequest: handleInterceptorsMerge([...hookRegistry.onRequest].flat()),
-		onRequestError: handleInterceptorsMerge([...hookRegistry.onRequestError].flat()),
-		onResponse: handleInterceptorsMerge([...hookRegistry.onResponse].flat()),
-		onResponseError: handleInterceptorsMerge([...hookRegistry.onResponseError].flat()),
-		onSuccess: handleInterceptorsMerge([...hookRegistry.onSuccess].flat()),
-	} satisfies Interceptors<TData, TErrorData>;
+		const mergedHook = createMergedHook(flattenedHookArray, options.mergedHooksExecutionMode);
+
+		resolvedHooks[key as keyof Interceptors] = mergedHook;
+	}
 
 	return {
-		interceptors,
+		resolvedHooks,
 		resolvedOptions,
 		resolvedRequestOptions,
 		url: resolvedUrl,

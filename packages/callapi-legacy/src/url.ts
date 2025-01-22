@@ -12,13 +12,11 @@ const mergeUrlWithParams = (url: string, params: CallApiExtraOptions["params"]) 
 	let newUrl = url;
 
 	if (isArray(params)) {
-		const matchedParamArray = newUrl
-			.split(slash)
-			.filter((matchedParam) => matchedParam.startsWith(column));
+		const matchedParamArray = newUrl.split(slash).filter((param) => param.startsWith(column));
 
 		for (const [index, matchedParam] of matchedParamArray.entries()) {
-			const param = params[index] as string;
-			newUrl = newUrl.replace(matchedParam, param);
+			const realParam = params[index] as string;
+			newUrl = newUrl.replace(matchedParam, realParam);
 		}
 
 		return newUrl;
