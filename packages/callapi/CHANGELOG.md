@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 1.2.1
+
+### Patch Changes
+
+- 28b68df: 🔧 fix(fetch): remove fullURL option from request options to extra-options
+
 ## 1.2.0
 
 ### Minor Changes
