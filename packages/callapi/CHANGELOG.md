@@ -1,5 +1,15 @@
 # @zayne-labs/callapi
 
+## 1.2.0
+
+### Minor Changes
+
+- 0f333f7: feat(core): ✨ Add retry functionality and enhance core components
+
+   feat(docs): 📚 Update documentation structure and title
+
+   chore(types): 🏗️ Refactor type definitions and utilities
+
 ## 1.1.0
 
 ### Minor Changes
