@@ -60,9 +60,9 @@ export const createFetchClientWithOptions = <
 		TErrorData = TBaseErrorData,
 		TResultMode extends CallApiResultModeUnion = TBaseResultMode,
 	>(
-		configWithRequiredURL: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>
+		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
-		const { initURL, ...restOfConfig } = configWithRequiredURL;
+		const { initURL, ...restOfConfig } = config;
 
 		const [fetchConfig, extraOptions] = splitConfig(restOfConfig);
 
@@ -108,9 +108,12 @@ export const createFetchClientWithOptions = <
 			request: { ...restOfBaseFetchConfig, ...restOfFetchConfig },
 		});
 
+		const fullURL = `${resolvedOptions.baseURL}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;
+
 		const options = {
 			...resolvedOptions,
 			...resolvedHooks,
+			fullURL,
 			initURL,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof resolvedHooks;
 
@@ -128,20 +131,16 @@ export const createFetchClientWithOptions = <
 
 		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
 
-		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
-
 		const request = {
 			...defaultRequestOptions,
-			fullURL,
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
 
 		const dedupeKey = options.dedupeKey ?? generateDedupeKey(fullURL, request, options);
 
-		// == This tiny delay is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key are concurrent
-		if (dedupeKey !== null) {
-			await waitUntil(0.1);
-		}
+		// == Add a small delay to ensure proper request deduplication when multiple requests with the same key start simultaneously.
+		// == This gives time for the cache to be updated with the previous request info before the next request checks it.
+		dedupeKey !== null && (await waitUntil(0.1));
 
 		// == This ensures cache operations only occur when key is available
 		const requestInfoCacheOrNull = dedupeKey !== null ? requestInfoCache : null;
@@ -243,7 +242,7 @@ export const createFetchClientWithOptions = <
 				await waitUntil(delay);
 
 				return await callApi({
-					...configWithRequiredURL,
+					...config,
 					retryCount: (options.retryCount ?? 0) + 1,
 				});
 			}
@@ -295,16 +294,6 @@ export const createFetchClientWithOptions = <
 				return generalErrorResult;
 			}
 
-			if (error instanceof DOMException && error.name === "TimeoutError") {
-				const message = `Request timed out after ${options.timeout}ms`;
-
-				console.error(`${error.name}:`, message);
-
-				handleThrowOnError();
-
-				return resolveCustomErrorInfo({ message });
-			}
-
 			if (error instanceof DOMException && error.name === "AbortError") {
 				const { message, name } = error;
 
@@ -313,6 +302,16 @@ export const createFetchClientWithOptions = <
 				handleThrowOnError();
 
 				return generalErrorResult;
+			}
+
+			if (error instanceof DOMException && error.name === "TimeoutError") {
+				const message = `Request timed out after ${options.timeout}ms`;
+
+				console.error(`${error.name}:`, message);
+
+				handleThrowOnError();
+
+				return resolveCustomErrorInfo({ message });
 			}
 
 			const possibleJavascriptError = (generalErrorResult as { error: PossibleJavaScriptError }).error;

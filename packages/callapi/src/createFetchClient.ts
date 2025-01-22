@@ -107,9 +107,12 @@ export const createFetchClient = <
 			request: { ...restOfBaseFetchConfig, ...restOfFetchConfig },
 		});
 
+		const fullURL = `${resolvedOptions.baseURL}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;
+
 		const options = {
 			...resolvedOptions,
 			...resolvedHooks,
+			fullURL,
 			initURL,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof resolvedHooks;
 
@@ -127,20 +130,16 @@ export const createFetchClient = <
 
 		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
 
-		const fullURL = `${options.baseURL}${mergeUrlWithParamsAndQuery(url, options.params, options.query)}`;
-
 		const request = {
 			...defaultRequestOptions,
-			fullURL,
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
 
 		const dedupeKey = options.dedupeKey ?? generateDedupeKey(fullURL, request, options);
 
-		// == This tiny delay is required to leave the smallest window of time for the cache to be updated with the last request info, if all requests with the same key are concurrent
-		if (dedupeKey !== null) {
-			await waitUntil(0.1);
-		}
+		// == Add a small delay to ensure proper request deduplication when multiple requests with the same key start simultaneously.
+		// == This gives time for the cache to be updated with the previous request info before the next request checks it.
+		dedupeKey !== null && (await waitUntil(0.1));
 
 		// == This ensures cache operations only occur when key is available
 		const requestInfoCacheOrNull = dedupeKey !== null ? requestInfoCache : null;
@@ -294,16 +293,6 @@ export const createFetchClient = <
 				return generalErrorResult;
 			}
 
-			if (error instanceof DOMException && error.name === "TimeoutError") {
-				const message = `Request timed out after ${options.timeout}ms`;
-
-				console.error(`${error.name}:`, message);
-
-				handleThrowOnError();
-
-				return resolveCustomErrorInfo({ message });
-			}
-
 			if (error instanceof DOMException && error.name === "AbortError") {
 				const { message, name } = error;
 
@@ -312,6 +301,16 @@ export const createFetchClient = <
 				handleThrowOnError();
 
 				return generalErrorResult;
+			}
+
+			if (error instanceof DOMException && error.name === "TimeoutError") {
+				const message = `Request timed out after ${options.timeout}ms`;
+
+				console.error(`${error.name}:`, message);
+
+				handleThrowOnError();
+
+				return resolveCustomErrorInfo({ message });
 			}
 
 			const possibleJavascriptError = (generalErrorResult as { error: PossibleJavaScriptError }).error;

@@ -23,11 +23,6 @@ export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKe
 	body?: Record<string, unknown> | RequestInit["body"];
 
 	/**
-	 * @description Resolved request URL
-	 */
-	readonly fullURL?: string;
-
-	/**
 	 * @description Headers to be used in the request.
 	 */
 	headers?:
@@ -118,9 +113,9 @@ export type ExtraOptions<
 		 */
 		auth?: string | Auth | null;
 
-		/**
-		 * @description Base URL to be prepended to all request URLs
-		 */
+			/**
+			 * @description Base URL to be prepended to all request URLs
+			 */
 		baseURL?: string;
 
 		/**
@@ -162,6 +157,11 @@ export type ExtraOptions<
 		 * @default "Failed to fetch data from server!"
 		 */
 		defaultErrorMessage?: string;
+
+		/**
+		 * @description Resolved request URL
+		 */
+		readonly fullURL?: string;
 
 		/**
 		 * @description URL to be used in the request.

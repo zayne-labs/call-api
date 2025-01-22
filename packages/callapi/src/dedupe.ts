@@ -12,7 +12,7 @@ export const generateDedupeKey = (
 		return null;
 	}
 
-	return `${request.fullURL}-${JSON.stringify({ options, request })}`;
+	return `${options.fullURL}-${JSON.stringify({ options, request })}`;
 };
 
 type RequestInfo = { controller: AbortController; responsePromise: Promise<Response> };
@@ -24,10 +24,12 @@ export const handleRequestCancelDedupe = (
 	options: CallApiExtraOptions,
 	prevRequestInfo: RequestInfo | undefined
 ) => {
-	if (prevRequestInfo && options.dedupeStrategy === "cancel") {
+	const shouldCancelRequest = prevRequestInfo && options.dedupeStrategy === "cancel";
+
+	if (shouldCancelRequest) {
 		const message = options.dedupeKey
 			? `Duplicate request detected - Aborting previous request with key '${options.dedupeKey}' as a new request was initiated`
-			: `Duplicate request detected - Aborting previous request to '${fullURL}' as a new request with identical options was initiated`;
+			: `Duplicate request detected - Aborting previous request to '${options.fullURL}' as a new request with identical options was initiated`;
 
 		const reason = new DOMException(message, "AbortError");
 
