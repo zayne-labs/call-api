@@ -1,0 +1,337 @@
+---
+title: Hooks / Interceptors
+description: Learn how to use request and response interceptors
+---
+
+Hooks / Interceptors are callback functions that are called at different stages of the request lifecycle. Each hook receives a specific context object and can be async.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const callApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+	onRequest: (context) => {},
+	onRequestError: (context) => {},
+	onResponse: (context) => {},
+	onResponseError: (context) => {},
+	onError: (context) => {},
+	onSuccess: (context) => {},
+	onRetry: (context) => {},
+});
+
+callApi("/api/data", {
+	onRequest: (context) => {},
+	onRequestError: (context) => {},
+	onResponse: (context) => {},
+	onResponseError: (context) => {},
+	onError: (context) => {},
+	onSuccess: (context) => {},
+	onRetry: (context) => {},
+});
+```
+
+## Request Phase Hooks
+
+### onRequest
+
+Called before a request is sent. You can use this to modify request configuration, add headers, or handle authentication.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onRequest: ({ request, options }) => {
+		const getToken = () => localStorage.getItem("token");
+
+		// Add authentication
+		options.auth = getToken();
+
+		// Add custom headers
+		request.headers && (request.headers["X-Custom-ID"] = "123");
+
+		// Modify URL or query params
+		if (options.fullURL?.includes("api.dev")) {
+			request.headers && (request.headers["X-Environment"] = "development");
+		}
+	},
+});
+```
+
+### onRequestError
+
+Called when the request fails before reaching the server (network errors, timeouts, etc).
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onRequestError: ({ error, request, options }) => {
+		if (error.name === "TimeoutError") {
+			console.error(`Request timeout: ${options.initURL}`);
+			return;
+		}
+
+		console.error(`Network error: ${error.message}`);
+	},
+});
+```
+
+## Response Phase Hooks
+
+### onResponse
+
+Called for every response from the server, regardless of status code.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onResponse: ({ data, error, request, response, options }) => {
+		// Log all API calls
+		console.log(`${request.method} ${options.initURL} - ${response.status}`);
+
+		// Handle specific status codes
+		if (response.status === 207) {
+			console.warn("Partial success:", data);
+		}
+	},
+});
+```
+
+### onSuccess
+
+Called only for successful responses (response.ok === true).
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+type User = {
+	id: string;
+	name: string;
+	email: string;
+};
+
+const userCache = new Map<string, User>();
+
+const client = createFetchClient<User[]>({
+	onSuccess: ({ data, response, request, options }) => {
+		// Cache user data
+		data.forEach((user) => userCache.set(user.id, user));
+	},
+});
+```
+
+### onResponseError
+
+Called for error responses (response.ok === false).
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onResponseError: ({ error, response, options }) => {
+		switch (response.status) {
+			case 401:
+				//Handle Token expired
+				break;
+
+			case 403:
+				// Handle User not authorized
+				break;
+
+			case 404:
+				// Handle Resource not found
+				break;
+
+			case 429:
+				// Handle Rate limited
+				break;
+		}
+	},
+});
+```
+
+### onError
+
+Called for any error (basically a combination of onRequestError and onResponseError). Perfect for global error handling.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onError: ({ error, response, request, options }) => {
+		// Send to error tracking
+		// errorTracker.capture({
+		// 	type: error.name,
+		// 	message: error.message,
+		// 	url: request.url,
+		// 	status: response?.status,
+		// });
+
+		// Show user-friendly messages
+		if (!response) {
+			// showNetworkError();
+		} else if (response.status >= 500) {
+			// showServerError();
+		} else if (response.status === 400) {
+			// showValidationErrors(error.errorData);
+		}
+	},
+});
+```
+
+## Retry Phase Hooks
+
+### onRetry
+
+Called before retrying a failed request.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	// Advanced retry configuration
+	retryAttempts: 3,
+	retryStrategy: "exponential",
+	retryCodes: [408, 429, 500, 502, 503, 504],
+
+	onRetry: ({ response }) => {
+		// Handle stuff...
+	},
+});
+```
+
+## Request Lifecycle
+
+Here's how hooks are executed during a request lifecycle:
+
+1. **Request is made**
+
+   - `onRequest` hooks run
+   - Network request is sent
+
+2. **If network/request error occurs**
+
+   - `onRequestError` hooks run
+   - `onError` hooks run
+   - If retry is enabled → `onRetry` hooks run → back to step 1
+
+3. **If successful response received (response.ok === true)**
+
+   - `onResponse` hooks run
+   - `onSuccess` hooks run
+
+4. **If response error (response.ok === false)**
+
+   - `onResponse` hooks run
+   - `onResponseError` hooks run
+   - `onError` hooks run
+   - If retry is enabled → `onRetry` hooks run → back to step 1
+
+## Hook Priority Levels
+
+Hooks can be defined at three levels, executing in the following order:
+
+1. **Plugin Level**: Runs first
+2. **Base Client Level**: Runs second
+3. **Instance Level**: Runs last and overrides base hooks
+
+```ts title="example.ts"
+import { createFetchClient, definePlugin } from "@zayne-labs/callapi";
+
+// Plugin hooks (run first)
+const loggingPlugin = definePlugin({
+	name: "logger",
+	hooks: {
+		onRequest: () => console.log("1. Plugin onRequest"),
+	},
+});
+
+// Base client hooks (run second)
+const client = createFetchClient({
+	plugins: [loggingPlugin],
+	// Single callback
+	onRequest: () => console.log("2. Base onRequest"),
+	// Or array of callbacks
+	onResponse: [() => console.log("2.1 Base onResponse"), () => console.log("2.2 Base onResponse")],
+});
+
+// Request-specific hooks (run last)
+await client("/api/data", {
+	// Overrides base onRequest
+	onRequest: () => console.log("3. Request onRequest"),
+	// Merges with base onResponse array
+	onResponse: () => console.log("3. Request onResponse"),
+});
+```
+
+## Things to Note
+
+Here are some important details about how hooks work:
+
+1. **Array Support**: Any hook can be an array of callbacks that run in sequence:
+
+```ts
+onRequest: [
+	({ request }) => addAuthHeader(request),
+	({ request }) => addTrackingHeader(request),
+	({ request }) => addVersionHeader(request),
+];
+```
+
+2. **Override Behavior**:
+
+- By default, instance hooks replace base hooks completely
+- Plugin hooks are special - they always run first and are always merged with the rest of the hooks
+- So if you want a hook to always run, you can make it a plugin hook
+- For convenience, array hooks work differently - if a base hook is an array, instance hooks are appended instead of replacing (saves you from creating a plugin just to avoid overriding the base hook)
+
+3. **Execution Control**:
+
+```ts
+const client = createFetchClient({
+	// Control if hooks are executed in parallel or sequentially
+	mergedHooksExecutionMode: "sequential", // or "parallel"
+
+	// Control if plugin hooks run before or after main hooks
+	mergedHooksExecutionOrder: "pluginsFirst", // or "pluginsLast"
+});
+```
+
+4. **Async Support**:
+
+All hooks can be async - simply return a Promise or use async/await:
+
+```ts
+onRequest: async ({ request }) => {
+	const token = await getAuthToken();
+	request.headers.set("Authorization", `Bearer ${token}`);
+},
+```
+
+## Type Safety
+
+All hooks are fully typed based on the response type you specify when creating the client. This ensures you get proper type inference and autocompletion for the data and error objects in all your hooks.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+type User = {
+	id: number;
+	name: string;
+};
+
+const client = createFetchClient<User>({
+	onSuccess: ({ data }) => {
+		console.log(data.name);
+	},
+});
+
+const { error } = await client("/api/data", {
+	onSuccess: ({ data }) => {
+		console.log(data.name);
+	},
+});
+
+// @annotate: Hover over the data object to see the inferred type
+```
