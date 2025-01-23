@@ -1,7 +1,10 @@
 // == These two types allows for adding arbitrary literal types, while still provided autocomplete for defaults.
 // == Usually intersection with "{}" or "NonNullable<unknown>" would make it work fine, but the placeholder with never type is added to make the AnyWhatever type appear last in a given union.
-export type AnyString = string & { placeholder?: never };
-export type AnyNumber = number & { placeholder?: never };
+export type AnyString = string & { z_placeholder?: never };
+export type AnyNumber = number & { z_placeholder?: never };
+
+// eslint-disable-next-line ts-eslint/no-explicit-any -- Any is fine here
+export type AnyObject = Record<string, any>;
 
 // eslint-disable-next-line ts-eslint/no-explicit-any -- Any is required here so that one can pass custom function type without type errors
 export type AnyFunction<TResult = any> = (...args: any[]) => TResult;
@@ -96,6 +99,8 @@ export type CommonRequestHeaders =
 	| "X-Powered-By"
 	| "X-Robots-Tag"
 	| "X-XSS-Protection";
+
+export type CommonAuthorizationHeaders = "Basic" | "Bearer" | "Token";
 
 export type CommonContentTypes =
 	| "application/epub+zip"

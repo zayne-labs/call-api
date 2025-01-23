@@ -11,7 +11,7 @@ import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 export type PluginInitContext<TData = unknown, TErrorData = unknown> = {
 	initURL: string;
 	options: CombinedCallApiExtraOptions<TData, TErrorData>;
-	request: Omit<CallApiRequestOptionsForHooks, "fullURL">;
+	request: CallApiRequestOptionsForHooks;
 };
 
 export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
@@ -114,7 +114,7 @@ export const initializePlugins = async <TData, TErrorData>(
 		}
 	};
 
-	if (options.mergedHooksExecutionOrder === "mainHooksFirst") {
+	if (options.mergedHooksExecutionOrder === "mainHooksBeforePlugins") {
 		addMainHooks();
 	}
 
@@ -164,7 +164,10 @@ export const initializePlugins = async <TData, TErrorData>(
 		addPluginHooks(plugin.hooks);
 	}
 
-	if (!options.mergedHooksExecutionOrder || options.mergedHooksExecutionOrder === "mainHooksLast") {
+	if (
+		!options.mergedHooksExecutionOrder ||
+		options.mergedHooksExecutionOrder === "mainHooksAfterPlugins"
+	) {
 		addMainHooks();
 	}
 

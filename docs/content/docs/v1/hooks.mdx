@@ -34,17 +34,15 @@ callApi("/api/data", {
 
 ### onRequest
 
-Called before a request is sent. You can use this to modify request configuration, add headers, or handle authentication.
+This hook is called before a request is sent. You can use this to modify request configuration, add headers, or handle authentication.
 
 ```ts twoslash title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const client = createFetchClient({
 	onRequest: ({ request, options }) => {
-		const getToken = () => localStorage.getItem("token");
-
-		// Add authentication
-		options.auth = getToken();
+		// Add auth header
+		options.auth = localStorage.getItem("token");
 
 		// Add custom headers
 		request.headers && (request.headers["X-Custom-ID"] = "123");
@@ -59,7 +57,7 @@ const client = createFetchClient({
 
 ### onRequestError
 
-Called when the request fails before reaching the server (network errors, timeouts, etc).
+This hook is called when the request fails before reaching the server. You can use it to handle network errors, timeouts, etc.
 
 ```ts twoslash title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
@@ -80,7 +78,7 @@ const client = createFetchClient({
 
 ### onResponse
 
-Called for every response from the server, regardless of status code.
+This hook is called for every response from the server, regardless of the status code. You can use it to log all API calls, handle specific status codes, etc.
 
 ```ts twoslash title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
@@ -100,7 +98,7 @@ const client = createFetchClient({
 
 ### onSuccess
 
-Called only for successful responses (response.ok === true).
+This hook is called only for successful responses. You can use it to handle successful responses, cache data, etc.
 
 ```ts twoslash title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
@@ -123,7 +121,7 @@ const client = createFetchClient<User[]>({
 
 ### onResponseError
 
-Called for error responses (response.ok === false).
+This hook is called for error responses (response.ok === false). You can use it to handle specific status codes, etc.
 
 ```ts twoslash title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
@@ -153,7 +151,9 @@ const client = createFetchClient({
 
 ### onError
 
-Called for any error (basically a combination of onRequestError and onResponseError). Perfect for global error handling.
+Called for any error .
+
+This hook is called for any error. It's basically a combination of onRequestError and onResponseError. It's perfect for global error handling.
 
 ```ts twoslash title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
@@ -184,7 +184,7 @@ const client = createFetchClient({
 
 ### onRetry
 
-Called before retrying a failed request.
+This hook is called before retrying a failed request. You can use it to handle stuff before retrying.
 
 ```ts twoslash title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
@@ -269,36 +269,68 @@ await client("/api/data", {
 
 Here are some important details about how hooks work:
 
-1. **Array Support**: Any hook can be an array of callbacks that run in sequence:
+### Array Support
+
+Any hook can be an array of callbacks that run in sequence:
 
 ```ts
-onRequest: [
-	({ request }) => addAuthHeader(request),
-	({ request }) => addTrackingHeader(request),
-	({ request }) => addVersionHeader(request),
-];
-```
-
-2. **Override Behavior**:
-
-- By default, instance hooks replace base hooks completely
-- Plugin hooks are special - they always run first and are always merged with the rest of the hooks
-- So if you want a hook to always run, you can make it a plugin hook
-- For convenience, array hooks work differently - if a base hook is an array, instance hooks are appended instead of replacing (saves you from creating a plugin just to avoid overriding the base hook)
-
-3. **Execution Control**:
-
-```ts
-const client = createFetchClient({
-	// Control if hooks are executed in parallel or sequentially
-	mergedHooksExecutionMode: "sequential", // or "parallel"
-
-	// Control if plugin hooks run before or after main hooks
-	mergedHooksExecutionOrder: "pluginsFirst", // or "pluginsLast"
+const { error } = await callApi("/api/data", {
+	onRequest: [
+		(ctx) => addAuthHeader(ctx.request),
+		(ctx) => addTrackingHeader(ctx.request),
+		(ctx) => addVersionHeader(ctx.request),
+	],
 });
 ```
 
-4. **Async Support**:
+### Override Behavior
+
+There are three ways hooks can behave when overriding:
+
+1. **Regular Hooks**: Instance hooks completely replace base hooks. If you override a hook, the base hook won't run.
+2. **Plugin Hooks**: These run first by default and can't be overridden, making them perfect for must-have functionality.
+3. **Array Hooks**: When the base hook is an array, instance hooks are **merged** with the corresponding base hook, allowing you to add additional functionality without overriding existing logic. This behavior is purely for convenience if you don't want to make a plugin just to avoid overrides.
+
+Here's how each behaves:
+
+```ts
+// 1. Regular hooks - base hook is replaced
+
+const callBackendApi = createFetchClient({
+	onRequest: (ctx) => addAuthHeader(ctx.request),
+});
+
+const result = callBackendApi("/api", {
+	onRequest: (ctx) => addVersionHeader(ctx.request), // Only this runs, auth header is lost!
+});
+
+// 2. When the base hook is an Array - corresponding instance hooks are merged instead of overriding the base hook
+const callAnotherApi = createFetchClient({
+	onRequest: [(ctx) => addAuthHeader(ctx.request)],
+});
+
+const anotherResult = callAnotherApi("/api", {
+	onRequest: (ctx) => addVersionHeader(ctx.request), // Both hooks run!
+});
+
+// 3. Plugin hooks - runs first by default
+const authHeaderPlugin = definePlugin({
+	id: "auth-header-plugin",
+	description: "Add Auth Header",
+
+	hooks: {
+		onRequest: (ctx) => addAuthHeader(ctx.request),
+	},
+});
+
+const clientWithPlugin = createFetchClient({
+	plugins: [authHeaderPlugin],
+
+	onRequest: (ctx) => addVersionHeader(ctx.request),
+});
+```
+
+### Async Support
 
 All hooks can be async - simply return a Promise or use async/await:
 
@@ -309,7 +341,7 @@ onRequest: async ({ request }) => {
 },
 ```
 
-## Type Safety
+### Type Safety
 
 All hooks are fully typed based on the response type you specify when creating the client. This ensures you get proper type inference and autocompletion for the data and error objects in all your hooks.
 

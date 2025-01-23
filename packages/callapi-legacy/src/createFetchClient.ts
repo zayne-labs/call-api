@@ -52,7 +52,7 @@ export const createFetchClient = <
 		...restOfBaseFetchConfig
 	} = baseFetchConfig;
 
-	const requestInfoCache = new Map() satisfies RequestInfoCache;
+	const $RequestInfoCache = new Map() satisfies RequestInfoCache;
 
 	const callApi = async <
 		TData = TBaseData,
@@ -85,7 +85,7 @@ export const createFetchClient = <
 			dedupeStrategy: "cancel",
 			defaultErrorMessage: "Failed to fetch data from server!",
 			mergedHooksExecutionMode: "parallel",
-			mergedHooksExecutionOrder: "mainHooksLast",
+			mergedHooksExecutionOrder: "mainHooksAfterPlugins",
 			responseType: "json",
 			resultMode: "all",
 			retryAttempts: 0,
@@ -142,9 +142,9 @@ export const createFetchClient = <
 		dedupeKey !== null && (await waitUntil(0.1));
 
 		// == This ensures cache operations only occur when key is available
-		const requestInfoCacheOrNull = dedupeKey !== null ? requestInfoCache : null;
+		const $RequestInfoCacheOrNull = dedupeKey !== null ? $RequestInfoCache : null;
 
-		const prevRequestInfo = requestInfoCacheOrNull?.get(dedupeKey);
+		const prevRequestInfo = $RequestInfoCacheOrNull?.get(dedupeKey);
 
 		handleRequestCancelDedupe(fullURL, options, prevRequestInfo);
 
@@ -161,11 +161,11 @@ export const createFetchClient = <
 
 			const responsePromise = handleRequestDeferDedupe(fullURL, options, request, prevRequestInfo);
 
-			requestInfoCacheOrNull?.set(dedupeKey, { controller: newFetchController, responsePromise });
+			$RequestInfoCacheOrNull?.set(dedupeKey, { controller: newFetchController, responsePromise });
 
 			const response = await responsePromise;
 
-			// == Clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
+			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
 
 			if (!response.ok) {
@@ -338,7 +338,7 @@ export const createFetchClient = <
 
 			// == Removing the now unneeded AbortController from store
 		} finally {
-			requestInfoCacheOrNull?.delete(dedupeKey);
+			$RequestInfoCacheOrNull?.delete(dedupeKey);
 		}
 	};
 

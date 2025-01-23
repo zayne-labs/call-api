@@ -1,0 +1,141 @@
+---
+title: Plugins
+description: Extend `callApi`'s functionality with plugins
+---
+
+Plugins allow you to extend `callApi`'s functionality by adding reusable hooks and modifying requests at initialization. They're perfect for adding cross-cutting concerns like authentication, logging, or error handling.
+
+## Creating a Plugin
+
+Use the `definePlugin` function to create a plugin:
+
+```ts twoslash title="auth-plugin.ts"
+import { definePlugin } from "@zayne-labs/callapi";
+
+const authPlugin = definePlugin({
+	id: "auth-plugin",
+	name: "Auth Plugin",
+	description: "Adds authentication headers to requests",
+	version: "1.0.0",
+
+	// Initialize plugin
+	// init: ({ options, request }) => {
+	// 	const token = localStorage.getItem("token");
+
+	// 	return {
+	// 		request: {
+	// 			...request,
+	// 			headers: {
+	// 				...request.headers,
+	// 				Authorization: `Bearer ${token}`,
+	// 			},
+	// 		},
+	// 	};
+	// },
+
+	// Add hooks
+	hooks: {
+		onResponse: ({ response }) => {
+			if (response.status === 401) {
+				// Handle unauthorized
+			}
+		},
+	},
+});
+```
+
+## Plugin Interface
+
+A plugin can include:
+
+- `id` (required): A unique identifier for the plugin
+- `name` (required): A descriptive name
+- `description`: A brief explanation of what the plugin does
+- `version`: Plugin version number
+- `init`: A function called when the plugin is initialized
+- `hooks`: Regular hooks that run before main hooks
+
+### Init Function
+
+The `init` function receives a context object with:
+
+```ts
+type PluginInitContext = {
+	initURL: string; // The request URL
+	options: CallApiExtraOptions; // Current options
+	request: RequestOptions; // Current request config
+};
+```
+
+It can return:
+
+- `void`: Make no changes
+- An object to modify the request:
+   ```ts
+   {
+     url?: string;              // Modified URL
+     options?: CallApiOptions;  // Modified options
+     request: RequestOptions;   // Modified request config
+   }
+   ```
+
+## Using Plugins
+
+Add plugins when creating a fetch client:
+
+```ts
+const client = createFetchClient({
+	plugins: [authPlugin, loggingPlugin],
+});
+```
+
+Or when making individual requests:
+
+```ts
+const { data } = await callApi("/users", {
+	plugins: [metricsPlugin],
+});
+```
+
+## Plugin Execution Order
+
+1. Plugin `init` functions run in the order plugins are added
+2. Plugin hooks run before main hooks (those defined in `createFetchClient` or individual requests)
+3. Multiple plugin hooks of the same type run based on `mergedHooksExecutionMode`:
+   - `sequential`: One after another (default)
+   - `parallel`: All at once
+
+## Example: Metrics Plugin
+
+Here's a complete example of a plugin that tracks API metrics:
+
+```ts
+const metricsPlugin = definePlugin({
+	id: "metrics",
+	name: "Metrics Plugin",
+	description: "Tracks API response times and success rates",
+
+	init: ({ initURL }) => {
+		console.log(`Starting request to ${initURL}`);
+		const startTime = performance.now();
+
+		return {
+			options: {
+				context: { startTime },
+			},
+		};
+	},
+
+	hooks: {
+		onSuccess: ({ options }) => {
+			const duration = performance.now() - options.context.startTime;
+			console.log(`Request completed in ${duration}ms`);
+		},
+
+		onError: ({ error, options }) => {
+			const duration = performance.now() - options.context.startTime;
+			console.error(`Request failed after ${duration}ms:`, error);
+		},
+	},
+});
+```

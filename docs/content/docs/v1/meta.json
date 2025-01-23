@@ -11,9 +11,9 @@
 		"error-handling",
 		"---Features---",
 		"url-helpers",
-		"request-dedupe",
 		"authorization",
-		"---Advanced---",
-		"hooks"
+		"request-dedupe",
+		"hooks",
+		"---Advanced---"
 	]
 }

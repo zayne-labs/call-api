@@ -5,8 +5,8 @@ import {
 	type CallApiExtraOptions,
 	type CallApiRequestOptions,
 	type CallApiResultErrorVariant,
-	type ErrorObjectUnion,
 	type PossibleHTTPError,
+	type PossibleJavaScriptError,
 	type PossibleJavascriptErrorNames,
 	type ResultModeMap,
 	optionsEnumToOmitFromBase,
@@ -277,6 +277,8 @@ export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 
 	return { apiDetails, generalErrorResult, resolveCustomErrorInfo };
 };
+
+type ErrorObjectUnion<TErrorData = unknown> = PossibleHTTPError<TErrorData> | PossibleJavaScriptError;
 
 export const isHTTPError = <TErrorData>(
 	error: ErrorObjectUnion<TErrorData> | null

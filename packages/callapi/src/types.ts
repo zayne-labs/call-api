@@ -6,8 +6,10 @@ import type { RetryOptions } from "./retry";
 import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
 import {
+	type AnyObject,
 	type AnyString,
 	type Awaitable,
+	type CommonAuthorizationHeaders,
 	type CommonContentTypes,
 	type CommonRequestHeaders,
 	type UnmaskType,
@@ -26,6 +28,7 @@ export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKe
 	 * @description Headers to be used in the request.
 	 */
 	headers?:
+		| Record<"Authorization", CommonAuthorizationHeaders>
 		| Record<"Content-Type", CommonContentTypes>
 		// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
 		| Record<CommonRequestHeaders | AnyString, string>
@@ -45,12 +48,10 @@ export interface CallApiRequestOptionsForHooks extends CallApiRequestOptions {
 
 // eslint-disable-next-line ts-eslint/no-empty-object-type -- This needs to be empty to allow users to register their own meta
 export interface Register {
-	// == meta: R_Meta
+	// == meta: Meta
 }
 
-export type R_Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> }
-	? TMeta
-	: never;
+export type Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
 
 export interface Interceptors<TData = unknown, TErrorData = unknown> {
 	/**
@@ -102,20 +103,22 @@ type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) 
 
 type CallApiPluginArray<TData, TErrorData> = Array<CallApiPlugin<TData, TErrorData>>;
 
-// prettier-ignore
 export type ExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> = InterceptorsOrInterceptorsArray<TData, TErrorData> & RetryOptions<TErrorData> & {
+	TMoreOptions extends AnyObject = object,
+> = InterceptorsOrInterceptorsArray<TData, TErrorData> &
+	RetryOptions<TErrorData> &
+	TMoreOptions & {
 		/**
 		 * @description Authorization header value.
 		 */
 		auth?: string | Auth | null;
 
-			/**
-			 * @description Base URL to be prepended to all request URLs
-			 */
+		/**
+		 * @description Base URL to be prepended to all request URLs
+		 */
 		baseURL?: string;
 
 		/**
@@ -143,11 +146,9 @@ export type ExtraOptions<
 
 		/**
 		 * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
-		 * - If set to "none", deduplication is disabled.
-		 *
-		 * - If set to "cancel"(default), the previous pending request with the same request key will be cancelled and lets the new request through.
-		 *
+		 * - If set to "cancel", the previous pending request with the same request key will be cancelled and lets the new request through.
 		 * - If set to "defer", all new request with the same request key will be share the same response, until the previous one is completed.
+		 * - If set to "none", deduplication is disabled.
 		 * @default "cancel"
 		 */
 		dedupeStrategy?: "cancel" | "defer" | "none";
@@ -180,7 +181,7 @@ export type ExtraOptions<
 		 * @description - Controls what order in which the merged hooks execute
 		 * @default "mainHooksLast"
 		 */
-		mergedHooksExecutionOrder?: "mainHooksFirst" | "mainHooksLast";
+		mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
 
 		/**
 		 * @description - An optional field you can fill with additional information,
@@ -205,7 +206,7 @@ export type ExtraOptions<
 		 * });
 		 * ```
 		 */
-		meta?: R_Meta;
+		meta?: Meta;
 
 		/**
 		 * @description Params to be appended to the URL (i.e: /:id)
@@ -267,56 +268,66 @@ export type ExtraOptions<
 		timeout?: number;
 	};
 
-export const optionsEnumToOmitFromBase = defineEnum(["extend", "dedupeKey"]);
-
-// prettier-ignore
-// eslint-disable-next-line ts-eslint/no-empty-object-type -- It's fine
-export interface BaseCallApiExtraOptions<
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
-	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends Omit<CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode>, typeof optionsEnumToOmitFromBase[number]> { }
-
 export const optionsEnumToExtendFromBase = defineEnum(["plugins"] satisfies Array<keyof ExtraOptions>);
 
-// prettier-ignore
-export interface CallApiExtraOptions<
+export type CallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends Omit<ExtraOptions<TData, TErrorData, TResultMode>, never> {
+	TMoreOptions extends AnyObject = object,
+> = ExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> & {
 	/**
 	 * @description Options that should extend the base options.
 	 */
-	extend?: Pick<ExtraOptions<TData, TErrorData, TResultMode>, typeof optionsEnumToExtendFromBase[number]>;
-}
+	extend?: Pick<
+		ExtraOptions<TData, TErrorData, TResultMode, TMoreOptions>,
+		(typeof optionsEnumToExtendFromBase)[number]
+	>;
+};
 
-// prettier-ignore
-export interface CombinedCallApiExtraOptions<
-	TData = unknown,
-	TErrorData = unknown,
-	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends BaseCallApiExtraOptions<TData, TErrorData, TResultMode>, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
+export const optionsEnumToOmitFromBase = defineEnum(["extend", "dedupeKey"] satisfies Array<
+	keyof CallApiExtraOptions
+>);
 
-// prettier-ignore
-export interface BaseCallApiConfig<
+export type BaseCallApiExtraOptions<
 	TBaseData = unknown,
 	TBaseErrorData = unknown,
 	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends CallApiRequestOptions, BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode> { }
+	TMoreOptions extends AnyObject = object,
+> = Omit<
+	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TMoreOptions>,
+	(typeof optionsEnumToOmitFromBase)[number]
+>;
 
-// prettier-ignore
-export interface CallApiConfig<
+export type CombinedCallApiExtraOptions<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> extends CallApiRequestOptions, CallApiExtraOptions<TData, TErrorData, TResultMode> { }
+	TMoreOptions extends AnyObject = object,
+> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> &
+	CallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions>;
+
+export type CallApiConfig<
+	TData = unknown,
+	TErrorData = unknown,
+	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TMoreOptions extends AnyObject = object,
+> = CallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> & CallApiRequestOptions;
+
+export type BaseCallApiConfig<
+	TBaseData = unknown,
+	TBaseErrorData = unknown,
+	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TBaseMoreOptions extends AnyObject = object,
+> = BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBaseMoreOptions> &
+	CallApiRequestOptions;
 
 export type CallApiParameters<
 	TData = unknown,
 	TErrorData = unknown,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-> = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode>];
+	TMoreOptions extends AnyObject = object,
+> = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TMoreOptions>];
 
 export type RequestContext = UnmaskType<{
 	options: CombinedCallApiExtraOptions;
@@ -348,6 +359,26 @@ export type SuccessContext<TData> = UnmaskType<{
 	response: Response;
 }>;
 
+export type PossibleJavascriptErrorNames =
+	| "AbortError"
+	| "Error"
+	| "SyntaxError"
+	| "TimeoutError"
+	| "TypeError"
+	| (`${string}Error` & {});
+
+export type PossibleJavaScriptError = UnmaskType<{
+	errorData: DOMException | Error | SyntaxError | TypeError;
+	message: string;
+	name: PossibleJavascriptErrorNames;
+}>;
+
+export type PossibleHTTPError<TErrorData> = UnmaskType<{
+	errorData: TErrorData;
+	message: string;
+	name: "HTTPError";
+}>;
+
 export type RequestErrorContext = UnmaskType<{
 	error: PossibleJavaScriptError;
 	options: CombinedCallApiExtraOptions;
@@ -375,30 +406,6 @@ export type ErrorContext<TErrorData> = UnmaskType<
 			response: null;
 	  }
 >;
-
-export type PossibleJavascriptErrorNames =
-	| "AbortError"
-	| "Error"
-	| "SyntaxError"
-	| "TimeoutError"
-	| "TypeError"
-	| (`${string}Error` & {});
-
-export type PossibleJavaScriptError = UnmaskType<{
-	errorData: DOMException | Error | SyntaxError | TypeError;
-	message: string;
-	name: PossibleJavascriptErrorNames;
-}>;
-
-export type PossibleHTTPError<TErrorData> = UnmaskType<{
-	errorData: TErrorData;
-	message: string;
-	name: "HTTPError";
-}>;
-
-export type ErrorObjectUnion<TErrorData = unknown> =
-	| PossibleHTTPError<TErrorData>
-	| PossibleJavaScriptError;
 
 export type CallApiResultSuccessVariant<TData> = {
 	data: TData;
