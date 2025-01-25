@@ -201,40 +201,31 @@ const client = createFetchClient({
 });
 ```
 
-## Request Lifecycle
+## Things to Note
 
-Here's how hooks are executed during a request lifecycle:
+Here are some important details about how hooks work:
 
-1. **Request is made**
+### Array Support
 
-   - `onRequest` hooks run
-   - Network request is sent
+Any hook can be an array of callbacks that run in sequence:
 
-2. **If network/request error occurs**
+```ts
+const { error } = await callApi("/api/data", {
+	onRequest: [
+		(ctx) => addAuthHeader(ctx.request),
+		(ctx) => addTrackingHeader(ctx.request),
+		(ctx) => addVersionHeader(ctx.request),
+	],
+});
+```
 
-   - `onRequestError` hooks run
-   - `onError` hooks run
-   - If retry is enabled → `onRetry` hooks run → back to step 1
-
-3. **If successful response received (response.ok === true)**
-
-   - `onResponse` hooks run
-   - `onSuccess` hooks run
-
-4. **If response error (response.ok === false)**
-
-   - `onResponse` hooks run
-   - `onResponseError` hooks run
-   - `onError` hooks run
-   - If retry is enabled → `onRetry` hooks run → back to step 1
-
-## Hook Priority Levels
+### Hook Priority Levels
 
 Hooks can be defined at three levels, executing in the following order:
 
 1. **Plugin Level**: Runs first
 2. **Base Client Level**: Runs second
-3. **Instance Level**: Runs last and overrides base hooks
+3. **Instance Level**: Runs last and overrides base hooks if base hooks aren't defined as an array
 
 ```ts title="example.ts"
 import { createFetchClient, definePlugin } from "@zayne-labs/callapi";
@@ -262,24 +253,6 @@ await client("/api/data", {
 	onRequest: () => console.log("3. Request onRequest"),
 	// Merges with base onResponse array
 	onResponse: () => console.log("3. Request onResponse"),
-});
-```
-
-## Things to Note
-
-Here are some important details about how hooks work:
-
-### Array Support
-
-Any hook can be an array of callbacks that run in sequence:
-
-```ts
-const { error } = await callApi("/api/data", {
-	onRequest: [
-		(ctx) => addAuthHeader(ctx.request),
-		(ctx) => addTrackingHeader(ctx.request),
-		(ctx) => addVersionHeader(ctx.request),
-	],
 });
 ```
 

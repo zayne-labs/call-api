@@ -32,7 +32,7 @@ import {
 	splitConfig,
 	waitUntil,
 } from "./utils/common";
-import { defaultRetryCodes, defaultRetryMethods } from "./utils/constants";
+import { defaultRetryMethods, defaultRetryStatusCodes } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
 import { isFunction, isPlainObject } from "./utils/type-guards";
 
@@ -89,10 +89,10 @@ export const createFetchClient = <
 			responseType: "json",
 			resultMode: "all",
 			retryAttempts: 0,
-			retryCodes: defaultRetryCodes,
 			retryDelay: 1000,
 			retryMaxDelay: 10000,
 			retryMethods: defaultRetryMethods,
+			retryStatusCodes: defaultRetryStatusCodes,
 			retryStrategy: "linear",
 
 			...baseExtraOptions,

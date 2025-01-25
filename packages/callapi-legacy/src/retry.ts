@@ -13,12 +13,6 @@ export interface RetryOptions<TErrorData> {
 	retryAttempts?: number;
 
 	/**
-	 * @description HTTP status codes that trigger a retry
-	 * @default [409, 425, 429, 500, 502, 503, 504]
-	 */
-	retryCodes?: Array<409 | 425 | 429 | 500 | 502 | 503 | 504 | AnyNumber>;
-
-	/**
 	 * @description Callback whose return value determines if a request should be retried or not
 	 */
 	retryCondition?: RetryCondition<TErrorData>;
@@ -45,6 +39,12 @@ export interface RetryOptions<TErrorData> {
 	 * @default ["GET", "POST"]
 	 */
 	retryMethods?: Array<"GET" | "POST" | AnyString>;
+
+	/**
+	 * @description HTTP status codes that trigger a retry
+	 * @default [409, 425, 429, 500, 502, 503, 504]
+	 */
+	retryStatusCodes?: Array<409 | 425 | 429 | 500 | 502 | 503 | 504 | AnyNumber>;
 
 	/**
 	 * @description Strategy to use when retrying
@@ -98,7 +98,7 @@ export const createRetryStrategy = <TErrorData>(
 
 			const includesCodes =
 				// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
-				!!ctx.response?.status && options.retryCodes?.includes(ctx.response.status);
+				!!ctx.response?.status && options.retryStatusCodes?.includes(ctx.response.status);
 
 			return includesCodes && includesMethod && baseRetryCondition;
 		},

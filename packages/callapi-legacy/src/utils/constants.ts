@@ -18,7 +18,7 @@ export const fetchSpecificKeys = defineEnum([
 	"referrerPolicy",
 ] satisfies Array<keyof RequestInit>);
 
-const retryCodesLookup = defineEnum({
+const retryStatusCodesLookup = defineEnum({
 	408: "Request Timeout",
 	409: "Conflict",
 	425: "Too Early",
@@ -29,8 +29,7 @@ const retryCodesLookup = defineEnum({
 	504: "Gateway Timeout",
 });
 
-export const defaultRetryMethods = ["GET"] satisfies BaseCallApiConfig["retryMethods"];
+export const defaultRetryMethods = ["GET", "POST"] satisfies BaseCallApiConfig["retryMethods"];
 
-export const defaultRetryCodes = Object.keys(retryCodesLookup).map(
-	Number
-) as Required<BaseCallApiConfig>["retryCodes"];
+// prettier-ignore
+export const defaultRetryStatusCodes = Object.keys(retryStatusCodesLookup).map(Number) as Required<BaseCallApiConfig>["retryStatusCodes"];
