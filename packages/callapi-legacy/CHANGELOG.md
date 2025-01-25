@@ -1,5 +1,12 @@
 # @zayne-labs/callapi-legacy
 
+## 1.3.1
+
+### Patch Changes
+
+- ed6412d: fix: fix type issues with interceptor
+  feat: allow plugin hooks to also be arrays
+
 ## 1.3.0
 
 ### Minor Changes
