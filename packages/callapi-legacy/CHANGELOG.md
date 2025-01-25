@@ -1,5 +1,12 @@
 # @zayne-labs/callapi-legacy
 
+## 1.3.0
+
+### Minor Changes
+
+- cbedc52: 🔄 refactor(retry): rename retryCodes to retryStatusCodes for clarity ✨ feat(retry): add POST to default retry methods
+  📝 docs(hooks): reorganize hooks documentation for better readability 🗑️ refactor(docs): merge retries.mdx into timeout-and-retries.mdx
+
 ## 1.2.1
 
 ### Patch Changes
