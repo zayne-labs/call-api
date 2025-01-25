@@ -84,20 +84,19 @@ export interface Interceptors<TData = unknown, TErrorData = unknown> {
 	 * @description Interceptor that will be called when a request is retried.
 	 */
 	onRetry?: (response: ErrorContext<TErrorData>) => Awaitable<unknown>;
-
 	/**
 	 * @description Interceptor that will be called when a successful response is received from the api.
 	 */
 	onSuccess?: (context: SuccessContext<TData>) => Awaitable<unknown>;
 }
 
-export type InterceptorsArray<TData = unknown, TErrorData = unknown> = {
-	[Key in keyof Interceptors<TData, TErrorData>]: Array<Interceptors<TData, TErrorData>[Key]>;
+/* eslint-disable perfectionist/sort-union-types -- I need arrays to be last */
+export type InterceptorsOrInterceptorArray<TData = unknown, TErrorData = unknown> = {
+	[Key in keyof Interceptors<TData, TErrorData>]:
+		| Interceptors<TData, TErrorData>[Key]
+		| Array<Interceptors<TData, TErrorData>[Key]>;
 };
-
-export type InterceptorsOrInterceptorsArray<TData, TErrorData> =
-	| Interceptors<TData, TErrorData>
-	| InterceptorsArray<TData, TErrorData>;
+/* eslint-enable perfectionist/sort-union-types -- I need arrays to be last */
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
@@ -108,7 +107,7 @@ export type ExtraOptions<
 	TErrorData = unknown,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
 	TMoreOptions extends AnyObject = object,
-> = InterceptorsOrInterceptorsArray<TData, TErrorData> &
+> = InterceptorsOrInterceptorArray<TData, TErrorData> &
 	RetryOptions<TErrorData> &
 	TMoreOptions & {
 		/**

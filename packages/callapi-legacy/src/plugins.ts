@@ -3,7 +3,7 @@ import type {
 	CombinedCallApiExtraOptions,
 	ExtraOptions,
 	Interceptors,
-	InterceptorsOrInterceptorsArray,
+	InterceptorsOrInterceptorArray,
 } from "./types";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
@@ -23,7 +23,7 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	/**
 	 * Hooks/Interceptors for the plugin
 	 */
-	hooks?: Interceptors<TData, TErrorData>;
+	hooks?: InterceptorsOrInterceptorArray<TData, TErrorData>;
 
 	/**
 	 * @description A unique id for the plugin
@@ -78,7 +78,7 @@ const createMergedHook = (
 
 // prettier-ignore
 export type PluginHooks<TData, TErrorData> = {
-	[Key in keyof Interceptors<TData, TErrorData>]: Set<InterceptorsOrInterceptorsArray<TData, TErrorData>[Key]>;
+	[Key in keyof Interceptors<TData, TErrorData>]: Set<Interceptors<TData, TErrorData>[Key]>;
 };
 
 export const hooksEnum = {
@@ -96,21 +96,21 @@ export const initializePlugins = async <TData, TErrorData>(
 ) => {
 	const { initURL, options, request } = context;
 
-	const hooksRegistry = structuredClone(hooksEnum);
+	const hookRegistries = structuredClone(hooksEnum);
 
 	const addMainHooks = () => {
 		for (const key of Object.keys(hooksEnum)) {
 			const mainHook = options[key as keyof Interceptors] as never;
 
-			hooksRegistry[key as keyof Interceptors].add(mainHook);
+			hookRegistries[key as keyof Interceptors].add(mainHook);
 		}
 	};
 
-	const addPluginHooks = (pluginHooks: Interceptors<TData, TErrorData>) => {
+	const addPluginHooks = (pluginHooks: InterceptorsOrInterceptorArray<TData, TErrorData>) => {
 		for (const key of Object.keys(hooksEnum)) {
 			const pluginHook = pluginHooks[key as keyof Interceptors] as never;
 
-			hooksRegistry[key as keyof Interceptors].add(pluginHook);
+			hookRegistries[key as keyof Interceptors].add(pluginHook);
 		}
 	};
 
@@ -173,8 +173,8 @@ export const initializePlugins = async <TData, TErrorData>(
 
 	const resolvedHooks = {} as Required<Interceptors>;
 
-	for (const [key, hookSet] of Object.entries(hooksRegistry)) {
-		const flattenedHookArray = [...hookSet].flat();
+	for (const [key, hookRegistry] of Object.entries(hookRegistries)) {
+		const flattenedHookArray = [...hookRegistry].flat();
 
 		const mergedHook = createMergedHook(flattenedHookArray, options.mergedHooksExecutionMode);
 

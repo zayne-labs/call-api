@@ -3,7 +3,7 @@ import type {
 	CombinedCallApiExtraOptions,
 	ExtraOptions,
 	Interceptors,
-	InterceptorsOrInterceptorsArray,
+	InterceptorsOrInterceptorArray,
 } from "./types";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
@@ -23,7 +23,7 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	/**
 	 * Hooks/Interceptors for the plugin
 	 */
-	hooks?: Interceptors<TData, TErrorData>;
+	hooks?: InterceptorsOrInterceptorArray<TData, TErrorData>;
 
 	/**
 	 * @description A unique id for the plugin
@@ -54,6 +54,15 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	version?: string;
 };
 
+export const definePlugin = <
+	// eslint-disable-next-line perfectionist/sort-union-types -- I want the first one to be first
+	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
+>(
+	plugin: TPlugin
+) => {
+	return plugin;
+};
+
 const createMergedHook = (
 	hooks: Array<AnyFunction<Awaitable<unknown>> | undefined>,
 	mergedHooksExecutionMode: CombinedCallApiExtraOptions["mergedHooksExecutionMode"]
@@ -77,8 +86,8 @@ const createMergedHook = (
 };
 
 // prettier-ignore
-export type PluginHooks<TData, TErrorData> = {
-	[Key in keyof Interceptors<TData, TErrorData>]: Set<InterceptorsOrInterceptorsArray<TData, TErrorData>[Key]>;
+type HookRegistries = {
+	[Key in keyof Interceptors]: Set<Interceptors[Key]>;
 };
 
 export const hooksEnum = {
@@ -89,28 +98,28 @@ export const hooksEnum = {
 	onResponseError: new Set(),
 	onRetry: new Set(),
 	onSuccess: new Set(),
-} satisfies Required<PluginHooks<unknown, unknown>>;
+} satisfies HookRegistries;
 
 export const initializePlugins = async <TData, TErrorData>(
 	context: PluginInitContext<TData, TErrorData>
 ) => {
 	const { initURL, options, request } = context;
 
-	const hooksRegistry = structuredClone(hooksEnum);
+	const hookRegistries = structuredClone(hooksEnum);
 
 	const addMainHooks = () => {
 		for (const key of Object.keys(hooksEnum)) {
 			const mainHook = options[key as keyof Interceptors] as never;
 
-			hooksRegistry[key as keyof Interceptors].add(mainHook);
+			hookRegistries[key as keyof Interceptors].add(mainHook);
 		}
 	};
 
-	const addPluginHooks = (pluginHooks: Interceptors<TData, TErrorData>) => {
+	const addPluginHooks = (pluginHooks: InterceptorsOrInterceptorArray<TData, TErrorData>) => {
 		for (const key of Object.keys(hooksEnum)) {
 			const pluginHook = pluginHooks[key as keyof Interceptors] as never;
 
-			hooksRegistry[key as keyof Interceptors].add(pluginHook);
+			hookRegistries[key as keyof Interceptors].add(pluginHook);
 		}
 	};
 
@@ -173,8 +182,8 @@ export const initializePlugins = async <TData, TErrorData>(
 
 	const resolvedHooks = {} as Required<Interceptors>;
 
-	for (const [key, hookSet] of Object.entries(hooksRegistry)) {
-		const flattenedHookArray = [...hookSet].flat();
+	for (const [key, hookRegistry] of Object.entries(hookRegistries)) {
+		const flattenedHookArray = [...hookRegistry].flat();
 
 		const mergedHook = createMergedHook(flattenedHookArray, options.mergedHooksExecutionMode);
 
@@ -187,13 +196,4 @@ export const initializePlugins = async <TData, TErrorData>(
 		resolvedRequestOptions,
 		url: resolvedUrl,
 	};
-};
-
-export const definePlugin = <
-	// eslint-disable-next-line perfectionist/sort-union-types -- I want the first one to be first
-	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
->(
-	plugin: TPlugin
-) => {
-	return plugin;
 };
