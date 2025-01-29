@@ -1,5 +1,11 @@
 # @zayne-labs/callapi-legacy
 
+## 1.3.3
+
+### Patch Changes
+
+- 621f15f: fix: improve types
+
 ## 1.3.1
 
 ### Patch Changes
