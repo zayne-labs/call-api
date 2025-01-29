@@ -109,7 +109,7 @@ export type Meta = Register extends { meta?: infer TMeta extends Record<string, 
 export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
-	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = InterceptorsOrInterceptorArray<TData, TErrorData> &
 	Partial<TMoreOptions> &
@@ -276,7 +276,7 @@ export const optionsEnumToExtendFromBase = defineEnum(["plugins"] satisfies Arra
 export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
-	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = ExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> & {
 	/**
@@ -295,7 +295,7 @@ export const optionsEnumToOmitFromBase = defineEnum(["extend", "dedupeKey"] sati
 export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
-	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = Omit<
 	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TMoreOptions>,
@@ -305,7 +305,7 @@ export type BaseCallApiExtraOptions<
 export type CombinedCallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
-	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> &
 	CallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions>;
@@ -313,14 +313,14 @@ export type CombinedCallApiExtraOptions<
 export type CallApiConfig<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
-	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = CallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> & CallApiRequestOptions;
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
-	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 	TBaseMoreOptions extends AnyObject = DefaultMoreOptions,
 > = BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBaseMoreOptions> &
 	CallApiRequestOptions;
@@ -328,7 +328,7 @@ export type BaseCallApiConfig<
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
-	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TMoreOptions>];
 
@@ -439,14 +439,12 @@ export type ResultModeMap<TData = DefaultDataType, TErrorData = DefaultDataType>
 	onlySuccessWithException: CallApiResultSuccessVariant<TData>["data"];
 };
 
-export type CallApiResultModeUnion =
-	| { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap]
-	| undefined;
+export type ResultModeUnion = { [Key in keyof ResultModeMap]: Key }[keyof ResultModeMap] | undefined;
 
 export type GetCallApiResult<TData, TErrorData, TResultMode> = TErrorData extends false
 	? ResultModeMap<TData, TErrorData>["onlySuccessWithException"]
 	: undefined extends TResultMode
 		? ResultModeMap<TData, TErrorData>["all"]
-		: TResultMode extends NonNullable<CallApiResultModeUnion>
+		: TResultMode extends NonNullable<ResultModeUnion>
 			? ResultModeMap<TData, TErrorData>[TResultMode]
 			: never;

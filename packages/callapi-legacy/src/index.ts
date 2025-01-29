@@ -13,7 +13,7 @@ export type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CallApiResultErrorVariant,
-	CallApiResultModeUnion,
+	ResultModeUnion,
 	CallApiResultSuccessVariant,
 	CombinedCallApiExtraOptions,
 	ErrorContext,

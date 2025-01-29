@@ -12,7 +12,6 @@ import type {
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
-	CallApiResultModeUnion,
 	CombinedCallApiExtraOptions,
 	DefaultDataType,
 	DefaultMoreOptions,
@@ -20,6 +19,7 @@ import type {
 	Interceptors,
 	PossibleHTTPError,
 	PossibleJavaScriptError,
+	ResultModeUnion,
 } from "./types";
 import { mergeUrlWithParamsAndQuery } from "./url";
 import {
@@ -43,7 +43,7 @@ import type { AnyObject } from "./utils/type-helpers";
 export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
-	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 	TBaseMoreOptions extends AnyObject = DefaultMoreOptions,
 >(
 	baseConfig: BaseCallApiConfig<
@@ -67,7 +67,7 @@ export const createFetchClient = <
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
-		TResultMode extends CallApiResultModeUnion = TBaseResultMode,
+		TResultMode extends ResultModeUnion = TBaseResultMode,
 		TMoreOptions extends AnyObject = TBaseMoreOptions,
 	>(
 		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TMoreOptions>

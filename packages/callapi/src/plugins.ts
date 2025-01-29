@@ -1,22 +1,19 @@
 import type {
 	CallApiRequestOptionsForHooks,
-	CallApiResultModeUnion,
 	CombinedCallApiExtraOptions,
 	DefaultDataType,
 	DefaultMoreOptions,
 	ExtraOptions,
 	Interceptors,
 	InterceptorsOrInterceptorArray,
+	ResultModeUnion,
 } from "./types";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, AnyObject, Awaitable } from "./utils/type-helpers";
 
-type $CombinedCallApiExtraOptions<TMoreOptions extends AnyObject = DefaultMoreOptions> =
-	CombinedCallApiExtraOptions<DefaultDataType, DefaultDataType, CallApiResultModeUnion, TMoreOptions>;
-
 export type PluginInitContext<TMoreOptions extends AnyObject = DefaultMoreOptions> = {
 	initURL: string;
-	options: $CombinedCallApiExtraOptions<TMoreOptions>;
+	options: CombinedCallApiExtraOptions<DefaultDataType, DefaultDataType, ResultModeUnion, TMoreOptions>;
 	request: CallApiRequestOptionsForHooks;
 };
 
