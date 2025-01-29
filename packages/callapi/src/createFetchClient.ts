@@ -8,11 +8,14 @@ import { hooksEnum, initializePlugins } from "./plugins";
 import { createRetryStrategy } from "./retry";
 import type {
 	BaseCallApiConfig,
+	CallApiConfig,
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CallApiResultModeUnion,
 	CombinedCallApiExtraOptions,
+	DefaultDataType,
+	DefaultMoreOptions,
 	GetCallApiResult,
 	Interceptors,
 	PossibleHTTPError,
@@ -35,13 +38,20 @@ import {
 import { defaultRetryMethods, defaultRetryStatusCodes } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
 import { isFunction, isPlainObject } from "./utils/type-guards";
+import type { AnyObject } from "./utils/type-helpers";
 
 export const createFetchClient = <
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
+	TBaseData = DefaultDataType,
+	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TBaseMoreOptions extends AnyObject = DefaultMoreOptions,
 >(
-	baseConfig: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
+	baseConfig: BaseCallApiConfig<
+		TBaseData,
+		TBaseErrorData,
+		TBaseResultMode,
+		TBaseMoreOptions
+	> = {} as never
 ) => {
 	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig);
 
@@ -58,12 +68,13 @@ export const createFetchClient = <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
 		TResultMode extends CallApiResultModeUnion = TBaseResultMode,
+		TMoreOptions extends AnyObject = TBaseMoreOptions,
 	>(
-		...parameters: CallApiParameters<TData, TErrorData, TResultMode>
+		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TMoreOptions>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
-		const [initURL, config] = parameters;
+		const [initURL, config = {}] = parameters;
 
-		const [fetchConfig, extraOptions] = splitConfig(config ?? {});
+		const [fetchConfig, extraOptions] = splitConfig(config);
 
 		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
@@ -131,8 +142,8 @@ export const createFetchClient = <
 		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
 
 		const request = {
-			...defaultRequestOptions,
 			signal: combinedSignal,
+			...defaultRequestOptions,
 		} satisfies CallApiRequestOptionsForHooks;
 
 		const dedupeKey = options.dedupeKey ?? generateDedupeKey(fullURL, request, options);
@@ -193,7 +204,7 @@ export const createFetchClient = <
 
 			await executeHooks(
 				options.onSuccess({
-					data: successData,
+					data: successData as never,
 					options,
 					request,
 					response: options.cloneResponse ? response.clone() : response,
@@ -240,10 +251,12 @@ export const createFetchClient = <
 
 				await waitUntil(delay);
 
-				return await callApi(initURL, {
+				const updatedOptions = {
 					...config,
 					retryCount: (options.retryCount ?? 0) + 1,
-				});
+				} satisfies CallApiConfig<TData, TErrorData, TResultMode>;
+
+				return await callApi(initURL, updatedOptions);
 			}
 
 			const shouldThrowOnError = isFunction(options.throwOnError)

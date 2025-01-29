@@ -52,7 +52,7 @@
 		"test:release": "pkg-pr-new publish"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "0.17.2",
+		"@arethetypeswrong/cli": "0.17.3",
 		"@size-limit/esbuild-why": "11.1.6",
 		"@size-limit/preset-small-lib": "11.1.6",
 		"@total-typescript/ts-reset": "0.6.1",
@@ -62,7 +62,7 @@
 		"publint": "^0.3.1",
 		"size-limit": "11.1.6",
 		"terser": "5.37.0",
-		"tsup": "8.3.5",
+		"tsup": "8.3.6",
 		"typescript": "catalog:"
 	},
 	"publishConfig": {

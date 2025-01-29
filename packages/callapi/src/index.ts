@@ -1,13 +1,14 @@
 export { callApi, createFetchClient } from "./createFetchClient";
 
-export { definePlugin } from "./plugins";
-export type { CallApiPlugin, PluginInitContext } from "./plugins";
+export { definePlugin, type CallApiPlugin, type PluginInitContext } from "./plugins";
 
 export type {
 	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
 	CallApiConfig,
 	CallApiExtraOptions,
+	PossibleJavaScriptError,
+	PossibleHTTPError,
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
@@ -15,8 +16,10 @@ export type {
 	CallApiResultModeUnion,
 	CallApiResultSuccessVariant,
 	CombinedCallApiExtraOptions,
-	PossibleJavascriptErrorNames,
 	ErrorContext,
+	Interceptors,
+	InterceptorsOrInterceptorArray,
+	PossibleJavascriptErrorNames,
 	Register,
 	RequestContext,
 	RequestErrorContext,

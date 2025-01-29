@@ -13,6 +13,8 @@ import type {
 	CallApiRequestOptionsForHooks,
 	CallApiResultModeUnion,
 	CombinedCallApiExtraOptions,
+	DefaultDataType,
+	DefaultMoreOptions,
 	GetCallApiResult,
 	Interceptors,
 	PossibleHTTPError,
@@ -35,14 +37,21 @@ import {
 import { defaultRetryMethods, defaultRetryStatusCodes } from "@/utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "@/utils/polyfills";
 import { isFunction, isPlainObject } from "@/utils/type-guards";
+import type { AnyObject } from "@/utils/type-helpers";
 import type { CallApiConfigWithRequiredURL } from "./types";
 
 export const createFetchClientWithOptions = <
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
+	TBaseData = DefaultDataType,
+	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
+	TBaseMoreOptions extends AnyObject = DefaultMoreOptions,
 >(
-	baseConfig: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode> = {}
+	baseConfig: BaseCallApiConfig<
+		TBaseData,
+		TBaseErrorData,
+		TBaseResultMode,
+		TBaseMoreOptions
+	> = {} as never
 ) => {
 	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig);
 
@@ -59,8 +68,9 @@ export const createFetchClientWithOptions = <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
 		TResultMode extends CallApiResultModeUnion = TBaseResultMode,
+		TMoreOptions extends AnyObject = TBaseMoreOptions,
 	>(
-		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>
+		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode, TMoreOptions>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
 		const { initURL, ...restOfConfig } = config;
 
@@ -132,8 +142,8 @@ export const createFetchClientWithOptions = <
 		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
 
 		const request = {
-			...defaultRequestOptions,
 			signal: combinedSignal,
+			...defaultRequestOptions,
 		} satisfies CallApiRequestOptionsForHooks;
 
 		const dedupeKey = options.dedupeKey ?? generateDedupeKey(fullURL, request, options);
@@ -166,7 +176,7 @@ export const createFetchClientWithOptions = <
 
 			const response = await responsePromise;
 
-			// == Clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
+			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
 
 			if (!response.ok) {
@@ -194,7 +204,7 @@ export const createFetchClientWithOptions = <
 
 			await executeHooks(
 				options.onSuccess({
-					data: successData,
+					data: successData as never,
 					options,
 					request,
 					response: options.cloneResponse ? response.clone() : response,
@@ -241,10 +251,12 @@ export const createFetchClientWithOptions = <
 
 				await waitUntil(delay);
 
-				return await callApi({
+				const updatedOptions = {
 					...config,
 					retryCount: (options.retryCount ?? 0) + 1,
-				});
+				} satisfies CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode>;
+
+				return await callApi(updatedOptions);
 			}
 
 			const shouldThrowOnError = isFunction(options.throwOnError)

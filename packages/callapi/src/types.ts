@@ -51,9 +51,9 @@ export interface Register {
 	// == meta: Meta
 }
 
-export type Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
+export type DefaultDataType = unknown;
 
-export interface Interceptors<TData = unknown, TErrorData = unknown> {
+export interface Interceptors<TData = DefaultDataType, TErrorData = DefaultDataType> {
 	/**
 	 * @description Interceptor that will be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
@@ -91,7 +91,7 @@ export interface Interceptors<TData = unknown, TErrorData = unknown> {
 }
 
 /* eslint-disable perfectionist/sort-union-types -- I need arrays to be last */
-export type InterceptorsOrInterceptorArray<TData = unknown, TErrorData = unknown> = {
+export type InterceptorsOrInterceptorArray<TData = DefaultDataType, TErrorData = DefaultDataType> = {
 	[Key in keyof Interceptors<TData, TErrorData>]:
 		| Interceptors<TData, TErrorData>[Key]
 		| Array<Interceptors<TData, TErrorData>[Key]>;
@@ -100,16 +100,20 @@ export type InterceptorsOrInterceptorArray<TData = unknown, TErrorData = unknown
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
-type CallApiPluginArray<TData, TErrorData> = Array<CallApiPlugin<TData, TErrorData>>;
+type CallApiPluginArray<TMoreOptions extends AnyObject> = Array<CallApiPlugin<TMoreOptions>>;
+
+export type DefaultMoreOptions = NonNullable<unknown>;
+
+export type Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
 
 export type ExtraOptions<
-	TData = unknown,
-	TErrorData = unknown,
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-	TMoreOptions extends AnyObject = object,
+	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = InterceptorsOrInterceptorArray<TData, TErrorData> &
-	RetryOptions<TErrorData> &
-	TMoreOptions & {
+	Partial<TMoreOptions> &
+	RetryOptions<TErrorData> & {
 		/**
 		 * @description Authorization header value.
 		 */
@@ -217,8 +221,8 @@ export type ExtraOptions<
 		 * @description An array of CallApi plugins. It allows you to extend the behavior of the library.
 		 */
 		plugins?:
-			| CallApiPluginArray<TData, TErrorData>
-			| ((context: PluginInitContext<TData, TErrorData>) => CallApiPluginArray<TData, TErrorData>);
+			| CallApiPluginArray<TMoreOptions>
+			| ((context: PluginInitContext) => CallApiPluginArray<TMoreOptions>);
 
 		/**
 		 * @description Query parameters to append to the URL.
@@ -270,10 +274,10 @@ export type ExtraOptions<
 export const optionsEnumToExtendFromBase = defineEnum(["plugins"] satisfies Array<keyof ExtraOptions>);
 
 export type CallApiExtraOptions<
-	TData = unknown,
-	TErrorData = unknown,
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-	TMoreOptions extends AnyObject = object,
+	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = ExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> & {
 	/**
 	 * @description Options that should extend the base options.
@@ -289,43 +293,43 @@ export const optionsEnumToOmitFromBase = defineEnum(["extend", "dedupeKey"] sati
 >);
 
 export type BaseCallApiExtraOptions<
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
+	TBaseData = DefaultDataType,
+	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-	TMoreOptions extends AnyObject = object,
+	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = Omit<
 	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TMoreOptions>,
 	(typeof optionsEnumToOmitFromBase)[number]
 >;
 
 export type CombinedCallApiExtraOptions<
-	TData = unknown,
-	TErrorData = unknown,
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-	TMoreOptions extends AnyObject = object,
+	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> &
 	CallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions>;
 
 export type CallApiConfig<
-	TData = unknown,
-	TErrorData = unknown,
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-	TMoreOptions extends AnyObject = object,
+	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = CallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> & CallApiRequestOptions;
 
 export type BaseCallApiConfig<
-	TBaseData = unknown,
-	TBaseErrorData = unknown,
+	TBaseData = DefaultDataType,
+	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-	TBaseMoreOptions extends AnyObject = object,
+	TBaseMoreOptions extends AnyObject = DefaultMoreOptions,
 > = BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBaseMoreOptions> &
 	CallApiRequestOptions;
 
 export type CallApiParameters<
-	TData = unknown,
-	TErrorData = unknown,
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
 	TResultMode extends CallApiResultModeUnion = CallApiResultModeUnion,
-	TMoreOptions extends AnyObject = object,
+	TMoreOptions extends AnyObject = DefaultMoreOptions,
 > = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TMoreOptions>];
 
 export type RequestContext = UnmaskType<{
@@ -424,7 +428,7 @@ export type CallApiResultErrorVariant<TErrorData> =
 			response: null;
 	  };
 
-export type ResultModeMap<TData = unknown, TErrorData = unknown> = {
+export type ResultModeMap<TData = DefaultDataType, TErrorData = DefaultDataType> = {
 	// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
 	all: CallApiResultSuccessVariant<TData> | CallApiResultErrorVariant<TErrorData>;
 	onlyError: CallApiResultErrorVariant<TErrorData>["error"] | CallApiResultSuccessVariant<TData>["error"];

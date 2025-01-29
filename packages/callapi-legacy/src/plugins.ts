@@ -1,29 +1,37 @@
 import type {
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
+	DefaultMoreOptions,
 	ExtraOptions,
 	Interceptors,
 	InterceptorsOrInterceptorArray,
 } from "./types";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
-import type { AnyFunction, Awaitable } from "./utils/type-helpers";
+import type { AnyFunction, AnyObject, Awaitable } from "./utils/type-helpers";
 
-export type PluginInitContext<TData = unknown, TErrorData = unknown> = {
+export type PluginInitContext<TMoreOptions extends AnyObject = DefaultMoreOptions> = {
 	initURL: string;
-	options: CombinedCallApiExtraOptions<TData, TErrorData>;
+	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
 	request: CallApiRequestOptionsForHooks;
 };
 
-export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
+type CreateExtraOptions<TMoreOptions> = (...params: never[]) => TMoreOptions;
+
+export type CallApiPlugin<TMoreOptions extends AnyObject = DefaultMoreOptions> = {
+	/**
+	 * @description Defines additional options that can be passed to callApi
+	 */
+	createExtraOptions?: CreateExtraOptions<TMoreOptions>;
+
 	/**
 	 *  @description A description for the plugin
 	 */
 	description?: string;
 
 	/**
-	 * Hooks/Interceptors for the plugin
+	 * Hooks / Interceptors for the plugin
 	 */
-	hooks?: InterceptorsOrInterceptorArray<TData, TErrorData>;
+	hooks?: InterceptorsOrInterceptorArray;
 
 	/**
 	 * @description A unique id for the plugin
@@ -35,13 +43,7 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	 * initialized. This will be called before the any
 	 * of the other internal functions.
 	 */
-	init?: (context: PluginInitContext<TData, TErrorData>) =>
-		| Awaitable<{
-				options?: CombinedCallApiExtraOptions<TData, TErrorData>;
-				request: CallApiRequestOptionsForHooks;
-				url?: string;
-		  }>
-		| Awaitable<void>;
+	init?: (context: PluginInitContext) => Awaitable<Partial<PluginInitContext>> | Awaitable<void>;
 
 	/**
 	 * @description A name for the plugin
@@ -52,6 +54,17 @@ export type CallApiPlugin<TData = unknown, TErrorData = unknown> = {
 	 * @description A version for the plugin
 	 */
 	version?: string;
+};
+
+export const definePlugin = <
+	TMoreOptions extends AnyObject = DefaultMoreOptions,
+	TPlugin extends
+		| AnyFunction<CallApiPlugin<TMoreOptions>>
+		| CallApiPlugin<TMoreOptions> = CallApiPlugin<TMoreOptions>,
+>(
+	plugin: TPlugin
+) => {
+	return plugin;
 };
 
 const createMergedHook = (
@@ -77,8 +90,8 @@ const createMergedHook = (
 };
 
 // prettier-ignore
-export type PluginHooks<TData, TErrorData> = {
-	[Key in keyof Interceptors<TData, TErrorData>]: Set<Interceptors<TData, TErrorData>[Key]>;
+type HookRegistries = {
+	[Key in keyof Interceptors]: Set<Interceptors[Key]>;
 };
 
 export const hooksEnum = {
@@ -89,11 +102,9 @@ export const hooksEnum = {
 	onResponseError: new Set(),
 	onRetry: new Set(),
 	onSuccess: new Set(),
-} satisfies Required<PluginHooks<unknown, unknown>>;
+} satisfies HookRegistries;
 
-export const initializePlugins = async <TData, TErrorData>(
-	context: PluginInitContext<TData, TErrorData>
-) => {
+export const initializePlugins = async (context: PluginInitContext) => {
 	const { initURL, options, request } = context;
 
 	const hookRegistries = structuredClone(hooksEnum);
@@ -106,7 +117,7 @@ export const initializePlugins = async <TData, TErrorData>(
 		}
 	};
 
-	const addPluginHooks = (pluginHooks: InterceptorsOrInterceptorArray<TData, TErrorData>) => {
+	const addPluginHooks = (pluginHooks: InterceptorsOrInterceptorArray) => {
 		for (const key of Object.keys(hooksEnum)) {
 			const pluginHook = pluginHooks[key as keyof Interceptors] as never;
 
@@ -118,7 +129,7 @@ export const initializePlugins = async <TData, TErrorData>(
 		addMainHooks();
 	}
 
-	const getPluginArray = (plugins: ExtraOptions<TData, TErrorData>["plugins"]) => {
+	const getPluginArray = (plugins: ExtraOptions["plugins"]) => {
 		if (!plugins) {
 			return [];
 		}
@@ -135,15 +146,15 @@ export const initializePlugins = async <TData, TErrorData>(
 	let resolvedOptions = options;
 	let resolvedRequestOptions = request;
 
-	const executePluginInit = async (pluginInit: CallApiPlugin<TData, TErrorData>["init"]) => {
+	const executePluginInit = async (pluginInit: CallApiPlugin["init"]) => {
 		if (!pluginInit) return;
 
 		const initResult = await pluginInit({ initURL, options, request });
 
 		if (!isPlainObject(initResult)) return;
 
-		if (isString(initResult.url)) {
-			resolvedUrl = initResult.url;
+		if (isString(initResult.initURL)) {
+			resolvedUrl = initResult.initURL;
 		}
 
 		if (isPlainObject(initResult.request)) {
@@ -187,13 +198,4 @@ export const initializePlugins = async <TData, TErrorData>(
 		resolvedRequestOptions,
 		url: resolvedUrl,
 	};
-};
-
-export const definePlugin = <
-	// eslint-disable-next-line perfectionist/sort-union-types -- I want the first one to be first
-	TPlugin extends CallApiPlugin<never, never> | AnyFunction<CallApiPlugin<never, never>>,
->(
-	plugin: TPlugin
-) => {
-	return plugin;
 };
