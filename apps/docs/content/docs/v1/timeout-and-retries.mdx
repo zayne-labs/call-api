@@ -97,15 +97,13 @@ const result = await callBackendApi("/api/users", {
 });
 ```
 
-### Custom Retry conditions
-
-#### RetryMethods and RetryStatusCodes
+### RetryMethods and RetryStatusCodes
 
 You can customize when to retry a request with the `retryMethods` and `retryStatusCodes` options.
 
 Current defaults:
 
-1. **Default Retry status codes**:
+1. **Retry status codes**:
 
 - `408` - Request Timeout
 - `409` - Conflict
@@ -116,11 +114,9 @@ Current defaults:
 - `503` - Service Unavailable
 - `504` - Gateway Timeout
 
-2. **Default Retry Methods**:
-   - GET
-   - POST
+2. **Retry Methods**: `GET`, `POST`
 
-```ts title="api.ts"
+```ts twoslash title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callBackendApi = createFetchClient({
@@ -137,7 +133,7 @@ const result = await callBackendApi("/api/users", {
 });
 ```
 
-#### Custom condition
+### Custom condition
 
 Use `retryCondition` to implement custom retry logic:
 
@@ -159,7 +155,7 @@ const result = await callBackendApi("/api/users", {
 });
 ```
 
-### Retry with callback:
+### onRetry callback
 
 Listen to retry attempts using the `onRetry` hook:
 

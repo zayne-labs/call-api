@@ -1,16 +1,37 @@
 import { createFetchClient, definePlugin } from "@zayne-labs/callapi";
+import { z } from "zod";
+
+const newOptionSchema = z.object({
+	onUpload: z.function().args(
+		z.object({
+			loaded: z.number(),
+			total: z.number(),
+		})
+	),
+});
 
 const plugin = definePlugin({
+	createExtraOptions: (...params) => newOptionSchema.parse(params),
+
 	hooks: {
 		onRequest: () => console.info("PLUGIN-OnRequest"),
 	},
+
 	id: "1",
+
+	init: ({ request }) => ({
+		request: {
+			...request,
+		},
+	}),
+
 	name: "plugin",
 });
 
 const callApi = createFetchClient({
 	dedupeStrategy: "cancel",
-	onRequest: [() => console.info("OnBaseRequest")],
+	onRequest: () => console.info("OnBaseRequest"),
+	onUpload: (progress) => progress,
 	plugins: [plugin],
 });
 

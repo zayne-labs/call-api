@@ -1,63 +1,57 @@
 ---
 title: Plugins
-description: Extend `callApi`'s functionality with plugins
+description: Extend Callapi's functionality with plugins
 ---
 
-Plugins allow you to extend `callApi`'s functionality by adding reusable hooks and modifying requests at initialization. They're perfect for adding cross-cutting concerns like authentication, logging, or error handling.
+Plugins allow you to extend `CallApi` with extra functionality.
 
 ## Creating a Plugin
 
-Use the `definePlugin` function to create a plugin:
+You can use the `definePlugin` helper to provide type safety when creating a plugin:
 
-```ts twoslash title="auth-plugin.ts"
+```ts twoslash title="plugins.ts"
 import { definePlugin } from "@zayne-labs/callapi";
 
 const authPlugin = definePlugin({
+	// Plugin metadata
 	id: "auth-plugin",
 	name: "Auth Plugin",
 	description: "Adds authentication headers to requests",
 	version: "1.0.0",
 
-	// Initialize plugin
-	// init: ({ options, request }) => {
-	// 	const token = localStorage.getItem("token");
+	//Initialize plugin
+	init: ({ options, request }) => {
+		const token = localStorage.getItem("token");
 
-	// 	return {
-	// 		request: {
-	// 			...request,
-	// 			headers: {
-	// 				...request.headers,
-	// 				Authorization: `Bearer ${token}`,
-	// 			},
-	// 		},
-	// 	};
-	// },
+		return {
+			request: {
+				...request,
+				// headers: {
+				// 	...request.headers,
+				// 	Authorization: `Bearer ${token}`,
+				// },
+			},
+		};
+	},
 
-	// Add hooks
+	// Plugin hooks
 	hooks: {
-		onResponse: ({ response }) => {
-			if (response.status === 401) {
-				// Handle unauthorized
-			}
-		},
+		onResponse: [
+			({ response }) => console.log("Status:", response.status),
+			({ response }) => console.log("Headers:", response.headers),
+		],
+		onError: ({ error }) => console.error("Failed:", error),
 	},
 });
 ```
 
-## Plugin Interface
+Or you just use the `CallApiPlugin` type together with satisfies keyword to achieve the same result:
 
-A plugin can include:
-
-- `id` (required): A unique identifier for the plugin
-- `name` (required): A descriptive name
-- `description`: A brief explanation of what the plugin does
-- `version`: Plugin version number
-- `init`: A function called when the plugin is initialized
-- `hooks`: Regular hooks that run before main hooks
+```
 
 ### Init Function
 
-The `init` function receives a context object with:
+The init function is called before the request is made and any of CallApi's internal functions are called. It takes the url, options, and request as arguments and is expected to return the modified url, options and request if necessary.
 
 ```ts
 type PluginInitContext = {
@@ -65,7 +59,7 @@ type PluginInitContext = {
 	options: CallApiExtraOptions; // Current options
 	request: RequestOptions; // Current request config
 };
-```
+````
 
 It can return:
 

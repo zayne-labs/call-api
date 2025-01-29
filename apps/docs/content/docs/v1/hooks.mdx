@@ -193,7 +193,7 @@ const client = createFetchClient({
 	// Advanced retry configuration
 	retryAttempts: 3,
 	retryStrategy: "exponential",
-	retryCodes: [408, 429, 500, 502, 503, 504],
+	retryStatusCodes: [408, 429, 500, 502, 503, 504],
 
 	onRetry: ({ response }) => {
 		// Handle stuff...
