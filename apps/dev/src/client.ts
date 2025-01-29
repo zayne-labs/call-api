@@ -22,6 +22,9 @@ const plugin = definePlugin({
 	init: ({ request }) => ({
 		request: {
 			...request,
+			headers: {
+				...request.headers,
+			},
 		},
 	}),
 

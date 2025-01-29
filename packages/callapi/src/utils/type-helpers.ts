@@ -100,7 +100,7 @@ export type CommonRequestHeaders =
 	| "X-Robots-Tag"
 	| "X-XSS-Protection";
 
-export type CommonAuthorizationHeaders = "Basic" | "Bearer" | "Token";
+export type CommonAuthorizationHeaders = `${"Basic" | "Bearer" | "Token"} ${string}`;
 
 export type CommonContentTypes =
 	| "application/epub+zip"

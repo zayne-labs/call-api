@@ -43,7 +43,7 @@ export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKe
 
 export interface CallApiRequestOptionsForHooks extends CallApiRequestOptions {
 	// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
-	headers?: Record<CommonRequestHeaders | AnyString, string>;
+	headers?: Record<CommonRequestHeaders | AnyString, string> | Record<string, string>;
 }
 
 // eslint-disable-next-line ts-eslint/no-empty-object-type -- This needs to be empty to allow users to register their own meta
