@@ -27,7 +27,8 @@
 	}
 
 	.dark {
-		/* --background: 20 14.3% 4.1%; */
+		/* --fd-background: 20 14.3% 4.1%; */
+		/* --fd-background: 0 0% 8.04%; */
 		--fd-background: 0 0% 8.04%;
 		--fd-foreground: 251 5% 90%;
 		--fd-card: 251 50% 0%;

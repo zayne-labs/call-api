@@ -10,11 +10,12 @@ export default zayne({
 			"nextjs-next/no-html-link-for-pages": ["error", "apps/docs"],
 		},
 	},
-	tailwindcss: {
-		settings: {
-			config: "apps/docs/tailwind.config.ts",
-		},
-	},
+	tailwindcss: false,
+	// tailwindcss: {
+	// 	settings: {
+	// 		config: "apps/docs/tailwind.config.ts",
+	// 	},
+	// },
 	type: "lib",
 	typescript: {
 		tsconfigPath: ["**/tsconfig.json"],

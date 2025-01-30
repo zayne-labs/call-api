@@ -28,7 +28,7 @@ export const buttonVariants = tv({
 			outline: `border border-fd-input bg-fd-background shadow-sm hover:bg-fd-accent
 			hover:text-fd-accent-foreground`,
 			primary: "bg-fd-primary text-fd-primary-foreground shadow hover:bg-fd-primary/90",
-			secondary: "bg-[hsl(12,4%,12%)] text-fd-secondary-foreground shadow-sm hover:bg-fd-secondary/80",
+			secondary: "bg-fd-secondary/75 text-fd-secondary-foreground shadow-sm",
 		},
 	},
 

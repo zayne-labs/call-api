@@ -15,6 +15,7 @@
 		"request-dedupe",
 		"timeout-and-retries",
 		"---Advanced---",
-		"hooks"
+		"hooks",
+		"plugins"
 	]
 }

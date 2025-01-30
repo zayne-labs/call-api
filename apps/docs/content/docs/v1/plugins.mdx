@@ -10,56 +10,80 @@ Plugins allow you to extend `CallApi` with extra functionality.
 You can use the `definePlugin` helper to provide type safety when creating a plugin:
 
 ```ts twoslash title="plugins.ts"
-import { definePlugin } from "@zayne-labs/callapi";
+import { definePlugin, createFetchClient } from "@zayne-labs/callapi";
 
-const authPlugin = definePlugin({
-	// Plugin metadata
-	id: "auth-plugin",
-	name: "Auth Plugin",
-	description: "Adds authentication headers to requests",
+const envPlugin = definePlugin({
+	id: "env-plugin",
+	name: "Environment Plugin",
+	description: "A plugin that adds environment-specific headers to requests",
 	version: "1.0.0",
 
-	//Initialize plugin
-	init: ({ options, request }) => {
-		const token = localStorage.getItem("token");
+	init: ({ request }) => {
+		const env = process.env.NODE_ENV ?? "development";
+
+		const clientInfo = {
+			platform: typeof window !== "undefined" ? "browser" : "node",
+			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		};
+
+		const updatedRequest = {
+			...request,
+			headers: {
+				...request.headers,
+				"X-Environment": env,
+				"X-Client-Platform": clientInfo.platform,
+				"X-Client-Timezone": clientInfo.timezone,
+			},
+		};
+
+		return {
+			request: updatedRequest,
+		};
+	},
+});
+
+const callBackendApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+	plugins: [envPlugin],
+});
+```
+
+Or alternatively, use TypeScript's `satisfies` keyword with `CallApiPlugin` type:
+
+```ts twoslash title="plugins.ts"
+import type { CallApiPlugin } from "@zayne-labs/callapi";
+
+const envPlugin = {
+	id: "env-plugin",
+	name: "Environment Plugin",
+	description: "Adds environment-specific headers to requests",
+	version: "1.0.0",
+
+	init: ({ request }) => {
+		const env = process.env.NODE_ENV || "development";
+		const clientInfo = {
+			platform: typeof window !== "undefined" ? "browser" : "node",
+			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		};
 
 		return {
 			request: {
 				...request,
-				// headers: {
-				// 	...request.headers,
-				// 	Authorization: `Bearer ${token}`,
-				// },
+				headers: {
+					...request.headers,
+					"X-Environment": env,
+					"X-Client-Platform": clientInfo.platform,
+					"X-Client-Timezone": clientInfo.timezone,
+				},
 			},
 		};
 	},
-
-	// Plugin hooks
-	hooks: {
-		onResponse: [
-			({ response }) => console.log("Status:", response.status),
-			({ response }) => console.log("Headers:", response.headers),
-		],
-		onError: ({ error }) => console.error("Failed:", error),
-	},
-});
+} satisfies CallApiPlugin;
 ```
-
-Or you just use the `CallApiPlugin` type together with satisfies keyword to achieve the same result:
-
-````
 
 ### Init Function
 
 The init function is called before the request is made and any of CallApi's internal functions are called. It takes the url, options, and request as arguments and is expected to return the modified url, options and request if necessary.
-
-```ts
-type PluginInitContext = {
-	initURL: string; // The request URL
-	options: CallApiExtraOptions; // Current options
-	request: RequestOptions; // Current request config
-};
-````
 
 It can return:
 
@@ -79,7 +103,7 @@ Add plugins when creating a fetch client:
 
 ```ts
 const client = createFetchClient({
-	plugins: [authPlugin, loggingPlugin],
+	plugins: [envPlugin, loggingPlugin],
 });
 ```
 
