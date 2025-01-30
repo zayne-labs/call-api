@@ -98,9 +98,10 @@ export type CommonRequestHeaders =
 	| "X-Permitted-Cross-Domain-Policies"
 	| "X-Powered-By"
 	| "X-Robots-Tag"
-	| "X-XSS-Protection";
+	| "X-XSS-Protection"
+	| AnyString;
 
-export type CommonAuthorizationHeaders = "Basic" | "Bearer" | "Token";
+export type CommonAuthorizationHeaders = `${"Basic" | "Bearer" | "Token" | AnyString} ${string}`;
 
 export type CommonContentTypes =
 	| "application/epub+zip"
@@ -151,4 +152,5 @@ export type CommonContentTypes =
 	| "video/mpeg"
 	| "video/ogg"
 	| "video/webm"
-	| "video/x-msvideo";
+	| "video/x-msvideo"
+	| AnyString;

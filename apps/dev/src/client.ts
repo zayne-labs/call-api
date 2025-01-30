@@ -24,6 +24,8 @@ const plugin = definePlugin({
 			...request,
 			headers: {
 				...request.headers,
+				Access: "true",
+				Authorization: request.headers?.["X-Environment"],
 			},
 		},
 	}),

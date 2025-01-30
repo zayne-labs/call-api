@@ -30,8 +30,8 @@ export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKe
 	headers?:
 		| Record<"Authorization", CommonAuthorizationHeaders>
 		| Record<"Content-Type", CommonContentTypes>
-		// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
-		| Record<CommonRequestHeaders | AnyString, string>
+		| Record<CommonRequestHeaders, string | undefined>
+		| Record<string, string | undefined>
 		| RequestInit["headers"];
 
 	/**
@@ -41,9 +41,8 @@ export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKe
 	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
 }
 
-export interface CallApiRequestOptionsForHooks extends CallApiRequestOptions {
-	// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
-	headers?: Record<CommonRequestHeaders | AnyString, string>;
+export interface CallApiRequestOptionsForHooks extends Omit<CallApiRequestOptions, "headers"> {
+	headers?: Record<string, string | undefined>;
 }
 
 // eslint-disable-next-line ts-eslint/no-empty-object-type -- This needs to be empty to allow users to register their own meta

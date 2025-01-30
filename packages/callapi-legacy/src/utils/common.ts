@@ -66,7 +66,7 @@ export const splitConfig = (config: Record<string, any>) =>
 		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
 	] as const;
 
-export const objectifyHeaders = (headers: RequestInit["headers"]): Record<string, string> | undefined => {
+export const objectifyHeaders = (headers: CallApiRequestOptions["headers"]) => {
 	if (!headers || isPlainObject(headers)) {
 		return headers;
 	}
@@ -108,7 +108,7 @@ export const mergeAndResolveHeaders = (options: {
 	// == - The auth option is provided
 	if (!shouldResolveHeaders) return;
 
-	const headersObject: Record<string, string> = {
+	const headersObject: Record<string, string | undefined> = {
 		...getAuthHeader(auth),
 		...objectifyHeaders(baseHeaders),
 		...objectifyHeaders(headers),

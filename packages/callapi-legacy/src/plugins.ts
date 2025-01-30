@@ -1,4 +1,5 @@
 import type {
+	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
 	DefaultDataType,
@@ -16,6 +17,10 @@ export type PluginInitContext<TMoreOptions extends AnyObject = DefaultMoreOption
 	options: CombinedCallApiExtraOptions<DefaultDataType, DefaultDataType, ResultModeUnion, TMoreOptions>;
 	request: CallApiRequestOptionsForHooks;
 };
+
+export type PluginInitResult = Partial<
+	Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
+>;
 
 type CreateExtraOptions<TMoreOptions> = (...params: never[]) => TMoreOptions;
 
@@ -45,7 +50,7 @@ export type CallApiPlugin<TMoreOptions extends AnyObject = DefaultMoreOptions> =
 	 * initialized. This will be called before the any
 	 * of the other internal functions.
 	 */
-	init?: (context: PluginInitContext) => Awaitable<Partial<PluginInitContext>> | Awaitable<void>;
+	init?: (context: PluginInitContext) => Awaitable<PluginInitResult> | Awaitable<void>;
 
 	/**
 	 * @description A name for the plugin
