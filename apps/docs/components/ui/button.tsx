@@ -8,8 +8,8 @@ import { type VariantProps, tv } from "tailwind-variants";
 
 // eslint-disable-next-line react-refresh/only-export-components -- It's fine
 export const buttonVariants = tv({
-	base: `inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium
-	transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
+	base: `focus-visible:ring-ring inline-flex items-center justify-center whitespace-nowrap rounded-md
+	text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1
 	disabled:pointer-events-none disabled:opacity-50`,
 
 	variants: {
