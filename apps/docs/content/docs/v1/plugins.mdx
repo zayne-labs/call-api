@@ -7,7 +7,7 @@ Plugins allow you to extend `CallApi` with extra functionality.
 
 ## Creating a Plugin
 
-You can use the `definePlugin` helper to provide type safety when creating a plugin:
+To provide type safety when creating a plugin, you can use the `definePlugin` helper:
 
 ```ts twoslash title="plugins.ts"
 import { definePlugin, createFetchClient } from "@zayne-labs/callapi";
@@ -48,7 +48,7 @@ const callBackendApi = createFetchClient({
 });
 ```
 
-Or alternatively, use TypeScript's `satisfies` keyword with `CallApiPlugin` type:
+Or alternatively, you can also use TypeScript's `satisfies` keyword together with `CallApiPlugin` type to achieve the same effect:
 
 ```ts twoslash title="plugins.ts"
 import type { CallApiPlugin } from "@zayne-labs/callapi";
@@ -85,40 +85,178 @@ const envPlugin = {
 
 The init function is called before the request is made and any of CallApi's internal functions are called. It takes the url, options, and request as arguments and is expected to return the modified url, options and request if necessary.
 
-It can return:
+```ts title="plugins.ts"
+const envPlugin = definePlugin({
+	id: "env-plugin",
+	name: "Environment Plugin",
+	description: "A plugin that adds environment-specific headers to requests",
+	version: "1.0.0",
 
-- `void`: Make no changes
-- An object to modify the request:
-   ```ts
-   {
-     url?: string;              // Modified URL
-     options?: CallApiOptions;  // Modified options
-     request: RequestOptions;   // Modified request config
-   }
-   ```
+	init: ({ initURL, request, options }) => {
+		const env = process.env.NODE_ENV ?? "development";
+
+		const clientInfo = {
+			platform: typeof window !== "undefined" ? "browser" : "node",
+			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		};
+
+		const updatedRequest = {
+			...request,
+			headers: {
+				...request.headers,
+				"X-Environment": env,
+				"X-Client-Platform": clientInfo.platform,
+				"X-Client-Timezone": clientInfo.timezone,
+			},
+		};
+
+		return { request: updatedRequest };
+	},
+});
+```
+
+### Hooks
+
+Hooks are callback functions that are called at different stages of the request lifecycle. See [Hooks](./hooks) for more information.
+
+```ts twoslash title="plugins.ts"
+import { definePlugin, createFetchClient } from "@zayne-labs/callapi";
+
+const myPlugin = definePlugin({
+	id: "my-plugin",
+	name: "My Plugin",
+	description: "A plugin that does something",
+	version: "1.0.0",
+
+	hooks: {
+		onRequest: (ctx) => {
+			// Do something with context object
+		},
+		onRequestError: (ctx) => {
+			// Do something with context object
+		},
+		onResponse: (ctx) => {
+			// Do something with context object
+		},
+		onResponseError: (ctx) => {
+			// Do something with context object
+		},
+		onError: (ctx) => {
+			// Do something with context object
+		},
+		onSuccess: (ctx) => {
+			// Do something with context object
+		},
+		onRetry: (ctx) => {
+			// Do something with context object
+		},
+	},
+});
+
+const callBackendApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+	plugins: [myPlugin],
+});
+```
+
+<Callout type="info">
+	If more than one plugin is registered, the `init` and `hooks` for each plugin will be called in the
+	order they are registered.
+</Callout>
+
+### CreateExtraOptions
+
+Sometimes your plugin needs additional configuration options beyond the standard `CallApiPlugin` interface. The `createExtraOptions` function lets you define these custom options in a type-safe way.
+
+For example, let's create a plugin that tracks upload progress:
+
+```ts twoslash title="plugins.ts"
+import { createFetchClient, definePlugin, type PluginInitContext } from "@zayne-labs/callapi";
+import { z } from "zod";
+
+const newOptionSchema = z.object({
+	onUpload: z.function().args(z.object({ loaded: z.number(), total: z.number() })),
+});
+
+const myPlugin = definePlugin({
+	id: "my-plugin",
+	name: "My Plugin",
+
+	createExtraOptions: newOptionSchema.parse,
+
+	init: ({ request, options }: PluginInitContext<z.infer<typeof newOptionSchema>>) => {
+		const xhr = new XMLHttpRequest();
+
+		xhr.open(request.method, options.fullURL);
+		xhr.send(request.body as XMLHttpRequestBodyInit);
+
+		xhr.upload.addEventListener("progress", (event) => {
+			if (!event.lengthComputable) {
+				console.error("Upload progress is not calculable");
+				return;
+			}
+
+			options.onUpload?.({ loaded: event.loaded, total: event.total });
+		});
+		// xhr.upload.addEventListener("error", options.error);
+	},
+});
+
+const callBackendApi = createFetchClient({
+	baseURL: "http://localhost:3000",
+	plugins: [myPlugin],
+});
+
+const result = await callBackendApi("/api/users", {
+	onUpload: ({ loaded, total }) => {
+		console.log(`Uploaded ${loaded} bytes of ${total}`);
+	},
+});
+```
+
+In this example, we use Zod to define our custom `onUpload` option. Once defined, TypeScript will automatically infer these options and add them to the `CallApiPlugin` interface. The plugin then uses this option in its `onRequest` hook to track upload progress using XMLHttpRequest.
 
 ## Using Plugins
 
-Add plugins when creating a fetch client:
+### Adding Plugins to the Base
 
-```ts
-const client = createFetchClient({
-	plugins: [envPlugin, loggingPlugin],
+You can add plugins when creating a CallApi instance. These plugins will be applied to all requests made with that instance:
+
+```ts title="api.ts"
+const callBackendApi = createFetchClient({
+	plugins: [
+		envPlugin, // Handle environment-specific configurations
+		loggingPlugin, // Log request/response details
+	],
 });
 ```
 
-Or when making individual requests:
+### Adding Plugins to Individual Requests
 
-```ts
-const { data } = await callApi("/users", {
-	plugins: [metricsPlugin],
+For specific requests, you can add plugins that will only be active for that particular call:
+
+```ts title="app.ts"
+const { data } = await callBackendApi("/users", {
+	plugins: [metricsPlugin], // Only track metrics for this request
 });
 ```
 
-## Plugin Execution Order
+**NOTE**: Using the `plugins` option directly will replace the base plugins array by default. If you want to keep the base plugins and still be able to add new ones, use the `extends` option:
 
-1. Plugin `init` functions run in the order plugins are added
-2. Plugin hooks run before main hooks (those defined in `createFetchClient` or individual requests)
+```ts title="app.ts"
+const { data } = await callBackendApi("/users", {
+	extends: {
+		plugins: [metricsPlugin], // Add metrics plugin while keeping base plugins
+	},
+});
+```
+
+## Execution Order
+
+1. Plugin `init` functions run in the order plugins are added.
+
+2. Plugin hooks run before main hooks (those defined in `createFetchClient` or individual requests). This can be customized with the `mergedHooksExecutionMode` option.
+
 3. Multiple plugin hooks of the same type run based on `mergedHooksExecutionMode`:
    - `sequential`: One after another (default)
    - `parallel`: All at once

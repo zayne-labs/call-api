@@ -10,7 +10,6 @@ export default zayne({
 			"nextjs-next/no-html-link-for-pages": ["error", "apps/docs"],
 		},
 	},
-	tailwindcss: false,
 	// tailwindcss: {
 	// 	settings: {
 	// 		config: "apps/docs/tailwind.config.ts",

@@ -70,7 +70,7 @@
 	"size-limit": [
 		{
 			"path": "./src/index.ts",
-			"limit": "3.6 kb"
+			"limit": "3.7 kb"
 		}
 	]
 }

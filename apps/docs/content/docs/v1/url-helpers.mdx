@@ -16,7 +16,7 @@ const callBackendApi = createFetchClient({
 
 const { data } = await callBackendApi("/users/123/posts");
 
-// @log: The resolved URL will be: https://api.example.com/users/123/posts
+// @annotate: The resolved URL will be: "https://api.example.com/users/123/posts"
 ```
 
 ## Dynamic Parameters
@@ -39,7 +39,7 @@ const { data: userData } = await callApi("https://api.example.com/users/:userId/
 	params: [123, 456],
 });
 
-// @log: The resolved URL for both cases will be: https://api.example.com/users/123/posts/456
+// @annotate: The resolved URL for both cases will be: "https://api.example.com/users/123/posts/456"
 ```
 
 ## Query Parameters
@@ -57,5 +57,5 @@ const { data } = await callApi("https://api.example.com/users/123/posts", {
 	},
 });
 
-// @log: The resolved URL will be: https://api.example.com/users/123/posts?page=1&limit=10&sort=latest
+// @annotate: The resolved URL will be: "https://api.example.com/users/123/posts?page=1&limit=10&sort=latest"
 ```

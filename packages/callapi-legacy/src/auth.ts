@@ -16,14 +16,14 @@ type ValueOrFunctionResult<TValue> = TValue | (() => TValue);
  */
 export type BearerOrTokenAuth =
 	| {
-			type?: never;
-			bearer?: never;
-			token?: ValueOrFunctionResult<string | null>;
-	  }
-	| {
-			type?: never;
+			type?: "Bearer";
 			bearer?: ValueOrFunctionResult<string | null>;
 			token?: never;
+	  }
+	| {
+			type?: "Token";
+			bearer?: never;
+			token?: ValueOrFunctionResult<string | null>;
 	  };
 
 /**

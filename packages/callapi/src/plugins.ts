@@ -2,19 +2,29 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
-	DefaultDataType,
-	DefaultMoreOptions,
 	ExtraOptions,
 	Interceptors,
 	InterceptorsOrInterceptorArray,
-	ResultModeUnion,
 } from "./types";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
-import type { AnyFunction, AnyObject, Awaitable } from "./utils/type-helpers";
+import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 
-export type PluginInitContext<TMoreOptions extends AnyObject = DefaultMoreOptions> = {
+type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => void : never) extends (
+	param: infer TParam
+) => void
+	? TParam
+	: never;
+
+export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> =
+	TPluginArray extends Array<infer TPlugin extends CallApiPlugin>
+		? TPlugin["createExtraOptions"] extends (...params: never[]) => infer TResult
+			? UnionToIntersection<TResult>
+			: NonNullable<unknown>
+		: NonNullable<unknown>;
+
+export type PluginInitContext = {
 	initURL: string;
-	options: CombinedCallApiExtraOptions<DefaultDataType, DefaultDataType, ResultModeUnion, TMoreOptions>;
+	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
 };
 
@@ -22,13 +32,11 @@ export type PluginInitResult = Partial<
 	Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
 >;
 
-type CreateExtraOptions<TMoreOptions> = (...params: never[]) => TMoreOptions;
-
-export type CallApiPlugin<TMoreOptions extends AnyObject = DefaultMoreOptions> = {
+export type CallApiPlugin = {
 	/**
 	 * @description Defines additional options that can be passed to callApi
 	 */
-	createExtraOptions?: CreateExtraOptions<TMoreOptions>;
+	createExtraOptions?: (...params: never[]) => unknown;
 
 	/**
 	 *  @description A description for the plugin
@@ -63,12 +71,8 @@ export type CallApiPlugin<TMoreOptions extends AnyObject = DefaultMoreOptions> =
 	version?: string;
 };
 
-export const definePlugin = <
-	TMoreOptions extends AnyObject = DefaultMoreOptions,
-	TPlugin extends
-		| AnyFunction<CallApiPlugin<TMoreOptions>>
-		| CallApiPlugin<TMoreOptions> = CallApiPlugin<TMoreOptions>,
->(
+// eslint-disable-next-line perfectionist/sort-union-types -- Let the first one be first
+export const definePlugin = <TPlugin extends CallApiPlugin | AnyFunction<CallApiPlugin> = CallApiPlugin>(
 	plugin: TPlugin
 ) => {
 	return plugin;

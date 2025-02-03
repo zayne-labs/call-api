@@ -1,4 +1,23 @@
+import { HTTPError } from "@/error";
+import type { PossibleHTTPError, PossibleJavaScriptError } from "@/types";
 import type { AnyFunction } from "./type-helpers";
+
+type ErrorObjectUnion<TErrorData = unknown> = PossibleHTTPError<TErrorData> | PossibleJavaScriptError;
+
+export const isHTTPError = <TErrorData>(
+	error: ErrorObjectUnion<TErrorData> | null
+): error is PossibleHTTPError<TErrorData> => {
+	return isPlainObject(error) && error.name === "HTTPError";
+};
+
+export const isHTTPErrorInstance = <TErrorResponse>(
+	error: unknown
+): error is HTTPError<TErrorResponse> => {
+	return (
+		// prettier-ignore
+		error instanceof HTTPError|| (isPlainObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
+	);
+};
 
 export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Array.isArray(value);
 

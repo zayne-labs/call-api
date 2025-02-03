@@ -1,9 +1,5 @@
-import {
-	type RequestInfoCache,
-	generateDedupeKey,
-	handleRequestCancelDedupe,
-	handleRequestDeferDedupe,
-} from "./dedupe";
+import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
+import { HTTPError, resolveErrorResult } from "./error";
 import { hooksEnum, initializePlugins } from "./plugins";
 import { createRetryStrategy } from "./retry";
 import type {
@@ -23,13 +19,10 @@ import type {
 } from "./types";
 import { mergeUrlWithParamsAndQuery } from "./url";
 import {
-	HTTPError,
 	combineHooks,
 	executeHooks,
 	getResponseData,
-	isHTTPErrorInstance,
 	mergeAndResolveHeaders,
-	resolveErrorResult,
 	resolveSuccessResult,
 	splitBaseConfig,
 	splitConfig,
@@ -37,7 +30,7 @@ import {
 } from "./utils/common";
 import { defaultRetryMethods, defaultRetryStatusCodes } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
-import { isFunction, isPlainObject } from "./utils/type-guards";
+import { isFunction, isHTTPErrorInstance, isPlainObject } from "./utils/type-guards";
 import type { AnyObject } from "./utils/type-helpers";
 
 export const createFetchClient = <
@@ -46,21 +39,9 @@ export const createFetchClient = <
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 	TBaseMoreOptions extends AnyObject = DefaultMoreOptions,
 >(
-	baseConfig: BaseCallApiConfig<
-		TBaseData,
-		TBaseErrorData,
-		TBaseResultMode,
-		TBaseMoreOptions
-	> = {} as never
+	baseConfig?: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode, TBaseMoreOptions>
 ) => {
-	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig);
-
-	const {
-		body: baseBody,
-		headers: baseHeaders,
-		signal: baseSignal,
-		...restOfBaseFetchConfig
-	} = baseFetchConfig;
+	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
 
 	const $RequestInfoCache = new Map() satisfies RequestInfoCache;
 
@@ -75,8 +56,6 @@ export const createFetchClient = <
 		const [initURL, config = {}] = parameters;
 
 		const [fetchConfig, extraOptions] = splitConfig(config);
-
-		const { body = baseBody, headers, signal = baseSignal, ...restOfFetchConfig } = fetchConfig;
 
 		const initCombinedHooks = {} as Required<Interceptors>;
 
@@ -112,10 +91,30 @@ export const createFetchClient = <
 			...initCombinedHooks,
 		} satisfies CombinedCallApiExtraOptions;
 
+		const body = fetchConfig.body ?? baseFetchConfig.body;
+
+		// == Default Request Options
+		const defaultRequestOptions = {
+			body: isPlainObject(body) ? defaultExtraOptions.bodySerializer(body) : body,
+			method: "GET",
+
+			...baseFetchConfig,
+			...fetchConfig,
+
+			headers: mergeAndResolveHeaders({
+				auth: defaultExtraOptions.auth,
+				baseHeaders: baseFetchConfig.headers,
+				body,
+				headers: fetchConfig.headers,
+			}),
+
+			signal: fetchConfig.signal ?? baseFetchConfig.signal,
+		} satisfies CallApiRequestOptions;
+
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
 			initURL,
 			options: defaultExtraOptions,
-			request: { ...restOfBaseFetchConfig, ...restOfFetchConfig },
+			request: defaultRequestOptions,
 		});
 
 		const fullURL = `${resolvedOptions.baseURL}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;
@@ -127,54 +126,41 @@ export const createFetchClient = <
 			initURL,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof resolvedHooks;
 
-		// == Default Request Options
-		const defaultRequestOptions = {
-			body: isPlainObject(body) ? options.bodySerializer(body) : body,
-			method: "GET",
-
-			...resolvedRequestOptions,
-		} satisfies CallApiRequestOptions;
-
 		const newFetchController = new AbortController();
 
 		const timeoutSignal = options.timeout != null ? createTimeoutSignal(options.timeout) : null;
 
-		const combinedSignal = createCombinedSignal(newFetchController.signal, timeoutSignal, signal);
+		const combinedSignal = createCombinedSignal(
+			resolvedRequestOptions.signal,
+			timeoutSignal,
+			newFetchController.signal
+		);
 
 		const request = {
+			...resolvedRequestOptions,
 			signal: combinedSignal,
-			...defaultRequestOptions,
 		} satisfies CallApiRequestOptionsForHooks;
 
-		const dedupeKey = options.dedupeKey ?? generateDedupeKey(fullURL, request, options);
+		const {
+			handleRequestCancelDedupeStrategy,
+			handleRequestDeferDedupeStrategy,
+			removeDedupeKeyFromCache,
+		} = await createDedupeStrategy({ $RequestInfoCache, newFetchController, options, request });
 
-		// == Add a small delay to ensure proper request deduplication when multiple requests with the same key start simultaneously.
-		// == This gives time for the cache to be updated with the previous request info before the next request checks it.
-		dedupeKey !== null && (await waitUntil(0.1));
-
-		// == This ensures cache operations only occur when key is available
-		const $RequestInfoCacheOrNull = dedupeKey !== null ? $RequestInfoCache : null;
-
-		const prevRequestInfo = $RequestInfoCacheOrNull?.get(dedupeKey);
-
-		handleRequestCancelDedupe(fullURL, options, prevRequestInfo);
+		handleRequestCancelDedupeStrategy();
 
 		try {
 			await executeHooks(options.onRequest({ options, request }));
 
-			// == Apply determined headers after onRequest incase they were modified
+			// == Apply determined headers again after onRequest incase they were modified
 			request.headers = mergeAndResolveHeaders({
 				auth: options.auth,
-				baseHeaders: baseHeaders ?? headers,
+				baseHeaders: baseFetchConfig.headers,
 				body,
 				headers: request.headers,
 			});
 
-			const responsePromise = handleRequestDeferDedupe(fullURL, options, request, prevRequestInfo);
-
-			$RequestInfoCacheOrNull?.set(dedupeKey, { controller: newFetchController, responsePromise });
-
-			const response = await responsePromise;
+			const response = await handleRequestDeferDedupeStrategy();
 
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
@@ -351,7 +337,7 @@ export const createFetchClient = <
 
 			// == Removing the now unneeded AbortController from store
 		} finally {
-			$RequestInfoCacheOrNull?.delete(dedupeKey);
+			removeDedupeKeyFromCache();
 		}
 	};
 

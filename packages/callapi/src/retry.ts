@@ -7,6 +7,12 @@ type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => boolean
 
 export interface RetryOptions<TErrorData> {
 	/**
+	 * @description Keeps track of the number of times the request has already been retried
+	 * @deprecated This property is used internally to track retries. Please abstain from modifying it.
+	 */
+	readonly "~retryCount"?: number;
+
+	/**
 	 * @description Number of allowed retry attempts on HTTP errors
 	 * @default 0
 	 */
@@ -16,11 +22,6 @@ export interface RetryOptions<TErrorData> {
 	 * @description Callback whose return value determines if a request should be retried or not
 	 */
 	retryCondition?: RetryCondition<TErrorData>;
-
-	/**
-	 * @description Keeps track of the number of times the request has already been retried
-	 */
-	retryCount?: number;
 
 	/**
 	 * @description Delay between retries in milliseconds
@@ -70,7 +71,7 @@ export const createRetryStrategy = <TErrorData>(
 	options: RetryOptions<TErrorData>,
 	ctx: ErrorContext<TErrorData>
 ) => {
-	const currentRetryCount = options.retryCount ?? 0;
+	const currentRetryCount = options["~retryCount"] ?? 0;
 
 	return {
 		getDelay: () => {

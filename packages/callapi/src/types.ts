@@ -1,12 +1,11 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 
 import type { Auth } from "./auth";
-import type { CallApiPlugin, PluginInitContext } from "./plugins";
+import type { CallApiPlugin, InferPluginOptions, PluginInitContext } from "./plugins";
 import type { RetryOptions } from "./retry";
 import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
 import {
-	type AnyObject,
 	type AnyString,
 	type Awaitable,
 	type CommonAuthorizationHeaders,
@@ -99,19 +98,21 @@ export type InterceptorsOrInterceptorArray<TData = DefaultDataType, TErrorData =
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
-type CallApiPluginArray<TMoreOptions extends AnyObject> = Array<CallApiPlugin<TMoreOptions>>;
-
 export type DefaultMoreOptions = NonNullable<unknown>;
 
 export type Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
+
+// Helper type to extract plugin options
+
+// Helper type to merge all plugin options into a single type
 
 export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TMoreOptions extends AnyObject = DefaultMoreOptions,
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 > = InterceptorsOrInterceptorArray<TData, TErrorData> &
-	Partial<TMoreOptions> &
+	Partial<InferPluginOptions<TPluginArray>> &
 	RetryOptions<TErrorData> & {
 		/**
 		 * @description Authorization header value.
@@ -219,9 +220,7 @@ export type ExtraOptions<
 		/**
 		 * @description An array of CallApi plugins. It allows you to extend the behavior of the library.
 		 */
-		plugins?:
-			| CallApiPluginArray<TMoreOptions>
-			| ((context: PluginInitContext) => CallApiPluginArray<TMoreOptions>);
+		plugins?: TPluginArray | ((context: PluginInitContext) => TPluginArray);
 
 		/**
 		 * @description Query parameters to append to the URL.
@@ -276,13 +275,13 @@ export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TMoreOptions extends AnyObject = DefaultMoreOptions,
-> = ExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> & {
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
+> = ExtraOptions<TData, TErrorData, TResultMode, TPluginArray> & {
 	/**
 	 * @description Options that should extend the base options.
 	 */
 	extend?: Pick<
-		ExtraOptions<TData, TErrorData, TResultMode, TMoreOptions>,
+		ExtraOptions<TData, TErrorData, TResultMode, TPluginArray>,
 		(typeof optionsEnumToExtendFromBase)[number]
 	>;
 };
@@ -295,9 +294,9 @@ export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TMoreOptions extends AnyObject = DefaultMoreOptions,
+	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
 > = Omit<
-	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TMoreOptions>,
+	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray>,
 	(typeof optionsEnumToOmitFromBase)[number]
 >;
 
@@ -305,31 +304,31 @@ export type CombinedCallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TMoreOptions extends AnyObject = DefaultMoreOptions,
-> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> &
-	CallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions>;
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
+> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray> &
+	CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray>;
 
 export type CallApiConfig<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TMoreOptions extends AnyObject = DefaultMoreOptions,
-> = CallApiExtraOptions<TData, TErrorData, TResultMode, TMoreOptions> & CallApiRequestOptions;
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
+> = CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray> & CallApiRequestOptions;
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBaseMoreOptions extends AnyObject = DefaultMoreOptions,
-> = BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBaseMoreOptions> &
+	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
+> = BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray> &
 	CallApiRequestOptions;
 
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TMoreOptions extends AnyObject = DefaultMoreOptions,
-> = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TMoreOptions>];
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
+> = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TPluginArray>];
 
 export type RequestContext = UnmaskType<{
 	options: CombinedCallApiExtraOptions;

@@ -10,21 +10,41 @@ const newOptionSchema = z.object({
 	),
 });
 
+const newOptionSchema2 = z.object({
+	onUploadSuccess: z.function().args(
+		z.object({
+			load: z.number(),
+			tots: z.number(),
+		})
+	),
+});
+
 const plugin = definePlugin({
 	createExtraOptions: (...params) => newOptionSchema.parse(params),
 
-	hooks: {
-		onRequest: () => console.info("PLUGIN-OnRequest"),
-	},
+	// hooks: {
+	// 	onRequest: () => console.info("PLUGIN-OnRequest"),
+	// },
 
 	id: "1",
+
+	name: "plugin",
+});
+
+const plugin2 = definePlugin({
+	createExtraOptions: (...params) => newOptionSchema2.parse(params),
+
+	// hooks: {
+	// 	onRequest: () => console.info("PLUGIN-OnRequest"),
+	// },
+
+	id: "2",
 
 	init: ({ request }) => ({
 		request: {
 			...request,
 			headers: {
 				...request.headers,
-				Access: "true",
 				Authorization: request.headers?.["X-Environment"],
 			},
 		},
@@ -33,11 +53,13 @@ const plugin = definePlugin({
 	name: "plugin",
 });
 
+const newLocal = [plugin, plugin2];
 const callApi = createFetchClient({
 	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => progress,
-	plugins: [plugin],
+	onUploadSuccess: (progress) => progress,
+	plugins: newLocal,
 });
 
 // const foo1 = void callApi("https://dummyjson.com/products/:id", {

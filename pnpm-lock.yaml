@@ -31,7 +31,7 @@ importers:
         version: 22.12.0
       '@zayne-labs/eslint-config':
         specifier: 0.5.1
-        version: 0.5.1(@eslint-react/eslint-plugin@1.25.0(eslint@9.19.0(jiti@2.4.2))(ts-api-utils@2.0.0(typescript@5.7.3))(typescript@5.7.3))(@next/eslint-plugin-next@15.1.6)(eslint-plugin-react-compiler@19.0.0-beta-e552027-20250112(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-react-hooks@5.1.0(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-react-refresh@0.4.18(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-tailwindcss@3.18.0(tailwindcss@3.4.17))(eslint@9.19.0(jiti@2.4.2))(typescript@5.7.3)
+        version: 0.5.1(@eslint-react/eslint-plugin@1.25.0(eslint@9.19.0(jiti@2.4.2))(ts-api-utils@2.0.0(typescript@5.7.3))(typescript@5.7.3))(@next/eslint-plugin-next@15.1.6)(eslint-plugin-react-compiler@19.0.0-beta-e552027-20250112(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-react-hooks@5.1.0(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-react-refresh@0.4.18(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-tailwindcss@3.18.0(tailwindcss@4.0.1))(eslint@9.19.0(jiti@2.4.2))(typescript@5.7.3)
       eslint:
         specifier: 9.19.0
         version: 9.19.0(jiti@2.4.2)
@@ -46,7 +46,7 @@ importers:
         version: 0.4.18(eslint@9.19.0(jiti@2.4.2))
       eslint-plugin-tailwindcss:
         specifier: ^3.17.5
-        version: 3.18.0(tailwindcss@3.4.17)
+        version: 3.18.0(tailwindcss@4.0.1)
       husky:
         specifier: 9.1.7
         version: 9.1.7
@@ -86,7 +86,7 @@ importers:
         version: 5.7.3
       vite:
         specifier: ^6.0.9
-        version: 6.0.11(@types/node@22.12.0)(jiti@2.4.2)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.0)
+        version: 6.0.11(@types/node@22.12.0)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.0)
 
   apps/docs:
     dependencies:
@@ -106,23 +106,23 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       fumadocs-core:
-        specifier: 15.0.0
-        version: 15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: 14.7.7
+        version: 14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       fumadocs-docgen:
         specifier: 1.3.5
         version: 1.3.5(typescript@5.7.3)
       fumadocs-mdx:
-        specifier: 11.3.2
-        version: 11.3.2(acorn@8.14.0)(fumadocs-core@15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
+        specifier: 11.3.1
+        version: 11.3.1(acorn@8.14.0)(fumadocs-core@14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
       fumadocs-twoslash:
-        specifier: 3.0.0
-        version: 3.0.0(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-ui@14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(shiki@2.1.0)(typescript@5.7.3)
+        specifier: 2.0.3
+        version: 2.0.3(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-ui@14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(shiki@2.1.0)(typescript@5.7.3)
       fumadocs-typescript:
         specifier: 3.0.3
         version: 3.0.3(typescript@5.7.3)
       fumadocs-ui:
         specifier: 14.7.7
-        version: 14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17)
+        version: 14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17)
       geist:
         specifier: ^1.3.1
         version: 1.3.1(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
@@ -2446,6 +2446,11 @@ packages:
     resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}
     engines: {node: '>=8'}
 
+  detect-libc@1.0.3:
+    resolution: {integrity: sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg==}
+    engines: {node: '>=0.10'}
+    hasBin: true
+
   detect-libc@2.0.3:
     resolution: {integrity: sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==}
     engines: {node: '>=8'}
@@ -2938,8 +2943,8 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
-  fumadocs-core@15.0.0:
-    resolution: {integrity: sha512-U0b8KS71b5fE7VCpkeZIU1dch+m2hiwerbc2VTVHM3B/NJxIB+xHGDw4KQPQLjq13mtO8LsBJKIJDqs9AxW+Ag==}
+  fumadocs-core@14.7.7:
+    resolution: {integrity: sha512-ZP2sFZki291se9R6/K959a6CDNqM+oQKejEygViSTQnkCQ8UWApRQHUZQS670sub8ysBFE8aGlgsnAs+n9HlyA==}
     peerDependencies:
       '@orama/tokenizers': 2.x.x
       '@oramacloud/client': 1.x.x || 2.x.x
@@ -2964,19 +2969,19 @@ packages:
   fumadocs-docgen@1.3.5:
     resolution: {integrity: sha512-EaacNbPCpIXpExRv+zb+TrkvJbmyEN5Z1J2+Qp9MoYbF5sxeM60bmvHJAyp/KvtcmPhFs+8APUlWEFsKXHcbJw==}
 
-  fumadocs-mdx@11.3.2:
-    resolution: {integrity: sha512-FosobobQMKJmwWiwMoV1uFeuccWRL5q65Tk+x69mS/pM82Xcq+mdj9TEzMmpwp0+WzjV6Sg2QZbAGrKYCjyIfQ==}
+  fumadocs-mdx@11.3.1:
+    resolution: {integrity: sha512-SISfzAsgX9Yz99khQyICNw1YFjqaICWSSCDeCA3n2X4qtVgQFj1tk3VKuZQqC+v55MHWBPOabwKQc0sx7RQhSA==}
     hasBin: true
     peerDependencies:
-      fumadocs-core: ^14.0.0 || ^15.0.0
+      fumadocs-core: ^14.0.0
       next: 14.x.x || 15.x.x
 
-  fumadocs-twoslash@3.0.0:
-    resolution: {integrity: sha512-6fcNTkhMANMsVt0qUYiYI/W5pjpylfHE6114M+flnlJdf9S5eN4sH9Tmaoylp02Txwn0NanZQDOOyVJoS7vqOA==}
+  fumadocs-twoslash@2.0.3:
+    resolution: {integrity: sha512-7nxbWExJdULi2Ykg20yuGSkf3Ye1UFmhFmX9eFnmvmFW4ZAO85sslwUwmMyoxBLg9EzWK/1nHgOyZTy7pcF6AA==}
     peerDependencies:
-      fumadocs-ui: ^15.0.0
+      fumadocs-ui: ^13.0.0 || ^14.0.0
       react: 18.x.x || 19.x.x
-      shiki: 1.x.x || 2.x.x
+      shiki: 1.x.x
 
   fumadocs-typescript@3.0.3:
     resolution: {integrity: sha512-TpVem2Sy+fo5e8wJibisn1XZoRdwNyY8+MuxQWBC2k8Q4oaxA6qVVsy2paCVEa716UnXbES0sVP1HqX3HCEhBg==}
@@ -3340,6 +3345,70 @@ packages:
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
+
+  lightningcss-darwin-arm64@1.29.1:
+    resolution: {integrity: sha512-HtR5XJ5A0lvCqYAoSv2QdZZyoHNttBpa5EP9aNuzBQeKGfbyH5+UipLWvVzpP4Uml5ej4BYs5I9Lco9u1fECqw==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [arm64]
+    os: [darwin]
+
+  lightningcss-darwin-x64@1.29.1:
+    resolution: {integrity: sha512-k33G9IzKUpHy/J/3+9MCO4e+PzaFblsgBjSGlpAaFikeBFm8B/CkO3cKU9oI4g+fjS2KlkLM/Bza9K/aw8wsNA==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [x64]
+    os: [darwin]
+
+  lightningcss-freebsd-x64@1.29.1:
+    resolution: {integrity: sha512-0SUW22fv/8kln2LnIdOCmSuXnxgxVC276W5KLTwoehiO0hxkacBxjHOL5EtHD8BAXg2BvuhsJPmVMasvby3LiQ==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [x64]
+    os: [freebsd]
+
+  lightningcss-linux-arm-gnueabihf@1.29.1:
+    resolution: {integrity: sha512-sD32pFvlR0kDlqsOZmYqH/68SqUMPNj+0pucGxToXZi4XZgZmqeX/NkxNKCPsswAXU3UeYgDSpGhu05eAufjDg==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [arm]
+    os: [linux]
+
+  lightningcss-linux-arm64-gnu@1.29.1:
+    resolution: {integrity: sha512-0+vClRIZ6mmJl/dxGuRsE197o1HDEeeRk6nzycSy2GofC2JsY4ifCRnvUWf/CUBQmlrvMzt6SMQNMSEu22csWQ==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [arm64]
+    os: [linux]
+
+  lightningcss-linux-arm64-musl@1.29.1:
+    resolution: {integrity: sha512-UKMFrG4rL/uHNgelBsDwJcBqVpzNJbzsKkbI3Ja5fg00sgQnHw/VrzUTEc4jhZ+AN2BvQYz/tkHu4vt1kLuJyw==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [arm64]
+    os: [linux]
+
+  lightningcss-linux-x64-gnu@1.29.1:
+    resolution: {integrity: sha512-u1S+xdODy/eEtjADqirA774y3jLcm8RPtYztwReEXoZKdzgsHYPl0s5V52Tst+GKzqjebkULT86XMSxejzfISw==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [x64]
+    os: [linux]
+
+  lightningcss-linux-x64-musl@1.29.1:
+    resolution: {integrity: sha512-L0Tx0DtaNUTzXv0lbGCLB/c/qEADanHbu4QdcNOXLIe1i8i22rZRpbT3gpWYsCh9aSL9zFujY/WmEXIatWvXbw==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [x64]
+    os: [linux]
+
+  lightningcss-win32-arm64-msvc@1.29.1:
+    resolution: {integrity: sha512-QoOVnkIEFfbW4xPi+dpdft/zAKmgLgsRHfJalEPYuJDOWf7cLQzYg0DEh8/sn737FaeMJxHZRc1oBreiwZCjog==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [arm64]
+    os: [win32]
+
+  lightningcss-win32-x64-msvc@1.29.1:
+    resolution: {integrity: sha512-NygcbThNBe4JElP+olyTI/doBNGJvLs3bFCRPdvuCcxZCcCZ71B858IHpdm7L1btZex0FvCmM17FK98Y9MRy1Q==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [x64]
+    os: [win32]
+
+  lightningcss@1.29.1:
+    resolution: {integrity: sha512-FmGoeD4S05ewj+AkhTY+D+myDvXI6eL27FjHIjoyUkO/uw7WZD1fBVs0QxeYWa7E17CUHJaYX/RUGISCtcrG4Q==}
+    engines: {node: '>= 12.0.0'}
 
   lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
@@ -4509,6 +4578,9 @@ packages:
     resolution: {integrity: sha512-w33E2aCvSDP0tW9RZuNXadXlkHXqFzSkQew/aIa2i/Sj8fThxwovwlXHSPXTbAHwEIhBFXAedUhP2tueAKP8Og==}
     engines: {node: '>=14.0.0'}
     hasBin: true
+
+  tailwindcss@4.0.1:
+    resolution: {integrity: sha512-UK5Biiit/e+r3i0O223bisoS5+y7ZT1PM8Ojn0MxRHzXN1VPZ2KY6Lo6fhu1dOfCfyUAlK7Lt6wSxowRabATBw==}
 
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
@@ -6684,7 +6756,7 @@ snapshots:
 
   '@zayne-labs/callapi@1.3.4': {}
 
-  '@zayne-labs/eslint-config@0.5.1(@eslint-react/eslint-plugin@1.25.0(eslint@9.19.0(jiti@2.4.2))(ts-api-utils@2.0.0(typescript@5.7.3))(typescript@5.7.3))(@next/eslint-plugin-next@15.1.6)(eslint-plugin-react-compiler@19.0.0-beta-e552027-20250112(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-react-hooks@5.1.0(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-react-refresh@0.4.18(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-tailwindcss@3.18.0(tailwindcss@3.4.17))(eslint@9.19.0(jiti@2.4.2))(typescript@5.7.3)':
+  '@zayne-labs/eslint-config@0.5.1(@eslint-react/eslint-plugin@1.25.0(eslint@9.19.0(jiti@2.4.2))(ts-api-utils@2.0.0(typescript@5.7.3))(typescript@5.7.3))(@next/eslint-plugin-next@15.1.6)(eslint-plugin-react-compiler@19.0.0-beta-e552027-20250112(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-react-hooks@5.1.0(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-react-refresh@0.4.18(eslint@9.19.0(jiti@2.4.2)))(eslint-plugin-tailwindcss@3.18.0(tailwindcss@4.0.1))(eslint@9.19.0(jiti@2.4.2))(typescript@5.7.3)':
     dependencies:
       '@antfu/install-pkg': 0.5.0
       '@clack/prompts': 0.9.0
@@ -6720,7 +6792,7 @@ snapshots:
       eslint-plugin-react-compiler: 19.0.0-beta-e552027-20250112(eslint@9.19.0(jiti@2.4.2))
       eslint-plugin-react-hooks: 5.1.0(eslint@9.19.0(jiti@2.4.2))
       eslint-plugin-react-refresh: 0.4.18(eslint@9.19.0(jiti@2.4.2))
-      eslint-plugin-tailwindcss: 3.18.0(tailwindcss@3.4.17)
+      eslint-plugin-tailwindcss: 3.18.0(tailwindcss@4.0.1)
     transitivePeerDependencies:
       - '@eslint/json'
       - eslint-plugin-import
@@ -7098,6 +7170,9 @@ snapshots:
   dequal@2.0.3: {}
 
   detect-indent@6.1.0: {}
+
+  detect-libc@1.0.3:
+    optional: true
 
   detect-libc@2.0.3:
     optional: true
@@ -7516,11 +7591,11 @@ snapshots:
     dependencies:
       safe-regex: 2.1.1
 
-  eslint-plugin-tailwindcss@3.18.0(tailwindcss@3.4.17):
+  eslint-plugin-tailwindcss@3.18.0(tailwindcss@4.0.1):
     dependencies:
       fast-glob: 3.3.3
       postcss: 8.5.1
-      tailwindcss: 3.4.17
+      tailwindcss: 4.0.1
 
   eslint-plugin-toml@0.12.0(eslint@9.19.0(jiti@2.4.2)):
     dependencies:
@@ -7796,7 +7871,7 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
-  fumadocs-core@15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  fumadocs-core@14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       '@orama/orama': 2.1.1
@@ -7834,7 +7909,7 @@ snapshots:
       - supports-color
       - typescript
 
-  fumadocs-mdx@11.3.2(acorn@8.14.0)(fumadocs-core@15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)):
+  fumadocs-mdx@11.3.1(acorn@8.14.0)(fumadocs-core@14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)):
     dependencies:
       '@mdx-js/mdx': 3.1.0(acorn@8.14.0)
       chokidar: 4.0.3
@@ -7842,7 +7917,7 @@ snapshots:
       esbuild: 0.24.2
       estree-util-value-to-estree: 3.2.1
       fast-glob: 3.3.3
-      fumadocs-core: 15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      fumadocs-core: 14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       gray-matter: 4.0.3
       micromatch: 4.0.8
       next: 15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -7852,11 +7927,11 @@ snapshots:
       - acorn
       - supports-color
 
-  fumadocs-twoslash@3.0.0(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-ui@14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(shiki@2.1.0)(typescript@5.7.3):
+  fumadocs-twoslash@2.0.3(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-ui@14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(shiki@2.1.0)(typescript@5.7.3):
     dependencies:
       '@radix-ui/react-popover': 1.1.5(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@shikijs/twoslash': 2.2.0(typescript@5.7.3)
-      fumadocs-ui: 14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17)
+      fumadocs-ui: 14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17)
       mdast-util-from-markdown: 2.0.2
       mdast-util-gfm: 3.0.0
       mdast-util-to-hast: 13.2.0
@@ -7883,7 +7958,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  fumadocs-ui@14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17):
+  fumadocs-ui@14.7.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(fumadocs-core@14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17):
     dependencies:
       '@radix-ui/react-accordion': 1.2.2(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@radix-ui/react-collapsible': 1.1.2(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -7895,7 +7970,7 @@ snapshots:
       '@radix-ui/react-slot': 1.1.1(@types/react@19.0.8)(react@19.0.0)
       '@radix-ui/react-tabs': 1.1.2(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       class-variance-authority: 0.7.1
-      fumadocs-core: 15.0.0(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      fumadocs-core: 14.7.7(@types/react@19.0.8)(next@15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       lodash.merge: 4.6.2
       lucide-react: 0.473.0(react@19.0.0)
       next: 15.1.6(@babel/core@7.26.7)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -8242,6 +8317,52 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  lightningcss-darwin-arm64@1.29.1:
+    optional: true
+
+  lightningcss-darwin-x64@1.29.1:
+    optional: true
+
+  lightningcss-freebsd-x64@1.29.1:
+    optional: true
+
+  lightningcss-linux-arm-gnueabihf@1.29.1:
+    optional: true
+
+  lightningcss-linux-arm64-gnu@1.29.1:
+    optional: true
+
+  lightningcss-linux-arm64-musl@1.29.1:
+    optional: true
+
+  lightningcss-linux-x64-gnu@1.29.1:
+    optional: true
+
+  lightningcss-linux-x64-musl@1.29.1:
+    optional: true
+
+  lightningcss-win32-arm64-msvc@1.29.1:
+    optional: true
+
+  lightningcss-win32-x64-msvc@1.29.1:
+    optional: true
+
+  lightningcss@1.29.1:
+    dependencies:
+      detect-libc: 1.0.3
+    optionalDependencies:
+      lightningcss-darwin-arm64: 1.29.1
+      lightningcss-darwin-x64: 1.29.1
+      lightningcss-freebsd-x64: 1.29.1
+      lightningcss-linux-arm-gnueabihf: 1.29.1
+      lightningcss-linux-arm64-gnu: 1.29.1
+      lightningcss-linux-arm64-musl: 1.29.1
+      lightningcss-linux-x64-gnu: 1.29.1
+      lightningcss-linux-x64-musl: 1.29.1
+      lightningcss-win32-arm64-msvc: 1.29.1
+      lightningcss-win32-x64-msvc: 1.29.1
+    optional: true
 
   lilconfig@3.1.3: {}
 
@@ -9701,6 +9822,8 @@ snapshots:
     transitivePeerDependencies:
       - ts-node
 
+  tailwindcss@4.0.1: {}
+
   tapable@2.2.1: {}
 
   term-size@2.2.1: {}
@@ -9936,7 +10059,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.2
 
-  vite@6.0.11(@types/node@22.12.0)(jiti@2.4.2)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.0):
+  vite@6.0.11(@types/node@22.12.0)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.0):
     dependencies:
       esbuild: 0.24.2
       postcss: 8.5.1
@@ -9945,6 +10068,7 @@ snapshots:
       '@types/node': 22.12.0
       fsevents: 2.3.3
       jiti: 2.4.2
+      lightningcss: 1.29.1
       terser: 5.37.0
       tsx: 4.19.2
       yaml: 2.7.0

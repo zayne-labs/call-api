@@ -4,10 +4,6 @@ import {
 	type CallApiConfig,
 	type CallApiExtraOptions,
 	type CallApiRequestOptions,
-	type CallApiResultErrorVariant,
-	type PossibleHTTPError,
-	type PossibleJavaScriptError,
-	type PossibleJavascriptErrorNames,
 	type ResultModeMap,
 	optionsEnumToOmitFromBase,
 } from "../types";
@@ -222,107 +218,6 @@ export const resolveSuccessResult = <TCallApiResult>(info: SuccessInfo): TCallAp
 	};
 
 	return resultModeMap[resultMode] as TCallApiResult;
-};
-
-type ErrorInfo = {
-	defaultErrorMessage: Required<CallApiExtraOptions>["defaultErrorMessage"];
-	error?: unknown;
-	message?: string;
-	resultMode: CallApiExtraOptions["resultMode"];
-};
-
-export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
-	const { defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
-
-	let apiDetails: CallApiResultErrorVariant<unknown> = {
-		data: null,
-		error: {
-			errorData: error as Error,
-			message: customErrorMessage ?? (error as Error).message,
-			name: (error as Error).name as PossibleJavascriptErrorNames,
-		},
-		response: null,
-	};
-
-	if (isHTTPErrorInstance(error)) {
-		const { errorData, message = defaultErrorMessage, name, response } = error;
-
-		apiDetails = {
-			data: null,
-			error: {
-				errorData,
-				message,
-				name,
-			},
-			response,
-		};
-	}
-
-	const resultModeMap: ResultModeMap = {
-		all: apiDetails,
-		onlyError: apiDetails.error,
-		onlyResponse: apiDetails.response,
-		onlySuccess: apiDetails.data,
-		onlySuccessWithException: apiDetails.data,
-	};
-
-	const generalErrorResult = resultModeMap[resultMode ?? "all"] as TCallApiResult;
-
-	// prettier-ignore
-	const resolveCustomErrorInfo = ({ message }: Pick<ErrorInfo, "message">) => {
-		const errorResult = resolveErrorResult<TCallApiResult>({ ...info, message });
-
-		return errorResult.generalErrorResult;
-	};
-
-	return { apiDetails, generalErrorResult, resolveCustomErrorInfo };
-};
-
-type ErrorObjectUnion<TErrorData = unknown> = PossibleHTTPError<TErrorData> | PossibleJavaScriptError;
-
-export const isHTTPError = <TErrorData>(
-	error: ErrorObjectUnion<TErrorData> | null
-): error is PossibleHTTPError<TErrorData> => {
-	return isPlainObject(error) && error.name === "HTTPError";
-};
-
-type ErrorDetails<TErrorResponse> = {
-	defaultErrorMessage: string;
-	errorData: TErrorResponse;
-	response: Response;
-};
-
-type ErrorOptions = {
-	cause?: unknown;
-};
-
-export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
-	errorData: ErrorDetails<TErrorResponse>["errorData"];
-	isHTTPError = true;
-
-	override name = "HTTPError" as const;
-
-	response: ErrorDetails<TErrorResponse>["response"];
-
-	constructor(errorDetails: ErrorDetails<TErrorResponse>, errorOptions?: ErrorOptions) {
-		const { defaultErrorMessage, errorData, response } = errorDetails;
-
-		super((errorData as { message?: string } | undefined)?.message ?? defaultErrorMessage, errorOptions);
-
-		this.errorData = errorData;
-		this.response = response;
-
-		Error.captureStackTrace(this, this.constructor);
-	}
-}
-
-export const isHTTPErrorInstance = <TErrorResponse>(
-	error: unknown
-): error is HTTPError<TErrorResponse> => {
-	return (
-		// prettier-ignore
-		error instanceof HTTPError|| (isPlainObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
-	);
 };
 
 const PromiseWithResolvers = () => {

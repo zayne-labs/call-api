@@ -101,7 +101,7 @@ export type CommonRequestHeaders =
 	| "X-XSS-Protection"
 	| AnyString;
 
-export type CommonAuthorizationHeaders = `${"Basic" | "Bearer" | "Token" | AnyString} ${string}`;
+export type CommonAuthorizationHeaders = `${"Basic" | "Bearer" | "Token"} ${string}`;
 
 export type CommonContentTypes =
 	| "application/epub+zip"

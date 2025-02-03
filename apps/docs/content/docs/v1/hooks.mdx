@@ -10,13 +10,28 @@ import { createFetchClient } from "@zayne-labs/callapi";
 
 const callApi = createFetchClient({
 	baseURL: "http://localhost:3000",
-	onRequest: (context) => {},
-	onRequestError: (context) => {},
-	onResponse: (context) => {},
-	onResponseError: (context) => {},
-	onError: (context) => {},
-	onSuccess: (context) => {},
-	onRetry: (context) => {},
+
+	onRequest: (ctx) => {
+		// Do something with context object
+	},
+	onRequestError: (ctx) => {
+		// Do something with context object
+	},
+	onResponse: (ctx) => {
+		// Do something with context object
+	},
+	onResponseError: (ctx) => {
+		// Do something with context object
+	},
+	onError: (ctx) => {
+		// Do something with context object
+	},
+	onSuccess: (ctx) => {
+		// Do something with context object
+	},
+	onRetry: (ctx) => {
+		// Do something with context object
+	},
 });
 
 callApi("/api/data", {
