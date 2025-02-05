@@ -1,4 +1,4 @@
-import { createFetchClient, definePlugin } from "@zayne-labs/callapi";
+import { type InterceptorsOrInterceptorArray, createFetchClient, definePlugin } from "@zayne-labs/callapi";
 import { z } from "zod";
 
 const newOptionSchema = z.object({
@@ -34,9 +34,9 @@ const plugin = definePlugin({
 const plugin2 = definePlugin({
 	createExtraOptions: (...params) => newOptionSchema2.parse(params),
 
-	// hooks: {
-	// 	onRequest: () => console.info("PLUGIN-OnRequest"),
-	// },
+	hooks: {
+		onRequest: () => console.info("PLUGIN-OnRequest"),
+	} satisfies InterceptorsOrInterceptorArray<unknown, unknown, z.infer<typeof newOptionSchema2>>,
 
 	id: "2",
 

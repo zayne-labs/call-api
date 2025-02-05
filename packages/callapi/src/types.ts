@@ -48,57 +48,71 @@ export interface CallApiRequestOptionsForHooks extends Omit<CallApiRequestOption
 export interface Register {
 	// == meta: Meta
 }
-
 export type DefaultDataType = unknown;
+export type DefaultMoreOptions = NonNullable<unknown>;
 
-export interface Interceptors<TData = DefaultDataType, TErrorData = DefaultDataType> {
+type WithMoreOptions<TMoreOptions = DefaultMoreOptions> = {
+	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
+};
+
+export interface Interceptors<
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
+	TMoreOptions = DefaultMoreOptions,
+> {
 	/**
-	 * @description Interceptor that will be called when any error occurs within the request/response lifecyle, regardless of whether the error is from the api or not.
+	 * @description Interceptor that will be called when any error occurs within the request/response lifecycle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
-	onError?: (context: ErrorContext<TErrorData>) => Awaitable<unknown>;
+	onError?: (context: ErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 
 	/**
 	 * @description Interceptor that will be called just before the request is made, allowing for modifications or additional operations.
 	 */
-	onRequest?: (context: RequestContext) => Awaitable<unknown>;
+	onRequest?: (context: RequestContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 
 	/**
 	 *  @description Interceptor that will be called when an error occurs during the fetch request.
 	 */
-	onRequestError?: (context: RequestErrorContext) => Awaitable<unknown>;
+	onRequestError?: (context: RequestErrorContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 
 	/**
 	 * @description Interceptor that will be called when any response is received from the api, whether successful or not
 	 */
-	onResponse?: (context: ResponseContext<TData, TErrorData>) => Awaitable<unknown>;
+	onResponse?: (
+		context: ResponseContext<TData, TErrorData> & WithMoreOptions<TMoreOptions>
+	) => Awaitable<unknown>;
 
 	/**
 	 *  @description Interceptor that will be called when an error response is received from the api.
 	 */
-	onResponseError?: (context: ResponseErrorContext<TErrorData>) => Awaitable<unknown>;
+	onResponseError?: (
+		context: ResponseErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>
+	) => Awaitable<unknown>;
 
 	/**
 	 * @description Interceptor that will be called when a request is retried.
 	 */
-	onRetry?: (response: ErrorContext<TErrorData>) => Awaitable<unknown>;
+	onRetry?: (response: ErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 	/**
 	 * @description Interceptor that will be called when a successful response is received from the api.
 	 */
-	onSuccess?: (context: SuccessContext<TData>) => Awaitable<unknown>;
+	onSuccess?: (context: SuccessContext<TData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 }
 
 /* eslint-disable perfectionist/sort-union-types -- I need arrays to be last */
-export type InterceptorsOrInterceptorArray<TData = DefaultDataType, TErrorData = DefaultDataType> = {
-	[Key in keyof Interceptors<TData, TErrorData>]:
-		| Interceptors<TData, TErrorData>[Key]
-		| Array<Interceptors<TData, TErrorData>[Key]>;
+export type InterceptorsOrInterceptorArray<
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
+	TMoreOptions = DefaultMoreOptions,
+> = {
+	[Key in keyof Interceptors<TData, TErrorData, TMoreOptions>]:
+		| Interceptors<TData, TErrorData, TMoreOptions>[Key]
+		| Array<Interceptors<TData, TErrorData, TMoreOptions>[Key]>;
 };
 /* eslint-enable perfectionist/sort-union-types -- I need arrays to be last */
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
-
-export type DefaultMoreOptions = NonNullable<unknown>;
 
 export type Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
 

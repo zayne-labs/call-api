@@ -4,9 +4,10 @@ import type {
 	PossibleJavascriptErrorNames,
 	ResultModeMap,
 } from "./types";
-import { isHTTPErrorInstance } from "./utils/type-guards";
+import { isHTTPErrorInstance, isObject } from "./utils/type-guards";
 
 type ErrorInfo = {
+	cloneResponse: CallApiExtraOptions["cloneResponse"];
 	defaultErrorMessage: Required<CallApiExtraOptions>["defaultErrorMessage"];
 	error?: unknown;
 	message?: string;
@@ -14,9 +15,9 @@ type ErrorInfo = {
 };
 
 export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
-	const { defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
+	const { cloneResponse, defaultErrorMessage, error, message: customErrorMessage, resultMode } = info;
 
-	let apiDetails: CallApiResultErrorVariant<unknown> = {
+	let errorVariantDetails: CallApiResultErrorVariant<unknown> = {
 		data: null,
 		error: {
 			errorData: error as Error,
@@ -29,35 +30,32 @@ export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 	if (isHTTPErrorInstance(error)) {
 		const { errorData, message = defaultErrorMessage, name, response } = error;
 
-		apiDetails = {
+		errorVariantDetails = {
 			data: null,
 			error: {
 				errorData,
 				message,
 				name,
 			},
-			response,
+			response: cloneResponse ? response.clone() : response,
 		};
 	}
 
 	const resultModeMap: ResultModeMap = {
-		all: apiDetails,
-		onlyError: apiDetails.error,
-		onlyResponse: apiDetails.response,
-		onlySuccess: apiDetails.data,
-		onlySuccessWithException: apiDetails.data,
+		all: errorVariantDetails,
+		onlyError: errorVariantDetails.error,
+		onlyResponse: errorVariantDetails.response,
+		onlySuccess: errorVariantDetails.data,
+		onlySuccessWithException: errorVariantDetails.data,
 	};
 
-	const generalErrorResult = resultModeMap[resultMode ?? "all"] as TCallApiResult;
+	const getErrorResult = (customInfo?: Pick<ErrorInfo, "message">) => {
+		const errorResult = resultModeMap[resultMode ?? "all"] as TCallApiResult;
 
-	// prettier-ignore
-	const resolveCustomErrorInfo = ({ message }: Pick<ErrorInfo, "message">) => {
-		const errorResult = resolveErrorResult<TCallApiResult>({ ...info, message });
-
-		return errorResult.generalErrorResult;
+		return isObject(customInfo) ? { ...errorResult, ...customInfo } : errorResult;
 	};
 
-	return { apiDetails, generalErrorResult, resolveCustomErrorInfo };
+	return { errorVariantDetails, getErrorResult };
 };
 
 type ErrorDetails<TErrorResponse> = {

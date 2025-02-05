@@ -1,6 +1,6 @@
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
-import { hooksEnum, initializePlugins } from "./plugins";
+import { type CallApiPlugin, hooksEnum, initializePlugins } from "./plugins";
 import { createRetryStrategy } from "./retry";
 import type {
 	BaseCallApiConfig,
@@ -10,11 +10,8 @@ import type {
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
 	DefaultDataType,
-	DefaultMoreOptions,
 	GetCallApiResult,
 	Interceptors,
-	PossibleHTTPError,
-	PossibleJavaScriptError,
 	ResultModeUnion,
 } from "./types";
 import { mergeUrlWithParamsAndQuery } from "./url";
@@ -31,29 +28,28 @@ import {
 import { defaultRetryMethods, defaultRetryStatusCodes } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
 import { isFunction, isHTTPErrorInstance, isPlainObject } from "./utils/type-guards";
-import type { AnyObject } from "./utils/type-helpers";
 
 export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBaseMoreOptions extends AnyObject = DefaultMoreOptions,
+	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
 >(
-	baseConfig?: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode, TBaseMoreOptions>
+	baseConfig?: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray>
 ) => {
 	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
 
-	const $RequestInfoCache = new Map() satisfies RequestInfoCache;
+	const $RequestInfoCache: RequestInfoCache = new Map();
 
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
-		TMoreOptions extends AnyObject = TBaseMoreOptions,
+		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 	>(
-		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TMoreOptions>
+		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TPluginArray>
 	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
-		const [initURL, config = {}] = parameters;
+		const [initURL, config = {} as never] = parameters;
 
 		const [fetchConfig, extraOptions] = splitConfig(config);
 
@@ -188,65 +184,64 @@ export const createFetchClient = <
 				options.responseValidator
 			);
 
-			await executeHooks(
-				options.onSuccess({
-					data: successData as never,
-					options,
-					request,
-					response: options.cloneResponse ? response.clone() : response,
-				}),
+			const successContext = {
+				data: successData as never,
+				options,
+				request,
+				response: options.cloneResponse ? response.clone() : response,
+			};
 
-				options.onResponse({
-					data: successData,
-					error: null,
-					options,
-					request,
-					response: options.cloneResponse ? response.clone() : response,
-				})
+			await executeHooks(
+				options.onSuccess(successContext),
+
+				options.onResponse({ ...successContext, error: null })
 			);
 
 			return await resolveSuccessResult({
-				data: successData,
-				response,
+				data: successContext.data,
+				response: successContext.response,
 				resultMode: options.resultMode,
 			});
 
 			// == Exhaustive Error handling
 		} catch (error) {
-			const { apiDetails, generalErrorResult, resolveCustomErrorInfo } = resolveErrorResult({
+			const { errorVariantDetails, getErrorResult } = resolveErrorResult({
+				cloneResponse: options.cloneResponse,
 				defaultErrorMessage: options.defaultErrorMessage,
 				error,
 				resultMode: options.resultMode,
 			});
 
 			const errorContext = {
-				error: apiDetails.error as never,
+				error: errorVariantDetails.error as never,
 				options,
 				request,
-				response: apiDetails.response,
 			};
 
-			const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContext);
+			const errorContextWithResponse = {
+				...errorContext,
+				response: errorVariantDetails.response as NonNullable<typeof errorVariantDetails.response>,
+			};
+
+			const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContextWithResponse);
 
 			const shouldRetry = !combinedSignal.aborted && (await shouldAttemptRetry());
 
 			if (shouldRetry) {
-				await executeHooks(options.onRetry(errorContext));
+				await executeHooks(options.onRetry(errorContextWithResponse));
 
 				const delay = getDelay();
 
 				await waitUntil(delay);
 
-				const updatedOptions = {
-					...config,
-					retryCount: (options.retryCount ?? 0) + 1,
-				} satisfies CallApiConfig<TData, TErrorData, TResultMode>;
+				// prettier-ignore
+				const updatedOptions = {...config, "~retryCount": (options["~retryCount"] ?? 0) + 1} satisfies CallApiConfig<TData, TErrorData, TResultMode>
 
 				return await callApi(initURL, updatedOptions);
 			}
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
-				? options.throwOnError(errorContext)
+				? options.throwOnError(errorContextWithResponse)
 				: options.throwOnError;
 
 			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
@@ -254,42 +249,21 @@ export const createFetchClient = <
 				if (!shouldThrowOnError) return;
 
 				// eslint-disable-next-line ts-eslint/only-throw-error -- It's fine to throw this
-				throw apiDetails.error;
+				throw errorVariantDetails.error;
 			};
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
-				const { response } = error;
-
-				const possibleHttpError = (generalErrorResult as { error: PossibleHTTPError<TErrorData> })
-					.error;
-
 				await executeHooks(
-					options.onResponseError({
-						error: possibleHttpError,
-						options,
-						request,
-						response: options.cloneResponse ? response.clone() : response,
-					}),
+					options.onResponseError(errorContextWithResponse),
 
-					options.onError({
-						error: possibleHttpError,
-						options,
-						request,
-						response: options.cloneResponse ? response.clone() : response,
-					}),
+					options.onError(errorContextWithResponse),
 
-					options.onResponse({
-						data: null,
-						error: possibleHttpError,
-						options,
-						request,
-						response: options.cloneResponse ? response.clone() : response,
-					})
+					options.onResponse({ ...errorContextWithResponse, data: null })
 				);
 
 				handleThrowOnError();
 
-				return generalErrorResult;
+				return getErrorResult();
 			}
 
 			if (error instanceof DOMException && error.name === "AbortError") {
@@ -299,7 +273,7 @@ export const createFetchClient = <
 
 				handleThrowOnError();
 
-				return generalErrorResult;
+				return getErrorResult();
 			}
 
 			if (error instanceof DOMException && error.name === "TimeoutError") {
@@ -309,31 +283,20 @@ export const createFetchClient = <
 
 				handleThrowOnError();
 
-				return resolveCustomErrorInfo({ message });
+				return getErrorResult({ message });
 			}
-
-			const possibleJavascriptError = (generalErrorResult as { error: PossibleJavaScriptError }).error;
 
 			await executeHooks(
 				// == At this point only the request errors exist, so the request error interceptor is called
-				options.onRequestError({
-					error: possibleJavascriptError,
-					options,
-					request,
-				}),
+				options.onRequestError(errorContext),
 
 				// == Also call the onError interceptor
-				options.onError({
-					error: possibleJavascriptError,
-					options,
-					request,
-					response: null,
-				})
+				options.onError(errorContextWithResponse)
 			);
 
 			handleThrowOnError();
 
-			return generalErrorResult;
+			return getErrorResult();
 
 			// == Removing the now unneeded AbortController from store
 		} finally {
@@ -346,4 +309,4 @@ export const createFetchClient = <
 	return callApi;
 };
 
-export const callApi = createFetchClient();
+export const callApi = createFetchClient({});

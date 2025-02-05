@@ -205,6 +205,10 @@ export const resolveSuccessResult = <TCallApiResult>(info: SuccessInfo): TCallAp
 
 	const apiDetails = { data, error: null, response };
 
+	if (!resultMode) {
+		return apiDetails as TCallApiResult;
+	}
+
 	const resultModeMap: ResultModeMap = {
 		all: apiDetails,
 		onlyError: apiDetails.error,
@@ -213,7 +217,7 @@ export const resolveSuccessResult = <TCallApiResult>(info: SuccessInfo): TCallAp
 		onlySuccessWithException: apiDetails.data,
 	};
 
-	return resultModeMap[resultMode ?? "all"] as TCallApiResult;
+	return resultModeMap[resultMode] as TCallApiResult;
 };
 
 const PromiseWithResolvers = () => {
