@@ -51,7 +51,7 @@ export interface Register {
 export type DefaultDataType = unknown;
 export type DefaultMoreOptions = NonNullable<unknown>;
 
-type WithMoreOptions<TMoreOptions = DefaultMoreOptions> = {
+export type WithMoreOptions<TMoreOptions = DefaultMoreOptions> = {
 	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
 };
 

@@ -32,7 +32,6 @@
 		"eslint-plugin-react-compiler": "19.0.0-beta-e552027-20250112",
 		"eslint-plugin-react-hooks": "^5.1.0",
 		"eslint-plugin-react-refresh": "^0.4.18",
-		"eslint-plugin-tailwindcss": "^3.17.5",
 		"husky": "9.1.7",
 		"lint-staged": "15.4.3",
 		"pkg-pr-new": "0.0.39",

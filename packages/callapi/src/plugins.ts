@@ -2,9 +2,11 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
+	DefaultMoreOptions,
 	ExtraOptions,
 	Interceptors,
 	InterceptorsOrInterceptorArray,
+	WithMoreOptions,
 } from "./types";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
@@ -22,7 +24,7 @@ export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> =
 			: NonNullable<unknown>
 		: NonNullable<unknown>;
 
-export type PluginInitContext = {
+export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = WithMoreOptions<TMoreOptions> & {
 	initURL: string;
 	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
