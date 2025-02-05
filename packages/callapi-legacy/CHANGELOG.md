@@ -1,5 +1,13 @@
 # @zayne-labs/callapi-legacy
 
+## 1.3.5
+
+### Patch Changes
+
+- bf6002b: chore(deps): ⬇️ downgrade fumadocs packages due to failed tailwind migration
+  feat(exports): ✨ expose retry constants from utils
+  chore(eslint): 🔧 enable tailwindcss config validation
+
 ## 1.3.3
 
 ### Patch Changes
