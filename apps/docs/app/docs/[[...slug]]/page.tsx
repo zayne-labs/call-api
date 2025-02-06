@@ -1,4 +1,5 @@
 import { source } from "@/app/source";
+import { metadataImage } from "@/lib/metadata";
 import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui";
 import { AutoTypeTable } from "fumadocs-typescript/ui";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
@@ -53,16 +54,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata(props: { params: Promise<{ slug?: string[] }> }) {
 	const params = await props.params;
-
 	const page = source.getPage(params.slug);
+	if (!page) notFound();
 
-	if (!page) {
-		notFound();
-	}
-
-	return {
+	return metadataImage.withImage(page.slugs, {
 		description: page.data.description,
 		title: page.data.title,
-	};
+	});
 }
 /* eslint-enable react-refresh/only-export-components -- This doesn't apply to Next.js */
