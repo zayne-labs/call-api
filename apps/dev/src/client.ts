@@ -1,4 +1,9 @@
-import { type InterceptorsOrInterceptorArray, createFetchClient, definePlugin } from "@zayne-labs/callapi";
+import {
+	type InterceptorsOrInterceptorArray,
+	type PluginInitContext,
+	createFetchClient,
+	definePlugin,
+} from "@zayne-labs/callapi";
 import { z } from "zod";
 
 const newOptionSchema = z.object({
@@ -40,15 +45,18 @@ const plugin2 = definePlugin({
 
 	id: "2",
 
-	init: ({ request }) => ({
-		request: {
-			...request,
-			headers: {
-				...request.headers,
-				Authorization: request.headers?.["X-Environment"],
+	init: ({ options, request }: PluginInitContext<z.infer<typeof newOptionSchema2>>) => {
+		options.onUploadSuccess?.({ load: 0, tots: 0 });
+		return {
+			request: {
+				...request,
+				headers: {
+					...request.headers,
+					Authorization: request.headers?.["X-Environment"],
+				},
 			},
-		},
-	}),
+		};
+	},
 
 	name: "plugin",
 });

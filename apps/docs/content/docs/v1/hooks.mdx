@@ -216,7 +216,7 @@ const client = createFetchClient({
 });
 ```
 
-## Things to Note
+## Extras
 
 Here are some important details about how hooks work:
 
@@ -271,6 +271,37 @@ await client("/api/data", {
 });
 ```
 
+### Customizing Execution
+
+There are two aspects to hooks execution that you can customize:
+
+**1. Hook Execution Order**
+
+By default, plugin hooks run before main hooks (those defined in `createFetchClient` or individual requests). You can customize this with the `mergedHooksExecutionOrder` option:
+
+```ts
+const client = createFetchClient({
+	mergedHooksExecutionOrder: "mainHooksBeforePlugins", // or "mainHooksAfterPlugins"
+});
+```
+
+**2. Hook Execution Mode**
+
+When multiple hooks of the same type (e.g., multiple `onRequest` hooks) are defined, whether they are base hooks, plugin hooks, or instance hooks, you can control how they run using the `mergedHooksExecutionMode` option:
+
+```ts
+const client = createFetchClient({
+	mergedHooksExecutionMode: "sequential", // Run hooks one after another (default)
+	// or
+	mergedHooksExecutionMode: "parallel", // Run all hooks simultaneously
+});
+```
+
+<Callout type="info">
+	Plugin initialization (`init` functions) always runs sequentially in the order plugins are added,
+	regardless of these settings.
+</Callout>
+
 ### Override Behavior
 
 There are three ways hooks can behave when overriding:
@@ -320,7 +351,7 @@ const clientWithPlugin = createFetchClient({
 
 ### Async Support
 
-All hooks can be async - simply return a Promise or use async/await:
+All hooks can be async or return a Promise. When this is the case, the hook will be awaited internally:
 
 ```ts
 onRequest: async ({ request }) => {

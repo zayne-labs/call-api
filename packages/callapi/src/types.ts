@@ -19,12 +19,12 @@ type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body"
 
 export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion> {
 	/**
-	 * @description Optional body of the request, can be a object or any other supported body type.
+	 * Optional body of the request, can be a object or any other supported body type.
 	 */
 	body?: Record<string, unknown> | RequestInit["body"];
 
 	/**
-	 * @description Headers to be used in the request.
+	 * Headers to be used in the request.
 	 */
 	headers?:
 		| Record<"Authorization", CommonAuthorizationHeaders>
@@ -34,7 +34,7 @@ export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKe
 		| RequestInit["headers"];
 
 	/**
-	 * @description HTTP method for the request.
+	 * HTTP method for the request.
 	 * @default "GET"
 	 */
 	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
@@ -61,41 +61,41 @@ export interface Interceptors<
 	TMoreOptions = DefaultMoreOptions,
 > {
 	/**
-	 * @description Interceptor that will be called when any error occurs within the request/response lifecycle, regardless of whether the error is from the api or not.
+	 * Interceptor that will be called when any error occurs within the request/response lifecycle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
 	 */
 	onError?: (context: ErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 
 	/**
-	 * @description Interceptor that will be called just before the request is made, allowing for modifications or additional operations.
+	 * Interceptor that will be called just before the request is made, allowing for modifications or additional operations.
 	 */
 	onRequest?: (context: RequestContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 
 	/**
-	 *  @description Interceptor that will be called when an error occurs during the fetch request.
+	 *  Interceptor that will be called when an error occurs during the fetch request.
 	 */
 	onRequestError?: (context: RequestErrorContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 
 	/**
-	 * @description Interceptor that will be called when any response is received from the api, whether successful or not
+	 * Interceptor that will be called when any response is received from the api, whether successful or not
 	 */
 	onResponse?: (
 		context: ResponseContext<TData, TErrorData> & WithMoreOptions<TMoreOptions>
 	) => Awaitable<unknown>;
 
 	/**
-	 *  @description Interceptor that will be called when an error response is received from the api.
+	 *  Interceptor that will be called when an error response is received from the api.
 	 */
 	onResponseError?: (
 		context: ResponseErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>
 	) => Awaitable<unknown>;
 
 	/**
-	 * @description Interceptor that will be called when a request is retried.
+	 * Interceptor that will be called when a request is retried.
 	 */
 	onRetry?: (response: ErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 	/**
-	 * @description Interceptor that will be called when a successful response is received from the api.
+	 * Interceptor that will be called when a successful response is received from the api.
 	 */
 	onSuccess?: (context: SuccessContext<TData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 }
@@ -125,163 +125,165 @@ export type ExtraOptions<
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
-> = InterceptorsOrInterceptorArray<TData, TErrorData> &
+> = {
+	/**
+	 * Authorization header value.
+	 */
+	auth?: string | Auth | null;
+
+	/**
+	 * Base URL to be prepended to all request URLs
+	 */
+	baseURL?: string;
+
+	/**
+	 * Custom function to serialize the body object into a string.
+	 */
+	bodySerializer?: (bodyData: Record<string, unknown>) => string;
+
+	/**
+	 * Whether or not to clone the response, so response.json() and the like, can be read again else where.
+	 * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
+	 * @default false
+	 */
+	cloneResponse?: boolean;
+
+	/**
+	 * Custom fetch implementation
+	 */
+	customFetchImpl?: FetchImpl;
+
+	/**
+	 * Custom request key to be used to identify a request in the fetch deduplication strategy.
+	 * @default the full request url + string formed from the request options
+	 */
+	dedupeKey?: string;
+
+	/**
+	 * Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
+	 * - If set to "cancel", the previous pending request with the same request key will be cancelled and lets the new request through.
+	 * - If set to "defer", all new request with the same request key will be share the same response, until the previous one is completed.
+	 * - If set to "none", deduplication is disabled.
+	 * @default "cancel"
+	 */
+	dedupeStrategy?: "cancel" | "defer" | "none";
+
+	/**
+	 * Default error message to use if none is provided from a response.
+	 * @default "Failed to fetch data from server!"
+	 */
+	defaultErrorMessage?: string;
+
+	/**
+	 * Resolved request URL
+	 */
+	readonly fullURL?: string;
+
+	/**
+	 * URL to be used in the request.
+	 */
+	readonly initURL?: string;
+
+	/**
+	 * Defines the mode in which the merged hooks are executed, can be set to "parallel" | "sequential".
+	 * - If set to "parallel", main and plugin hooks will be executed in parallel.
+	 * - If set to "sequential", the plugin hooks will be executed first, followed by the main hook.
+	 * @default "parallel"
+	 */
+	mergedHooksExecutionMode?: "parallel" | "sequential";
+
+	/**
+	 * - Controls what order in which the merged hooks execute
+	 * @default "mainHooksLast"
+	 */
+	mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
+
+	/**
+	 * - An optional field you can fill with additional information,
+	 * to associate with the request, typically used for logging or tracing.
+	 *
+	 * - A good use case for this, would be to use the info to handle specific cases in any of the shared interceptors.
+	 *
+	 * @example
+	 * ```ts
+	 * const callMainApi = callApi.create({
+	 * 	baseURL: "https://main-api.com",
+	 * 	onResponseError: ({ response, options }) => {
+	 * 		if (options.meta?.userId) {
+	 * 			console.error(`User ${options.meta.userId} made an error`);
+	 * 		}
+	 * 	},
+	 * });
+	 *
+	 * const response = await callMainApi({
+	 * 	url: "https://example.com/api/data",
+	 * 	meta: { userId: "123" },
+	 * });
+	 * ```
+	 */
+	meta?: Meta;
+
+	/**
+	 * Params to be appended to the URL (i.e: /:id)
+	 */
+	// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
+	params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
+
+	/**
+	 * An array of CallApi plugins. It allows you to extend the behavior of the library.
+	 */
+	plugins?: TPluginArray | ((context: PluginInitContext) => TPluginArray);
+
+	/**
+	 * Query parameters to append to the URL.
+	 */
+	query?: Record<string, boolean | number | string>;
+
+	/**
+	 * Custom function to validate the response error data, stemming from the api.
+	 * This only runs if the api actually sends back error status codes, else it will be ignored, in which case you should only use the `responseValidator` option.
+	 */
+	responseErrorValidator?: (data: unknown) => TErrorData;
+
+	/**
+	 * Custom function to parse the response string into a object.
+	 */
+	responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
+
+	/**
+	 * Expected response type, affects how response is parsed
+	 * @default "json"
+	 */
+	responseType?: keyof ReturnType<typeof getResponseType>;
+
+	/**
+	 * Custom function to validate the response data.
+	 */
+	responseValidator?: (data: unknown) => TData;
+
+	/**
+	 * Mode of the result, can influence how results are handled or returned.
+	 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
+	 * @default "all"
+	 */
+	resultMode?: TErrorData extends false ? "onlySuccessWithException" : TResultMode | undefined;
+
+	/**
+	 * If true or the function returns true, throws errors instead of returning them
+	 * The function is passed the error object and can be used to conditionally throw the error
+	 * @default false
+	 */
+	throwOnError?: boolean | ((context: ErrorContext<TErrorData>) => boolean);
+
+	/**
+	 * Request timeout in milliseconds
+	 */
+	timeout?: number;
+	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
+} & InterceptorsOrInterceptorArray<TData, TErrorData> &
 	Partial<InferPluginOptions<TPluginArray>> &
-	RetryOptions<TErrorData> & {
-		/**
-		 * @description Authorization header value.
-		 */
-		auth?: string | Auth | null;
-
-		/**
-		 * @description Base URL to be prepended to all request URLs
-		 */
-		baseURL?: string;
-
-		/**
-		 * @description Custom function to serialize the body object into a string.
-		 */
-		bodySerializer?: (bodyData: Record<string, unknown>) => string;
-
-		/**
-		 * @description Whether or not to clone the response, so response.json() and the like, can be read again else where.
-		 * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
-		 * @default false
-		 */
-		cloneResponse?: boolean;
-
-		/**
-		 * @description Custom fetch implementation
-		 */
-		customFetchImpl?: FetchImpl;
-
-		/**
-		 * @description Custom request key to be used to identify a request in the fetch deduplication strategy.
-		 * @default the full request url + string formed from the request options
-		 */
-		dedupeKey?: string;
-
-		/**
-		 * @description Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
-		 * - If set to "cancel", the previous pending request with the same request key will be cancelled and lets the new request through.
-		 * - If set to "defer", all new request with the same request key will be share the same response, until the previous one is completed.
-		 * - If set to "none", deduplication is disabled.
-		 * @default "cancel"
-		 */
-		dedupeStrategy?: "cancel" | "defer" | "none";
-
-		/**
-		 * @description Default error message to use if none is provided from a response.
-		 * @default "Failed to fetch data from server!"
-		 */
-		defaultErrorMessage?: string;
-
-		/**
-		 * @description Resolved request URL
-		 */
-		readonly fullURL?: string;
-
-		/**
-		 * @description URL to be used in the request.
-		 */
-		readonly initURL?: string;
-
-		/**
-		 * @description Defines the mode in which the merged hooks are executed, can be set to "parallel" | "sequential".
-		 * - If set to "parallel", main and plugin hooks will be executed in parallel.
-		 * - If set to "sequential", the plugin hooks will be executed first, followed by the main hook.
-		 * @default "parallel"
-		 */
-		mergedHooksExecutionMode?: "parallel" | "sequential";
-
-		/**
-		 * @description - Controls what order in which the merged hooks execute
-		 * @default "mainHooksLast"
-		 */
-		mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
-
-		/**
-		 * @description - An optional field you can fill with additional information,
-		 * to associate with the request, typically used for logging or tracing.
-		 *
-		 * - A good use case for this, would be to use the info to handle specific cases in any of the shared interceptors.
-		 *
-		 * @example
-		 * ```ts
-		 * const callMainApi = callApi.create({
-		 * 	baseURL: "https://main-api.com",
-		 * 	onResponseError: ({ response, options }) => {
-		 * 		if (options.meta?.userId) {
-		 * 			console.error(`User ${options.meta.userId} made an error`);
-		 * 		}
-		 * 	},
-		 * });
-		 *
-		 * const response = await callMainApi({
-		 * 	url: "https://example.com/api/data",
-		 * 	meta: { userId: "123" },
-		 * });
-		 * ```
-		 */
-		meta?: Meta;
-
-		/**
-		 * @description Params to be appended to the URL (i.e: /:id)
-		 */
-		// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
-		params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
-
-		/**
-		 * @description An array of CallApi plugins. It allows you to extend the behavior of the library.
-		 */
-		plugins?: TPluginArray | ((context: PluginInitContext) => TPluginArray);
-
-		/**
-		 * @description Query parameters to append to the URL.
-		 */
-		query?: Record<string, boolean | number | string>;
-
-		/**
-		 * @description Custom function to validate the response error data, stemming from the api.
-		 * This only runs if the api actually sends back error status codes, else it will be ignored, in which case you should only use the `responseValidator` option.
-		 */
-		responseErrorValidator?: (data: unknown) => TErrorData;
-
-		/**
-		 * @description Custom function to parse the response string into a object.
-		 */
-		responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
-
-		/**
-		 * @description Expected response type, affects how response is parsed
-		 * @default "json"
-		 */
-		responseType?: keyof ReturnType<typeof getResponseType>;
-
-		/**
-		 * @description Custom function to validate the response data.
-		 */
-		responseValidator?: (data: unknown) => TData;
-
-		/**
-		 * @description Mode of the result, can influence how results are handled or returned.
-		 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
-		 * @default "all"
-		 */
-		resultMode?: TErrorData extends false ? "onlySuccessWithException" : TResultMode | undefined;
-
-		/**
-		 * If true or the function returns true, throws errors instead of returning them
-		 * The function is passed the error object and can be used to conditionally throw the error
-		 * @default false
-		 */
-		throwOnError?: boolean | ((context: ErrorContext<TErrorData>) => boolean);
-
-		/**
-		 * @description Request timeout in milliseconds
-		 */
-		timeout?: number;
-	};
+	RetryOptions<TErrorData>;
+/* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 
 export const optionsEnumToExtendFromBase = defineEnum(["plugins"] satisfies Array<keyof ExtraOptions>);
 
@@ -292,7 +294,7 @@ export type CallApiExtraOptions<
 	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 > = ExtraOptions<TData, TErrorData, TResultMode, TPluginArray> & {
 	/**
-	 * @description Options that should extend the base options.
+	 * Options that should extend the base options.
 	 */
 	extend?: Pick<
 		ExtraOptions<TData, TErrorData, TResultMode, TPluginArray>,
@@ -327,15 +329,17 @@ export type CallApiConfig<
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
-> = CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray> & CallApiRequestOptions;
+	// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow request options to be first due to docs
+> = CallApiRequestOptions & CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray>;
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
-> = BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray> &
-	CallApiRequestOptions;
+> = CallApiRequestOptions &
+	// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow request options to be first due to docs
+	BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray>;
 
 export type CallApiParameters<
 	TData = DefaultDataType,

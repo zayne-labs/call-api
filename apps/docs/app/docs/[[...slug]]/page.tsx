@@ -1,9 +1,11 @@
 import { source } from "@/app/source";
 import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui";
+import { AutoTypeTable } from "fumadocs-typescript/ui";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
+
 
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
 	// eslint-disable-next-line react/prefer-destructuring-assignment -- Ignore this
@@ -29,7 +31,17 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
 			<DocsTitle>{page.data.title}</DocsTitle>
 			<DocsDescription>{page.data.description}</DocsDescription>
 			<DocsBody>
-				<MDX components={{ ...defaultMdxComponents, Popup, PopupContent, PopupTrigger, Tab, Tabs }} />
+				<MDX
+					components={{
+						...defaultMdxComponents,
+						AutoTypeTable,
+						Popup,
+						PopupContent,
+						PopupTrigger,
+						Tab,
+						Tabs,
+					}}
+				/>
 			</DocsBody>
 		</DocsPage>
 	);

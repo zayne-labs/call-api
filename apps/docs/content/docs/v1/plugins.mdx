@@ -94,23 +94,22 @@ const envPlugin = definePlugin({
 
 	init: ({ initURL, request, options }) => {
 		const env = process.env.NODE_ENV ?? "development";
-
-		const clientInfo = {
-			platform: typeof window !== "undefined" ? "browser" : "node",
-			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-		};
+		const platform = typeof window !== "undefined" ? "browser" : "node";
+		const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 		const updatedRequest = {
 			...request,
 			headers: {
 				...request.headers,
 				"X-Environment": env,
-				"X-Client-Platform": clientInfo.platform,
-				"X-Client-Timezone": clientInfo.timezone,
+				"X-Client-Platform": platform,
+				"X-Client-Timezone": timezone,
 			},
 		};
 
-		return { request: updatedRequest };
+		return {
+			request: updatedRequest,
+		};
 	},
 });
 ```
@@ -166,7 +165,7 @@ const callBackendApi = createFetchClient({
 
 ### CreateExtraOptions
 
-Sometimes your plugin needs additional configuration options beyond the standard `CallApiPlugin` interface. The `createExtraOptions` function lets you define these custom options in a type-safe way.
+Sometimes your plugin needs additional configuration options beyond the standard `CallApiPlugin` interface. TypeScript automatically infers the return type of `createExtraOptions` and merges it with the callApi's options type.
 
 For example, let's create a plugin that tracks upload progress:
 
@@ -174,20 +173,22 @@ For example, let's create a plugin that tracks upload progress:
 import { createFetchClient, definePlugin, type PluginInitContext } from "@zayne-labs/callapi";
 import { z } from "zod";
 
-const newOptionSchema = z.object({
-	onUpload: z.function().args(z.object({ loaded: z.number(), total: z.number() })),
+const pluginOptionsSchema = z.object({
+	onUploadProgress: z.function().args(z.object({ loaded: z.number(), total: z.number() })),
 });
 
-const myPlugin = definePlugin({
-	id: "my-plugin",
-	name: "My Plugin",
+const uploadProgressPlugin = definePlugin({
+	id: "upload-progress-plugin",
+	name: "Upload Progress Plugin",
+	description: "A plugin that tracks upload progress",
+	version: "1.0.0",
 
-	createExtraOptions: newOptionSchema.parse,
+	createExtraOptions: pluginOptionsSchema.parse,
 
-	init: ({ request, options }: PluginInitContext<z.infer<typeof newOptionSchema>>) => {
+	init: ({ request, options }: PluginInitContext<z.infer<typeof pluginOptionsSchema>>) => {
 		const xhr = new XMLHttpRequest();
 
-		xhr.open(request.method, options.fullURL);
+		xhr.open(request.method!, options.fullURL!);
 		xhr.send(request.body as XMLHttpRequestBodyInit);
 
 		xhr.upload.addEventListener("progress", (event) => {
@@ -196,29 +197,28 @@ const myPlugin = definePlugin({
 				return;
 			}
 
-			options.onUpload?.({ loaded: event.loaded, total: event.total });
+			options.onUploadProgress?.({ loaded: event.loaded, total: event.total });
 		});
-		// xhr.upload.addEventListener("error", options.error);
 	},
 });
 
 const callBackendApi = createFetchClient({
 	baseURL: "http://localhost:3000",
-	plugins: [myPlugin],
+	plugins: [uploadProgressPlugin],
 });
 
-const result = await callBackendApi("/api/users", {
-	onUpload: ({ loaded, total }) => {
+const { data } = await callBackendApi("/api/users", {
+	onUploadProgress: ({ loaded, total }) => {
 		console.log(`Uploaded ${loaded} bytes of ${total}`);
 	},
 });
 ```
 
-In this example, we use Zod to define our custom `onUpload` option. Once defined, TypeScript will automatically infer these options and add them to the `CallApiPlugin` interface. The plugin then uses this option in its `onRequest` hook to track upload progress using XMLHttpRequest.
+In this example, we use Zod to define custom plugin options. The plugin then uses these validated options in its `init` function to set up the XMLHttpRequest progress tracking.
 
 ## Using Plugins
 
-### Adding Plugins to the Base
+### Adding Base Plugins
 
 You can add plugins when creating a CallApi instance. These plugins will be applied to all requests made with that instance:
 
@@ -235,15 +235,15 @@ const callBackendApi = createFetchClient({
 
 For specific requests, you can add plugins that will only be active for that particular call:
 
-```ts title="app.ts"
+```ts title="api.ts"
 const { data } = await callBackendApi("/users", {
 	plugins: [metricsPlugin], // Only track metrics for this request
 });
 ```
 
-**NOTE**: Using the `plugins` option directly will replace the base plugins array by default. If you want to keep the base plugins and still be able to add new ones, use the `extends` option:
+**NOTE**: Using the `plugins` option directly on the CallApi instance will replace the base plugins array by default. If you want to keep the base plugins and still be able to add new ones, use the `extends` option:
 
-```ts title="app.ts"
+```ts title="api.ts"
 const { data } = await callBackendApi("/users", {
 	extends: {
 		plugins: [metricsPlugin], // Add metrics plugin while keeping base plugins
@@ -251,47 +251,54 @@ const { data } = await callBackendApi("/users", {
 });
 ```
 
-## Execution Order
-
-1. Plugin `init` functions run in the order plugins are added.
-
-2. Plugin hooks run before main hooks (those defined in `createFetchClient` or individual requests). This can be customized with the `mergedHooksExecutionMode` option.
-
-3. Multiple plugin hooks of the same type run based on `mergedHooksExecutionMode`:
-   - `sequential`: One after another (default)
-   - `parallel`: All at once
-
 ## Example: Metrics Plugin
 
 Here's a complete example of a plugin that tracks API metrics:
 
-```ts
+```ts twoslash title="plugins.ts"
+import { definePlugin } from "@zayne-labs/callapi";
+
+// ---cut---
+
+declare module "@zayne-labs/callapi" {
+	interface Register {
+		meta: {
+			startTime: number;
+		};
+	}
+}
+
 const metricsPlugin = definePlugin({
 	id: "metrics",
 	name: "Metrics Plugin",
 	description: "Tracks API response times and success rates",
 
 	init: ({ initURL }) => {
-		console.log(`Starting request to ${initURL}`);
+		console.info(`Starting request to ${initURL}`);
+
 		const startTime = performance.now();
 
 		return {
 			options: {
-				context: { startTime },
+				meta: { startTime },
 			},
 		};
 	},
 
 	hooks: {
 		onSuccess: ({ options }) => {
-			const duration = performance.now() - options.context.startTime;
-			console.log(`Request completed in ${duration}ms`);
+			const duration = performance.now() - (options.meta?.startTime ?? 0);
+			console.info(`Request completed in ${duration}ms`);
 		},
 
 		onError: ({ error, options }) => {
-			const duration = performance.now() - options.context.startTime;
+			const duration = performance.now() - (options.meta?.startTime ?? 0);
 			console.error(`Request failed after ${duration}ms:`, error);
 		},
 	},
 });
 ```
+
+## Properties
+
+<AutoTypeTable path="./lib/callapi-options.ts" name="CallApiPlugin" />

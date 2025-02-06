@@ -14,8 +14,12 @@
 		"authorization",
 		"request-dedupe",
 		"timeout-and-retries",
+		"request-and-response-helpers",
 		"---Advanced---",
 		"hooks",
-		"plugins"
+		"plugins",
+		"---API Reference---",
+		"all-options",
+		"extra-options"
 	]
 }

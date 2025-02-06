@@ -7,30 +7,30 @@ type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => boolean
 
 export interface RetryOptions<TErrorData> {
 	/**
-	 * @description Keeps track of the number of times the request has already been retried
+	 * Keeps track of the number of times the request has already been retried
 	 * @deprecated This property is used internally to track retries. Please abstain from modifying it.
 	 */
 	readonly "~retryCount"?: number;
 
 	/**
-	 * @description Number of allowed retry attempts on HTTP errors
+	 * Number of allowed retry attempts on HTTP errors
 	 * @default 0
 	 */
 	retryAttempts?: number;
 
 	/**
-	 * @description Callback whose return value determines if a request should be retried or not
+	 * Callback whose return value determines if a request should be retried or not
 	 */
 	retryCondition?: RetryCondition<TErrorData>;
 
 	/**
-	 * @description Delay between retries in milliseconds
+	 * Delay between retries in milliseconds
 	 * @default 1000
 	 */
 	retryDelay?: number;
 
 	/**
-	 * @description Maximum delay in milliseconds. Only applies to exponential strategy
+	 * Maximum delay in milliseconds. Only applies to exponential strategy
 	 * @default 10000
 	 */
 	retryMaxDelay?: number;
@@ -42,13 +42,13 @@ export interface RetryOptions<TErrorData> {
 	retryMethods?: Array<"GET" | "POST" | AnyString>;
 
 	/**
-	 * @description HTTP status codes that trigger a retry
+	 * HTTP status codes that trigger a retry
 	 * @default [409, 425, 429, 500, 502, 503, 504]
 	 */
 	retryStatusCodes?: Array<409 | 425 | 429 | 500 | 502 | 503 | 504 | AnyNumber>;
 
 	/**
-	 * @description Strategy to use when retrying
+	 * Strategy to use when retrying
 	 * @default "linear"
 	 */
 	retryStrategy?: "exponential" | "linear";

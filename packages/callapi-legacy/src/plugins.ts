@@ -36,12 +36,12 @@ export type PluginInitResult = Partial<
 
 export type CallApiPlugin = {
 	/**
-	 * @description Defines additional options that can be passed to callApi
+	 * Defines additional options that can be passed to callApi
 	 */
 	createExtraOptions?: (...params: never[]) => unknown;
 
 	/**
-	 *  @description A description for the plugin
+	 * A description for the plugin
 	 */
 	description?: string;
 
@@ -51,24 +51,22 @@ export type CallApiPlugin = {
 	hooks?: InterceptorsOrInterceptorArray;
 
 	/**
-	 * @description A unique id for the plugin
+	 *  A unique id for the plugin
 	 */
 	id: string;
 
 	/**
-	 * @description A function that will be called when the plugin is
-	 * initialized. This will be called before the any
-	 * of the other internal functions.
+	 * A function that will be called when the plugin is initialized. This will be called before the any of the other internal functions.
 	 */
 	init?: (context: PluginInitContext) => Awaitable<PluginInitResult> | Awaitable<void>;
 
 	/**
-	 * @description A name for the plugin
+	 * A name for the plugin
 	 */
 	name: string;
 
 	/**
-	 * @description A version for the plugin
+	 *  A version for the plugin
 	 */
 	version?: string;
 };

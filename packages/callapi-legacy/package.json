@@ -2,7 +2,7 @@
 	"name": "@zayne-labs/callapi-legacy",
 	"type": "module",
 	"version": "1.3.6",
-	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
+	"description": "A lightweigh7 wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"author": "Ryan Zayne",
 	"license": "MIT",
 	"homepage": "https://github.com/zayne-labs/call-api#readme",

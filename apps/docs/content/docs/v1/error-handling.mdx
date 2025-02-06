@@ -8,7 +8,7 @@ icon: shield-alert
 
 CallApi by default returns response errors and request errors as a value. The error object has 3 properties:
 
-1. **`name`**: The type of error (e.g., `'HTTPError'`, `'TypeError'`, `'SyntsaxError'`).
+1. **`name`**: The type of error (e.g., `'HTTPError'`, `'TypeError'`, `'SyntaxError'`).
 2. **`message`**: A brief description of what went wrong. This could be:
    - The error message from the JavaScript error object if it's a non-HTTP error.
    - The error message from the server if it's an HTTP error. If there was no message property on the error response, the error message specified in the `defaultErrorMessage` option will be used.
