@@ -6,7 +6,6 @@ import defaultMdxComponents from "fumadocs-ui/mdx";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
 
-
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
 	// eslint-disable-next-line react/prefer-destructuring-assignment -- Ignore this
 	const params = await props.params;
