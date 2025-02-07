@@ -135,7 +135,7 @@ export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = never[],
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
 > = {
 	/**
@@ -298,7 +298,7 @@ export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = never[],
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
 > = ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> & {
 	/**
@@ -318,7 +318,7 @@ export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = never[],
+	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TBaseSchemas extends Schemas = DefaultMoreOptions,
 > = Omit<
 	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray, TBaseSchemas>,
@@ -329,7 +329,7 @@ export type CombinedCallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = never[],
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
 > = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> &
 	CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>;
@@ -338,7 +338,7 @@ export type CallApiConfig<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = never[],
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
 > = CallApiRequestOptions &
 	// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow request options to be first due to docs
@@ -348,7 +348,7 @@ export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = never[],
+	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TBaseSchemas extends Schemas = DefaultMoreOptions,
 > = CallApiRequestOptions &
 	// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow request options to be first due to docs
@@ -358,7 +358,7 @@ export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = never[],
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
 > = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TPluginArray, TSchemas>];
 

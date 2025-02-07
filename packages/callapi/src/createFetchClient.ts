@@ -34,7 +34,7 @@ export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = never[],
+	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TBaseSchemas extends Schemas = DefaultMoreOptions,
 >(
 	baseConfig?: BaseCallApiConfig<

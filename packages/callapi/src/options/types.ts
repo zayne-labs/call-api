@@ -6,7 +6,7 @@ export type CallApiConfigWithRequiredURL<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = never[],
+	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = Schemas,
 > = CallApiConfig<TData, TErrorData, TResultMode, TPluginArray, TSchemas> & {
 	initURL: string;
