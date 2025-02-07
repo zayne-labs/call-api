@@ -1,5 +1,15 @@
 # @zayne-labs/callapi
 
+## 1.4.0
+
+### Minor Changes
+
+- 00440df: feat(core)!: ✨ add schema validation with standard-schema support
+  chore(deps):⬆️ upgrade pnpm to 10.2.1
+  docs(error-handling): 📝 improve error handling docs
+  style(docs): 🎨 update docs UI and improve navigation
+  fix(docs): 🔗 update broken links in README files
+
 ## 1.3.5
 
 ### Patch Changes
