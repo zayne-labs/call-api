@@ -1,0 +1,52 @@
+---
+title: Integrations
+description: Learn how to use CallApi with various higher order libraries and frameworks
+---
+
+CallApi is designed to be flexible and can be easily integrated with various JavaScript libraries and frameworks. Since it's built on top of the native Fetch API, it works well with any library that expects a Promise-based HTTP client.
+
+<Callout>
+	Choose an integration guide from the sidebar to learn more about its specific details and best
+	practices.
+</Callout>
+
+## Common Integration Pattern
+
+Most integrations follow a similar pattern:
+
+1. Create a CallApi instance with your base configuration
+2. Use the instance in your data fetching hooks or functions
+3. Handle errors appropriately using CallApi's error handling utilities
+
+Here's a basic example:
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+import { isHTTPErrorInstance } from "@zayne-labs/callapi/utils";
+
+// @log: Create a configured instance
+
+const callMainApi = createFetchClient({
+	baseURL: "https://api.example.com",
+	resultMode: "onlySuccessWithException", // Only data is needed, errors are thrown
+	throwOnError: true, // Most libraries expect errors to be thrown
+});
+
+// @log: Use it in your data fetching logic
+
+const fetchData = async () => {
+	try {
+		const data = await callMainApi("/users");
+
+		return data;
+	} catch (error) {
+		if (isHTTPErrorInstance(error)) {
+			// Handle http error types or rethrow
+
+			return;
+		}
+
+		// Handle non-http errors or rethrow
+	}
+};
+```

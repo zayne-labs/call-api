@@ -5,11 +5,11 @@ import { type CallApiPlugin, hooksEnum, initializePlugins } from "@/plugins";
 import { createRetryStrategy } from "@/retry";
 import type {
 	BaseCallApiConfig,
-	CallApiConfig,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
 	DefaultDataType,
+	DefaultMoreOptions,
 	GetCallApiResult,
 	Interceptors,
 	ResultModeUnion,
@@ -28,28 +28,39 @@ import {
 import { defaultRetryMethods, defaultRetryStatusCodes } from "@/utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "@/utils/polyfills";
 import { isFunction, isHTTPErrorInstance, isPlainObject } from "@/utils/type-guards";
+import { type InferSchemaResult, type Schemas, createExtensibleSchemasAndValidators } from "@/validation";
 import type { CallApiConfigWithRequiredURL } from "./types";
 
 export const createFetchClientWithOptions = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
+	TBasePluginArray extends CallApiPlugin[] = never[],
+	TBaseSchemas extends Schemas = DefaultMoreOptions,
 >(
-	baseConfig?: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray>
+	baseConfig?: BaseCallApiConfig<
+		TBaseData,
+		TBaseErrorData,
+		TBaseResultMode,
+		TBasePluginArray,
+		TBaseSchemas
+	>
 ) => {
 	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
 
-	const $RequestInfoCache = new Map() satisfies RequestInfoCache;
+	const $RequestInfoCache: RequestInfoCache = new Map();
 
 	const callApi = async <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
+		TSchemas extends Schemas = TBaseSchemas,
+		TActualData = InferSchemaResult<TSchemas["data"], TData>,
+		TActualErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
 	>(
-		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode, TPluginArray>
-	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
+		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode, TPluginArray, TSchemas>
+	): Promise<GetCallApiResult<TActualData, TActualErrorData, TResultMode>> => {
 		const { initURL, ...restOfConfig } = config;
 
 		const [fetchConfig, extraOptions] = splitConfig(restOfConfig);
@@ -162,12 +173,15 @@ export const createFetchClientWithOptions = <
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
 
+			const { schemas, validators } = createExtensibleSchemasAndValidators(options);
+
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(
 					shouldCloneResponse ? response.clone() : response,
 					options.responseType,
 					options.responseParser,
-					options.responseErrorValidator
+					schemas?.errorData,
+					validators?.errorData
 				);
 
 				// == Push all error handling responsibilities to the catch block if not retrying
@@ -182,7 +196,8 @@ export const createFetchClientWithOptions = <
 				shouldCloneResponse ? response.clone() : response,
 				options.responseType,
 				options.responseParser,
-				options.responseValidator
+				schemas?.data,
+				validators?.data
 			);
 
 			const successContext = {
@@ -235,8 +250,10 @@ export const createFetchClientWithOptions = <
 
 				await waitUntil(delay);
 
-				// prettier-ignore
-				const updatedOptions = {...config, "~retryCount": (options["~retryCount"] ?? 0) + 1} satisfies CallApiConfig<TData, TErrorData>;
+				const updatedOptions = {
+					...config,
+					"~retryCount": (options["~retryCount"] ?? 0) + 1,
+				} satisfies typeof config;
 
 				return await callApi(updatedOptions);
 			}
@@ -309,4 +326,5 @@ export const createFetchClientWithOptions = <
 
 	return callApi;
 };
+
 export const callApiWithOptions = createFetchClientWithOptions();

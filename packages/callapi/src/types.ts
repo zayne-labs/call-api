@@ -1,5 +1,4 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-
 import type { Auth } from "./auth";
 import type { CallApiPlugin, InferPluginOptions, PluginInitContext } from "./plugins";
 import type { RetryOptions } from "./retry";
@@ -14,6 +13,7 @@ import {
 	type UnmaskType,
 	defineEnum,
 } from "./utils/type-helpers";
+import type { Schemas, Validators } from "./validation";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
@@ -37,7 +37,17 @@ export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKe
 	 * HTTP method for the request.
 	 * @default "GET"
 	 */
-	method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT" | AnyString;
+	method?:
+		| "CONNECT"
+		| "DELETE"
+		| "GET"
+		| "HEAD"
+		| "OPTIONS"
+		| "PATCH"
+		| "POST"
+		| "PUT"
+		| "TRACE"
+		| AnyString;
 }
 
 export interface CallApiRequestOptionsForHooks extends Omit<CallApiRequestOptions, "headers"> {
@@ -49,6 +59,7 @@ export interface Register {
 	// == meta: Meta
 }
 export type DefaultDataType = unknown;
+
 export type DefaultMoreOptions = NonNullable<unknown>;
 
 export type WithMoreOptions<TMoreOptions = DefaultMoreOptions> = {
@@ -124,7 +135,8 @@ export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
+	TPluginArray extends CallApiPlugin[] = never[],
+	TSchemas extends Schemas = DefaultMoreOptions,
 > = {
 	/**
 	 * Authorization header value.
@@ -240,12 +252,6 @@ export type ExtraOptions<
 	query?: Record<string, boolean | number | string>;
 
 	/**
-	 * Custom function to validate the response error data, stemming from the api.
-	 * This only runs if the api actually sends back error status codes, else it will be ignored, in which case you should only use the `responseValidator` option.
-	 */
-	responseErrorValidator?: (data: unknown) => TErrorData;
-
-	/**
 	 * Custom function to parse the response string into a object.
 	 */
 	responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
@@ -257,16 +263,13 @@ export type ExtraOptions<
 	responseType?: keyof ReturnType<typeof getResponseType>;
 
 	/**
-	 * Custom function to validate the response data.
-	 */
-	responseValidator?: (data: unknown) => TData;
-
-	/**
 	 * Mode of the result, can influence how results are handled or returned.
 	 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
 	 * @default "all"
 	 */
 	resultMode?: TErrorData extends false ? "onlySuccessWithException" : TResultMode | undefined;
+
+	schemas?: TSchemas;
 
 	/**
 	 * If true or the function returns true, throws errors instead of returning them
@@ -279,25 +282,28 @@ export type ExtraOptions<
 	 * Request timeout in milliseconds
 	 */
 	timeout?: number;
+
+	validators?: Validators<TData, TErrorData>;
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 } & InterceptorsOrInterceptorArray<TData, TErrorData> &
 	Partial<InferPluginOptions<TPluginArray>> &
 	RetryOptions<TErrorData>;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 
-export const optionsEnumToExtendFromBase = defineEnum(["plugins"] satisfies Array<keyof ExtraOptions>);
+export const optionsEnumToExtendFromBase = defineEnum(["plugins", "validators", "schemas"] satisfies Array<keyof ExtraOptions>);
 
 export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
-> = ExtraOptions<TData, TErrorData, TResultMode, TPluginArray> & {
+	TPluginArray extends CallApiPlugin[] = never[],
+	TSchemas extends Schemas = DefaultMoreOptions,
+> = ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> & {
 	/**
 	 * Options that should extend the base options.
 	 */
 	extend?: Pick<
-		ExtraOptions<TData, TErrorData, TResultMode, TPluginArray>,
+		ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>,
 		(typeof optionsEnumToExtendFromBase)[number]
 	>;
 };
@@ -310,9 +316,10 @@ export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
+	TBasePluginArray extends CallApiPlugin[] = never[],
+	TBaseSchemas extends Schemas = DefaultMoreOptions,
 > = Omit<
-	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray>,
+	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray, TBaseSchemas>,
 	(typeof optionsEnumToOmitFromBase)[number]
 >;
 
@@ -320,33 +327,38 @@ export type CombinedCallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
-> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray> &
-	CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray>;
+	TPluginArray extends CallApiPlugin[] = never[],
+	TSchemas extends Schemas = DefaultMoreOptions,
+> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> &
+	CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>;
 
 export type CallApiConfig<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
+	TPluginArray extends CallApiPlugin[] = never[],
+	TSchemas extends Schemas = DefaultMoreOptions,
+> = CallApiRequestOptions &
 	// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow request options to be first due to docs
-> = CallApiRequestOptions & CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray>;
+	CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>;
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
+	TBasePluginArray extends CallApiPlugin[] = never[],
+	TBaseSchemas extends Schemas = DefaultMoreOptions,
 > = CallApiRequestOptions &
 	// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow request options to be first due to docs
-	BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray>;
+	BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray, TBaseSchemas>;
 
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
-> = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TPluginArray>];
+	TPluginArray extends CallApiPlugin[] = never[],
+	TSchemas extends Schemas = DefaultMoreOptions,
+> = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TPluginArray, TSchemas>];
 
 export type RequestContext = UnmaskType<{
 	options: CombinedCallApiExtraOptions;
@@ -384,7 +396,7 @@ export type PossibleJavascriptErrorNames =
 	| "SyntaxError"
 	| "TimeoutError"
 	| "TypeError"
-	| (`${string}Error` & {});
+	| (`${string}Error` & DefaultMoreOptions);
 
 export type PossibleJavaScriptError = UnmaskType<{
 	errorData: DOMException | Error | SyntaxError | TypeError;
