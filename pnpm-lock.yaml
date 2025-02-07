@@ -250,6 +250,9 @@ importers:
       '@size-limit/preset-small-lib':
         specifier: 11.1.6
         version: 11.1.6(size-limit@11.1.6)
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@total-typescript/ts-reset':
         specifier: 0.6.1
         version: 0.6.1

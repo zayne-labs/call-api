@@ -2,6 +2,8 @@ export { callApi, createFetchClient } from "./createFetchClient";
 
 export { definePlugin, type CallApiPlugin, type PluginInitContext } from "./plugins";
 
+export type { InferSchemaResult } from "./validation";
+
 export { HTTPError } from "./error";
 
 export type {

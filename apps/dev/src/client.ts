@@ -24,23 +24,23 @@ const newOptionSchema2 = z.object({
 	),
 });
 
-const plugin = definePlugin({
+const plugin1 = definePlugin({
 	createExtraOptions: (...params) => newOptionSchema.parse(params),
 
-	// hooks: {
-	// 	onRequest: () => console.info("PLUGIN-OnRequest"),
-	// },
+	hooks: {
+		onRequest: () => console.info("PLUGIN1-OnRequest"),
+	},
 
 	id: "1",
 
 	name: "plugin",
 });
 
-const plugin2 = definePlugin({
+const plugin2 = definePlugin(() => ({
 	createExtraOptions: (...params) => newOptionSchema2.parse(params),
 
 	hooks: {
-		onRequest: () => console.info("PLUGIN-OnRequest"),
+		onRequest: () => console.info("PLUGIN2-OnRequest"),
 	} satisfies InterceptorsOrInterceptorArray<unknown, unknown, z.infer<typeof newOptionSchema2>>,
 
 	id: "2",
@@ -59,17 +59,17 @@ const plugin2 = definePlugin({
 	},
 
 	name: "plugin",
-});
+}));
 
 const callApi = createFetchClient({
 	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
-	onUpload: (progress) => progress,
-	onUploadSuccess: (progress) => progress,
-	plugins: [plugin, plugin2],
+	onUpload: (progress) => console.info({ progress }),
+	onUploadSuccess: (progress) => console.info({ progress }),
+	plugins: [plugin1, plugin2()],
 	schemas: {
 		data: z.object({
-			id: z.number(),
+			foo: z.number(),
 		}),
 		errorData: z.object({
 			message: z.string(),

@@ -72,7 +72,7 @@ export type CallApiPlugin = {
 };
 
 // eslint-disable-next-line perfectionist/sort-union-types -- Let the first one be first
-export const definePlugin = <TPlugin extends CallApiPlugin | AnyFunction<CallApiPlugin> = CallApiPlugin>(
+export const definePlugin = <TPlugin extends CallApiPlugin | AnyFunction<CallApiPlugin>>(
 	plugin: TPlugin
 ) => {
 	return plugin;
@@ -151,7 +151,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 	const resolvedPlugins = [
 		...getPluginArray(options.plugins),
 		...getPluginArray(options.extend?.plugins),
-	];
+	] as CallApiPlugin[];
 
 	let resolvedUrl = initURL;
 	let resolvedOptions = options;

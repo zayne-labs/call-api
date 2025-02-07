@@ -4,12 +4,12 @@ import { type CallApiPlugin, hooksEnum, initializePlugins } from "./plugins";
 import { createRetryStrategy } from "./retry";
 import type {
 	BaseCallApiConfig,
-	CallApiConfig,
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
 	DefaultDataType,
+	DefaultMoreOptions,
 	GetCallApiResult,
 	Interceptors,
 	ResultModeUnion,
@@ -28,14 +28,22 @@ import {
 import { defaultRetryMethods, defaultRetryStatusCodes } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
 import { isFunction, isHTTPErrorInstance, isPlainObject } from "./utils/type-guards";
+import { type InferSchemaResult, type Schemas, createExtensibleSchemasAndValidators } from "./validation";
 
 export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
+	TBasePluginArray extends CallApiPlugin[] = never[],
+	TBaseSchemas extends Schemas = DefaultMoreOptions,
 >(
-	baseConfig?: BaseCallApiConfig<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray>
+	baseConfig?: BaseCallApiConfig<
+		TBaseData,
+		TBaseErrorData,
+		TBaseResultMode,
+		TBasePluginArray,
+		TBaseSchemas
+	>
 ) => {
 	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
 
@@ -46,9 +54,12 @@ export const createFetchClient = <
 		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
+		TSchemas extends Schemas = TBaseSchemas,
+		TActualData = InferSchemaResult<TSchemas["data"], TData>,
+		TActualErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
 	>(
-		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TPluginArray>
-	): Promise<GetCallApiResult<TData, TErrorData, TResultMode>> => {
+		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TPluginArray, TSchemas>
+	): Promise<GetCallApiResult<TActualData, TActualErrorData, TResultMode>> => {
 		const [initURL, config = {} as never] = parameters;
 
 		const [fetchConfig, extraOptions] = splitConfig(config);
@@ -161,12 +172,15 @@ export const createFetchClient = <
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
 
+			const { schemas, validators } = createExtensibleSchemasAndValidators(options);
+
 			if (!response.ok) {
 				const errorData = await getResponseData<TErrorData>(
 					shouldCloneResponse ? response.clone() : response,
 					options.responseType,
 					options.responseParser,
-					options.responseErrorValidator
+					schemas?.errorData,
+					validators?.errorData
 				);
 
 				// == Push all error handling responsibilities to the catch block if not retrying
@@ -181,7 +195,8 @@ export const createFetchClient = <
 				shouldCloneResponse ? response.clone() : response,
 				options.responseType,
 				options.responseParser,
-				options.responseValidator
+				schemas?.data,
+				validators?.data
 			);
 
 			const successContext = {
@@ -234,8 +249,10 @@ export const createFetchClient = <
 
 				await waitUntil(delay);
 
-				// prettier-ignore
-				const updatedOptions = {...config, "~retryCount": (options["~retryCount"] ?? 0) + 1} satisfies CallApiConfig<TData, TErrorData, TResultMode>
+				const updatedOptions = {
+					...config,
+					"~retryCount": (options["~retryCount"] ?? 0) + 1,
+				} satisfies typeof config;
 
 				return await callApi(initURL, updatedOptions);
 			}
@@ -309,4 +326,4 @@ export const createFetchClient = <
 	return callApi;
 };
 
-export const callApi = createFetchClient({});
+export const callApi = createFetchClient();
