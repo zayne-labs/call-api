@@ -290,7 +290,9 @@ export type ExtraOptions<
 	RetryOptions<TErrorData>;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 
-export const optionsEnumToExtendFromBase = defineEnum(["plugins", "validators", "schemas"] satisfies Array<keyof ExtraOptions>);
+export const optionsEnumToExtendFromBase = defineEnum(["plugins", "validators", "schemas"] satisfies Array<
+	keyof ExtraOptions
+>);
 
 export type CallApiExtraOptions<
 	TData = DefaultDataType,

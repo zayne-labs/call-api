@@ -8,8 +8,8 @@ import { type VariantProps, tv } from "tailwind-variants";
 
 // eslint-disable-next-line react-refresh/only-export-components -- It's fine
 export const buttonVariants = tv({
-	base: `inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium
-	transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
+	base: `focus-visible:ring-ring inline-flex items-center justify-center whitespace-nowrap rounded-md
+	text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1
 	disabled:pointer-events-none disabled:opacity-50`,
 
 	variants: {
@@ -22,10 +22,10 @@ export const buttonVariants = tv({
 
 		theme: {
 			destructive:
-				"bg-fd-destructive text-fd-destructive-foreground shadow-sm hover:bg-fd-destructive/90",
+				"bg-fd-destructive text-fd-destructive-foreground hover:bg-fd-destructive/90 shadow-sm",
 			ghost: "hover:bg-fd-accent hover:text-fd-accent-foreground",
 			link: "text-fd-primary underline-offset-4 hover:underline",
-			outline: `border border-fd-input bg-fd-background shadow-sm hover:bg-fd-accent
+			outline: `border-fd-input border bg-fd-background shadow-sm hover:bg-fd-accent
 			hover:text-fd-accent-foreground`,
 			primary: "bg-fd-primary text-fd-primary-foreground shadow hover:bg-fd-primary/90",
 			secondary: "bg-fd-secondary/75 text-fd-secondary-foreground shadow-sm",
