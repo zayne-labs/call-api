@@ -64,39 +64,39 @@ export const docsOptions: DocsLayoutProps = {
 
 	sidebar: {
 		collapsible: false,
-		defaultOpenLevel: 1,
+		// defaultOpenLevel: 0,
 
 		footer: (
 			<Link
 				href="https://github.com/zayne-labs/callapi"
 				target="_blank"
-				className="absolute bottom-[calc(12px_+_((29.6px-20px)/2))] right-4"
+				className="absolute bottom-[calc(12px_+_((29.6px-24px)/2))] right-4 max-md:hidden"
 			>
-				<GitHubIcon width={20} height={20} />
+				<GitHubIcon width={24} height={24} />
 			</Link>
 		),
 
-		// tabs: {
-		// 	transform: (option, node) => {
-		// 		const meta = source.getNodeMeta(node);
+		tabs: {
+			transform: (option, node) => {
+				const meta = source.getNodeMeta(node);
 
-		// 		if (!meta) {
-		// 			return option;
-		// 		}
+				if (!meta) {
+					return option;
+				}
 
-		// 		return {
-		// 			...option,
-		// 			icon: (
-		// 				<div
-		// 					className="grid size-[30px] place-items-center rounded-md border bg-gradient-to-t
-		// 						from-fd-background/80 p-1 text-primary shadow-md [&_svg]:size-full"
-		// 				>
-		// 					{node.icon}
-		// 				</div>
-		// 			),
-		// 		};
-		// 	},
-		// },
+				return {
+					...option,
+					icon: (
+						<div
+							className="rounded-md border bg-gradient-to-t from-fd-background/80 p-1
+								text-fd-primary shadow-md [&_svg]:size-5"
+						>
+							{node.icon}
+						</div>
+					),
+				};
+			},
+		},
 	},
 	tree: source.pageTree,
 };

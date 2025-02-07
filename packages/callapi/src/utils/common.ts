@@ -1,4 +1,5 @@
 import { getAuthHeader } from "@/auth";
+import { type Schemas, type Validators, standardSchemaParser } from "@/validation";
 import {
 	type BaseCallApiExtraOptions,
 	type CallApiConfig,
@@ -177,7 +178,8 @@ export const getResponseData = async <TResponse>(
 	response: Response,
 	responseType: keyof ReturnType<typeof getResponseType>,
 	parser: CallApiExtraOptions["responseParser"],
-	validator?: CallApiExtraOptions["responseValidator"]
+	schema?: NonNullable<Schemas>[keyof NonNullable<Schemas>],
+	validator?: NonNullable<Validators>[keyof NonNullable<Validators>]
 ) => {
 	const RESPONSE_TYPE_LOOKUP = getResponseType<TResponse>(response, parser);
 
@@ -189,7 +191,11 @@ export const getResponseData = async <TResponse>(
 
 	const validResponseData = validator ? validator(responseData) : responseData;
 
-	return validResponseData;
+	const schemaValidResponseData = schema
+		? await standardSchemaParser(schema, validResponseData)
+		: validResponseData;
+
+	return schemaValidResponseData;
 };
 
 type SuccessInfo = {

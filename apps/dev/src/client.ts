@@ -61,13 +61,20 @@ const plugin2 = definePlugin({
 	name: "plugin",
 });
 
-const newLocal = [plugin, plugin2];
 const callApi = createFetchClient({
 	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => progress,
 	onUploadSuccess: (progress) => progress,
-	plugins: newLocal,
+	plugins: [plugin, plugin2],
+	schemas: {
+		data: z.object({
+			id: z.number(),
+		}),
+		errorData: z.object({
+			message: z.string(),
+		}),
+	},
 });
 
 // const foo1 = void callApi("https://dummyjson.com/products/:id", {

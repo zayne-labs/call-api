@@ -55,6 +55,7 @@
 		"@arethetypeswrong/cli": "0.17.3",
 		"@size-limit/esbuild-why": "11.1.6",
 		"@size-limit/preset-small-lib": "11.1.6",
+		"@standard-schema/spec": "^1.0.0",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@zayne-labs/tsconfig": "catalog:",
 		"concurrently": "^9.0.1",

@@ -208,6 +208,9 @@ importers:
       '@size-limit/preset-small-lib':
         specifier: 11.1.6
         version: 11.1.6(size-limit@11.1.6)
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@total-typescript/ts-reset':
         specifier: 0.6.1
         version: 0.6.1
@@ -1745,6 +1748,9 @@ packages:
     resolution: {integrity: sha512-hlmkBlOryJIsKlGpS61Ti7/EEZomygAzOabpo2htdxUbkCkvtVoUQpGWHUfWuxdhheDVF6rtZZ6lPGftMKlaQg==}
     peerDependencies:
       size-limit: 11.1.6
+
+  '@standard-schema/spec@1.0.0':
+    resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
 
   '@stylistic/eslint-plugin@2.12.1':
     resolution: {integrity: sha512-fubZKIHSPuo07FgRTn6S4Nl0uXPRPYVNpyZzIDGfp7Fny6JjNus6kReLD7NI380JXi4HtUTSOZ34LBuNPO1XLQ==}
@@ -6351,6 +6357,8 @@ snapshots:
       '@size-limit/esbuild': 11.1.6(size-limit@11.1.6)
       '@size-limit/file': 11.1.6(size-limit@11.1.6)
       size-limit: 11.1.6
+
+  '@standard-schema/spec@1.0.0': {}
 
   '@stylistic/eslint-plugin@2.12.1(eslint@9.19.0(jiti@2.4.2))(typescript@5.7.3)':
     dependencies:

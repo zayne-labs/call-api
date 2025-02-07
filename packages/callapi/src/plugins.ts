@@ -151,7 +151,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 	const resolvedPlugins = [
 		...getPluginArray(options.plugins),
 		...getPluginArray(options.extend?.plugins),
-	];
+	] as CallApiPlugin[];
 
 	let resolvedUrl = initURL;
 	let resolvedOptions = options;
