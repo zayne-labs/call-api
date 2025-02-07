@@ -61,11 +61,11 @@ const plugin2 = definePlugin(() => ({
 	name: "plugin",
 }));
 
-const callApi = createFetchClient<{ foo: number }>({
+const callApi = createFetchClient({
 	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
-	// onUpload: (progress) => console.info({ progress }),
-	// onUploadSuccess: (progress) => console.info({ progress }),
+	onUpload: (progress) => console.info({ progress }),
+	onUploadSuccess: (progress) => console.info({ progress }),
 	plugins: [plugin1, plugin2()],
 	schemas: {
 		data: z.object({

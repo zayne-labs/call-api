@@ -5,9 +5,10 @@ description: Learn how to use CallApi with React Query
 
 ## Basic Usage
 
+By default, CallApi returns a result object containing both success and error data. However, React Query works differently - it expects either a resolved promise with data or a rejected promise with an error. To bridge this gap, we need to configure CallApi properly:
+
 ```ts title="todo.tsx"
 import { callApi } from "@zayne-labs/callapi";
-import { isHTTPErrorInstance } from "@zayne-labs/callapi";
 import { useQuery } from "@tanstack/react-query";
 
 type Todo = {
@@ -19,7 +20,7 @@ type Todo = {
 const { data, isPending, isError, error } = useQuery({
 	queryKey: ["todos"],
 	queryFn: () => {
-		return callApi<Todo[], unknown, "onlySuccessWithException">("https://my-api.com/api/v1/session", {
+		return callApi<Todo[], unknown, "onlySuccessWithException">("https://my-api.com/api/v1/todos", {
 			throwOnError: true,
 			resultMode: "onlySuccessWithException",
 		});
@@ -27,32 +28,35 @@ const { data, isPending, isError, error } = useQuery({
 });
 ```
 
-As seen above, we're using both `throwOnError` and `resultMode: "onlySuccessWithException"` ensure that only successful responses are returned and the error is thrown properly. This is necessary because React Query expects a promise in both `error` and `success` cases, but CallApi returns a discriminated union of data, error and the original response by default.
+The two key options we're using here are:
 
-We also had to pass `onlySuccessWithException` as a generic argument to callApi due to an unfortunate [limitation of TypeScript](https://github.com/microsoft/TypeScript/issues/26242).
+- `throwOnError: true` - This makes CallApi throw errors instead of returning them in the result object
+- `resultMode: "onlySuccessWithException"` - This makes CallApi return just the data property with its exact type (e.g. `Todo[]` instead of `Todo[] | null`), since errors are thrown rather than returned.
+
+However, due to current TypeScript limitations with partial generic inference (see [TypeScript#26242](https://github.com/microsoft/TypeScript/issues/26242)), we also had to manually specify `"onlySuccessWithException"` as the third generic argument to prevent type errors.
 
 To avoid this, you can either:
 
-1. Use validation libraries like zod to validate the response data so the type can be inferred automatically
+1. Use validation libraries like zod to [validate the response data and infer the type](/docs/v1/getting-started#response-validation)
 
 ```ts title="todo.tsx"
 import { callApi } from "@zayne-labs/callapi";
-import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 
-const todosSchema = z.array(
-	z.object({
-		id: z.number(),
-		title: z.string(),
-		completed: z.boolean(),
-	})
-);
+const todoSchema = z.object({
+	id: z.number(),
+	title: z.string(),
+	completed: z.boolean(),
+});
 
 const { data, isPending, isError, error } = useQuery({
 	queryKey: ["todos"],
 	queryFn: () => {
-		return callApi("https://my-api.com/api/v1/session", {
-			responseValidator: todosSchema.parse,
+		return callApi("https://my-api.com/api/v1/todos", {
+			schemas: {
+				data: todoSchema,
+			},
 			throwOnError: true,
 			resultMode: "onlySuccessWithException",
 		});
@@ -60,7 +64,7 @@ const { data, isPending, isError, error } = useQuery({
 });
 ```
 
-2. Pass `false` to the errorData generic argument to signal that the error will be thrown
+2. Pass `false` as the second generic argument to signal that errors will be thrown
 
 ```ts title="todo.tsx"
 import { callApi } from "@zayne-labs/callapi";
@@ -75,7 +79,7 @@ type Todo = {
 const { data, isPending, isError, error } = useQuery({
 	queryKey: ["todos"],
 	queryFn: () => {
-		return callApi<Todo[], false>("https://my-api.com/api/v1/session", {
+		return callApi<Todo[], false>("https://my-api.com/api/v1/todos", {
 			throwOnError: true,
 			resultMode: "onlySuccessWithException",
 		});

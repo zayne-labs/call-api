@@ -41,8 +41,6 @@ You can define the response data and error types using generics or validate them
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
 
-// @log: Manually provide the generic type
-
 type Todo = {
 	userId: string;
 	id: number;
@@ -52,27 +50,12 @@ type Todo = {
 
 const { data, error, response } = await callApi<Todo>("https://jsonplaceholder.typicode.com/todos/1");
 
-//@log: Using Zod (or any validation lib of your choice)
-
-import { z } from "zod";
-
-const todoSchema = z.object({
-	userId: z.string(),
-	id: z.number(),
-	title: z.string(),
-	completed: z.boolean(),
-});
-
 // @annotate: Hover over the data or error object to see the type
-
-const { data: todos, error: todoError } = await callApi("https://jsonplaceholder.typicodei.com/todos/1", {
-	responseValidator: todoSchema.parse,
-});
 ```
 
 CallApi by default returns a Promise that resolves to an object of data, error and the original response object. But this can be customized using the `resultMode` option.
 
-### CreateFetchClient
+## CreateFetchClient
 
 `CreateFetchClient` allows you to create a callApi instance with custom base configurations. You can also use `callApi.create` to create an instance of callApi.
 
@@ -99,6 +82,100 @@ type Todo = {
 
 const { data, error } = await callBackendApi<Todo>("/todos/10");
 ```
+
+## Response Validation
+
+CallApi provides two convenient ways to validate your response data:
+
+1. **Schema Validation** - Define type-safe schemas for your response data using any validation library that implements the [Standard Schema specification](https://github.com/standard-schema/standard-schema) (e.g., Zod, Valibot, ArkType, etc.)
+
+2. **Custom Validators** - Write custom validation functions
+
+### Validation with Schemas
+
+Here's how to validate both success and error responses using schemas:
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+import { z } from "zod"; // You can use any schema validation library that implements the Standard Schema specification
+
+const todoSchema = z.object({
+	id: z.number(),
+	title: z.string(),
+	completed: z.boolean(),
+});
+
+const errorSchema = z.object({
+	message: z.string(),
+	errors: z.array(z.union([z.string(), z.array(z.string())])),
+});
+
+const { data, error } = await callApi("/todos/1", {
+	schemas: {
+		data: todoSchema, // Validates successful response data
+		errorData: errorSchema, // Optional: Validate error response data
+	},
+});
+```
+
+### Custom Validators
+
+For more advanced validation logic, you can provide custom validator functions through the `validators` option:
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+
+const { data, error } = await callApi("/todos/1", {
+	validators: {
+		data: (value) => {
+			// Custom validation logic here
+
+			return value;
+		},
+		errorData: (value) => {
+			// Custom error data validation
+
+			return value;
+		},
+	},
+});
+```
+
+You can also use schema validation libraries directly through the `validators` option simply by using their respective `parse` functions:
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+import { z } from "zod";
+
+const todoSchema = z.object({
+	id: z.number(),
+	title: z.string(),
+	completed: z.boolean(),
+});
+
+const errorSchema = z.object({
+	message: z.string(),
+	errors: z.array(z.union([z.string(), z.array(z.string())])),
+});
+
+// Using parse functions directly as validators
+const { data, error } = await callApi("/todos/1", {
+	validators: {
+		data: (value) => todoSchema.parse(value),
+		errorData: (value) => errorSchema.parse(value),
+	},
+});
+
+// The above is equivalent to using the schemas option
+const { data: data2, error: error2 } = await callApi("/todos/1", {
+	schemas: {
+		data: todoSchema,
+		errorData: errorSchema,
+	},
+});
+```
+
+This approach gives you more flexibility in how you handle validation, though using the `schemas` option is generally preferred when working with schema validation libraries.
 
 ### Throwing Errors
 

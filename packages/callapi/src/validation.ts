@@ -32,13 +32,13 @@ export interface Validators<TData = unknown, TErrorData = unknown> {
 	/**
 	 * Custom function to validate the response data.
 	 */
-	data?: (data: unknown) => TData;
+	data?: (value: unknown) => TData;
 
 	/**
 	 * Custom function to validate the response error data, stemming from the api.
 	 * This only runs if the api actually sends back error status codes, else it will be ignored, in which case you should only use the `responseValidator` option.
 	 */
-	errorData?: (data: unknown) => TErrorData;
+	errorData?: (value: unknown) => TErrorData;
 }
 
 export type InferSchemaResult<
