@@ -1,1 +1,1 @@
-./packages/callapi/README.md
+packages/callapi/README.md
