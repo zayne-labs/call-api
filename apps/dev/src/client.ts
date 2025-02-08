@@ -1,6 +1,7 @@
 import {
 	type InterceptorsOrInterceptorArray,
 	type PluginInitContext,
+	type SuccessContext,
 	createFetchClient,
 	definePlugin,
 } from "@zayne-labs/callapi";
@@ -41,7 +42,8 @@ const plugin2 = definePlugin(() => ({
 
 	hooks: {
 		onRequest: () => console.info("PLUGIN2-OnRequest"),
-	} satisfies InterceptorsOrInterceptorArray<unknown, unknown, z.infer<typeof newOptionSchema2>>,
+		onSuccess: (_ctx: SuccessContext<{ foo: "ckay" }>) => {},
+	} satisfies InterceptorsOrInterceptorArray<never, never, z.infer<typeof newOptionSchema2>>,
 
 	id: "2",
 

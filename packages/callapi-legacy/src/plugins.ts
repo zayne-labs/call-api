@@ -1,3 +1,4 @@
+/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
@@ -34,7 +35,7 @@ export type PluginInitResult = Partial<
 	Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
 >;
 
-export type CallApiPlugin = {
+export interface CallApiPlugin<TData = never, TErrorData = never> {
 	/**
 	 * Defines additional options that can be passed to callApi
 	 */
@@ -48,7 +49,7 @@ export type CallApiPlugin = {
 	/**
 	 * Hooks / Interceptors for the plugin
 	 */
-	hooks?: InterceptorsOrInterceptorArray;
+	hooks?: InterceptorsOrInterceptorArray<TData, TErrorData>;
 
 	/**
 	 *  A unique id for the plugin
@@ -69,10 +70,12 @@ export type CallApiPlugin = {
 	 *  A version for the plugin
 	 */
 	version?: string;
-};
+}
 
-// eslint-disable-next-line perfectionist/sort-union-types -- Let the first one be first
-export const definePlugin = <TPlugin extends CallApiPlugin | AnyFunction<CallApiPlugin>>(
+export const definePlugin = <
+	// eslint-disable-next-line perfectionist/sort-union-types -- Let the first one be first
+	TPlugin extends CallApiPlugin | AnyFunction<CallApiPlugin>,
+>(
 	plugin: TPlugin
 ) => {
 	return plugin;
@@ -128,7 +131,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		}
 	};
 
-	const addPluginHooks = (pluginHooks: InterceptorsOrInterceptorArray) => {
+	const addPluginHooks = (pluginHooks: Required<CallApiPlugin>["hooks"]) => {
 		for (const key of Object.keys(hooksEnum)) {
 			const pluginHook = pluginHooks[key as keyof Interceptors] as never;
 

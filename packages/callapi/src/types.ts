@@ -269,6 +269,9 @@ export type ExtraOptions<
 	 */
 	resultMode?: TErrorData extends false ? "onlySuccessWithException" : TResultMode | undefined;
 
+	/**
+	 * Type-safe schemas for the response validation.
+	 */
 	schemas?: TSchemas;
 
 	/**
@@ -283,6 +286,9 @@ export type ExtraOptions<
 	 */
 	timeout?: number;
 
+	/**
+	 * Custom validation functions for response validation
+	 */
 	validators?: Validators<TData, TErrorData>;
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 } & InterceptorsOrInterceptorArray<TData, TErrorData> &
