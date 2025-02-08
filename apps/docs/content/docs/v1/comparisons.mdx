@@ -6,24 +6,25 @@ icon: git-compare-arrows
 
 ## Philosophy
 
-**Lightweight:** Despite its rich feature set, CallApi maintains a tiny footprint (< 3.5kb). Built with pure ESM and zero dependencies, it's perfect for bundle-size conscious projects. Tree-shaking ensures you only ship what you use. While CJS is supported via a legacy subpath, ESM is recommended for new projects.
+**Lightweight:** Small bundle size (< 3.5kb). Zero dependencies. Pure ESM with CJS support via legacy subpath.
 
-**Intuitive:** CallApi mirrors the Fetch API's design patterns, making it a natural drop-in replacement. It extends Fetch's capabilities through additional options that are designed to be pretty intuitive, with sensible defaults that just work.
+**Simple:** Based on the Fetch API and mirrors its interface. Only adds useful features with sensible defaults.
 
-**Type-safe:** Built from the ground up with TypeScript, CallApi provides proper type hints and intellisense. Response and error types are customizable via generics (with automatic type inference from OpenAPI specs coming in the next version). Even for non-TypeScript users, the DX remains consistent.
+**Type-safe:** Built with TypeScript. Full type support for responses and errors via schemas, validators and manual generics. Automatic type generation via OpenAPI schemas will be available soon. Even non-TypeScript users will still get proper type information.
 
-**Extensible:** A plugin system and lifecycle hooks let you customize or add functionality without touching the core library. This lets you to add new features or customize existing ones to your specific needs without having to rewrite the entire library.
+**Extensible:** Plugins and hooks let you add or modify features without changing the core code.
 
 ## vs Axios
 
 Axios is a popular fetching library, and rightly so since it's been fundamental to development of web applications till date.
 
-But major issues with axios in this day and age are involve the facts that:
+But major issues with axios in this day and age involve the facts that:
 
 - It's not based on the modern Fetch API, which is a key part of web development today.
 - It's overall API for some use cases is a bit verbose.
+- Lack advanced convenience features like retries, request deduplication, schema validation, content-type detection etc.
 - It's lacks type safety, which is a real DX problem.
-- It's not lightweight, meaning it might not be suitable for smaller projects under a bundle size constraint.
+- It's quite on the heavier side, meaning it might not be suitable for smaller projects under a bundle size constraint.
 
 ## vs Ofetch
 
@@ -33,6 +34,6 @@ If you don't need the extra features and convenience options CallApi offers, and
 
 ## vs Zl-Fetch
 
-Some features in CallApi is also inspired by Zl-Fetch. For example, the content-type detection and auth header helper idea.
+Some features in CallApi were also inspired by Zl-Fetch. Examples include the content-type detection and the auth helper idea.
 
-I also recommend Zl-Fetch if you don't need the extra features and convenience options CallApi offers beyond it.
+I also recommend trying Zl-Fetch if you don't need the extra features and convenience options CallApi offers beyond it.

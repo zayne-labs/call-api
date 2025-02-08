@@ -3,22 +3,21 @@ title: Request Deduplication
 description: Optimize your API calls by preventing duplicate requests
 ---
 
-Request deduplication helps prevent redundant API calls by managing concurrent requests to the same endpoint. Consider a scenario where a user rapidly clicks a "Refresh Profile" button multiple times - without deduplication, this would trigger multiple unnecessary API calls for the same data. With deduplication, these redundant calls are handled intelligently based on your chosen strategy.
+Request deduplication prevents redundant API calls when multiple requests are made to the same endpoint. For example, if a user rapidly clicks a "Refresh Profile" button - without deduplication, it would trigger multiple API calls for the same data. With deduplication, these duplicate calls are handled based on your strategy.
 
-Key benefits:
+**Key benefits include**:
 
-- Prevents unnecessary server load
-- Reduces network bandwidth usage
-- Eliminates race conditions
-- Improves application performance
+- Prevents duplicate API calls
+- Less network requests
+- Prevents race conditions
 
 ## How it works
 
 Request deduplication works by:
 
-1. Generating a unique key for each request based on URL and parameters (or using your custom `dedupeKey`)
+1. Generating a unique key for each request based on URL and parameters by default (can be customized via [dedupeKey](#custom-deduplication-key))
 2. Tracking in-flight requests using this key
-3. Handling duplicate requests according to your chosen strategy
+3. Handling requests with the same key (duplicates) according to your chosen strategy
 
 <Callout type="info">
 	Requests are only deduplicated when made from the same `callApi` instance. Requests made from different
@@ -63,15 +62,46 @@ const { data } = await callMainApi("/users/123", {
 
 ### 2. Defer Strategy
 
-The `defer` strategy shares the same response promise between duplicate requests. If a request is made while an identical one is still in-flight, it will receive the same response:
-
-```ts title="api.ts"
-const { data } = await callMainApi("/users/123", {
-	dedupeStrategy: "defer",
-});
-```
+The `defer` strategy shares the same response promise between duplicate requests. If a request is made while an identical one is still in-flight, it will receive the same response.
 
 ![Defer Strategy Visualization](public/media/defer.svg)
+
+Example: Multiple components requesting user data simultaneously
+
+```tsx title="api.ts"
+import { useState, useEffect } from "react";
+
+function ProfileHeader() {
+	const [userData, setUserData] = useState(null);
+
+	useEffect(() => {
+		callMainApi("/users/123", {
+			dedupeStrategy: "defer",
+			onSuccess: ({ data }) => setUserData(data),
+		});
+	}, []);
+
+	if (!userData) return null;
+
+	return <h1>{userData.name}</h1>;
+}
+
+function ProfileDetails() {
+	const [userData, setUserData] = useState(null);
+
+	useEffect(() => {
+		// This will reuse the in-flight request from ProfileHeader
+		callMainApi("/users/123", {
+			dedupeStrategy: "defer",
+			onSuccess: ({ data }) => setUserData(data),
+		});
+	}, []);
+
+	if (!userData) return null;
+
+	return <div>{userData.email}</div>;
+}
+```
 
 ### 3. None Strategy
 
@@ -85,7 +115,7 @@ const { data } = await callMainApi("/users/123", {
 
 ## Custom deduplication key
 
-If you want to override the default dedupeKey generated internally by callApi, you can specify a custom dedupeKey like so:
+By default, callApi generates a dedupeKey based on the request URL and parameters. You can customize this by using the `dedupeKey` option:
 
 ```ts title="api.ts"
 const { data } = await callMainApi("/users/123", {
@@ -95,6 +125,6 @@ const { data } = await callMainApi("/users/123", {
 
 ## Recommendations
 
-- Use `cancel` when you only need the most recent request to get through
-- Use `defer` when multiple components need the same data simultaneously
-- Use `none` when requests must be independent, like in polling scenarios etc
+- Use `cancel` when you only need the most recent request to get through, which you'd want majority of the time.
+- Use `defer` when multiple parts of your app need the same data simultaneously.
+- Use `none` when requests must be independent, like in polling scenarios etc.
