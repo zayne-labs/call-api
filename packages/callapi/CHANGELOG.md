@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 1.4.4
+
+### Patch Changes
+
+- 233b2b7: 🔧 fix(types): initialize plugin type generic with never to remove type errors
+
 ## 1.4.0
 
 ### Minor Changes
