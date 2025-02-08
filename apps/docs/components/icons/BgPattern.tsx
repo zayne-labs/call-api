@@ -21,7 +21,7 @@ const BgPattern = (props: React.SVGProps<SVGSVGElement>) => (
 		>
 			<ellipse cx="468.373" cy="287.536" rx="467.627" ry="430.464" fill="url(#radial-dark)" />
 		</mask>
-		<g mask="url(#mask-dark)" className="fill-primary">
+		<g mask="url(#mask-dark)" className="fill-fd-primary">
 			<path d="M506.419 281.855L446.417 297.931V359.885L506.419 343.71V281.855Z" fillOpacity="0.05" />
 			<path d="M384.768 188.752L324.766 204.828V266.781L384.768 250.606V188.752Z" fillOpacity="0.05" />
 			<path d="M263.625 347.002L203.623 363.078V425.031L263.625 408.856V347.002Z" fillOpacity="0.05" />
