@@ -1,6 +1,6 @@
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
-import { type CallApiPlugin, hooksEnum, initializePlugins } from "./plugins";
+import { type CallApiPlugin, type DefaultPlugins, hooksEnum, initializePlugins } from "./plugins";
 import { createRetryStrategy } from "./retry";
 import type {
 	BaseCallApiExtraOptions,
@@ -13,7 +13,7 @@ import type {
 	GetCallApiResult,
 	Interceptors,
 	ResultModeUnion,
-} from "./types";
+} from "./types/common";
 import { mergeUrlWithParamsAndQuery } from "./url";
 import {
 	combineHooks,
@@ -34,8 +34,8 @@ export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TBaseSchemas extends Schemas = DefaultMoreOptions,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPlugins,
 	TBaseComputedData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
 	TBaseComputedErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
 >(
@@ -43,8 +43,8 @@ export const createFetchClient = <
 		TBaseData,
 		TBaseErrorData,
 		TBaseResultMode,
-		TBasePluginArray,
-		TBaseSchemas
+		TBaseSchemas,
+		TBasePluginArray
 	>
 ) => {
 	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
@@ -55,12 +55,12 @@ export const createFetchClient = <
 		TData = TBaseComputedData,
 		TErrorData = TBaseComputedErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
-		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 		TSchemas extends Schemas = TBaseSchemas,
+		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 		TComputedData = InferSchemaResult<TSchemas["data"], TData>,
 		TComputedErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
 	>(
-		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TPluginArray, TSchemas>
+		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TSchemas, TPluginArray>
 	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode>> => {
 		const [initURL, config = {} as never] = parameters;
 
@@ -105,7 +105,6 @@ export const createFetchClient = <
 		// == Default Request Options
 		const defaultRequestOptions = {
 			body: isPlainObject(body) ? defaultExtraOptions.bodySerializer(body) : body,
-			method: "GET",
 
 			...baseFetchConfig,
 			...fetchConfig,
@@ -254,7 +253,7 @@ export const createFetchClient = <
 				const updatedOptions = {
 					...config,
 					"~retryCount": (options["~retryCount"] ?? 0) + 1,
-				} satisfies typeof config;
+				} satisfies typeof config as typeof config;
 
 				return await callApi(initURL, updatedOptions);
 			}

@@ -1,6 +1,6 @@
 /* eslint-disable perfectionist/sort-object-types -- Avoid Sorting for now */
 
-import type { ExtraOptions } from "./types";
+import type { ExtraOptions } from "./types/common";
 import { isFunction, isString } from "./utils/type-guards";
 
 type ValueOrFunctionResult<TValue> = TValue | (() => TValue);

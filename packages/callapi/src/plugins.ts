@@ -1,4 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
@@ -7,9 +8,10 @@ import type {
 	Interceptors,
 	InterceptorsOrInterceptorArray,
 	WithMoreOptions,
-} from "./types";
+} from "./types/common";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
+import type { InferSchemaResult } from "./validation";
 
 type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => void : never) extends (
 	param: infer TParam
@@ -17,12 +19,15 @@ type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => 
 	? TParam
 	: never;
 
-export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> =
-	TPluginArray extends Array<infer TPlugin extends CallApiPlugin>
-		? TPlugin["createExtraOptions"] extends (...params: never[]) => infer TResult
-			? UnionToIntersection<TResult>
-			: NonNullable<unknown>
-		: NonNullable<unknown>;
+export type DefaultPlugins = CallApiPlugin[];
+
+type InferSchema<TResult> = TResult extends StandardSchemaV1
+	? InferSchemaResult<TResult, NonNullable<unknown>>
+	: TResult;
+
+export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
+	InferSchema<ReturnType<NonNullable<TPluginArray[number]["createExtraOptions"]>>>
+>;
 
 export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = WithMoreOptions<TMoreOptions> & {
 	initURL: string;
@@ -81,7 +86,7 @@ export const definePlugin = <
 };
 
 const createMergedHook = (
-	hooks: Array<AnyFunction<Awaitable<unknown>> | undefined>,
+	hooks: Array<AnyFunction | undefined>,
 	mergedHooksExecutionMode: CombinedCallApiExtraOptions["mergedHooksExecutionMode"]
 ) => {
 	return async (ctx: Record<string, unknown>) => {
@@ -175,7 +180,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		}
 
 		if (isPlainObject(initResult.request)) {
-			resolvedRequestOptions = initResult.request;
+			resolvedRequestOptions = initResult.request as CallApiRequestOptionsForHooks;
 		}
 
 		if (isPlainObject(initResult.options)) {

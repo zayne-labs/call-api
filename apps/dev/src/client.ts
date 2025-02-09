@@ -26,7 +26,7 @@ const newOptionSchema2 = z.object({
 });
 
 const plugin1 = definePlugin({
-	createExtraOptions: (...params) => newOptionSchema.parse(params),
+	createExtraOptions: () => newOptionSchema,
 
 	hooks: {
 		onRequest: () => console.info("PLUGIN1-OnRequest"),
@@ -38,7 +38,7 @@ const plugin1 = definePlugin({
 });
 
 const plugin2 = definePlugin(() => ({
-	createExtraOptions: (...params) => newOptionSchema2.parse(params),
+	createExtraOptions: () => newOptionSchema2,
 
 	hooks: {
 		onRequest: () => console.info("PLUGIN2-OnRequest"),
@@ -65,30 +65,29 @@ const plugin2 = definePlugin(() => ({
 }));
 
 const callApi = createFetchClient({
-	body: {},
 	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => console.info({ progress }),
 	onUploadSuccess: (progress) => console.info({ progress }),
 	plugins: [plugin1, plugin2()],
 	schemas: {
-		body: z.object({
-			foo: z.number().optional(),
-		}),
+		// body: z.object({d
+		// 	foo: z.number(),
+		// }),
 		data: z.object({
 			foo: z.number(),
 		}),
 		errorData: z.object({
 			message: z.string(),
 		}),
-		headers: z.object({
-			"X-Environment": z.string(),
-		}),
+		// headers: z.object({
+		// 	"X-Environment": z.string(),
+		// }),
 		initURL: z.literal("https://dummyjson.com/products/:id"),
-		method: z.enum(["GET", "POST"]),
-		query: z.object({
-			id: z.string(),
-		}),
+		method: z.union([z.literal("GET"), z.literal("POST")]),
+		// query: z.object({
+		// 	id: z.string(),
+		// }),
 	},
 });
 

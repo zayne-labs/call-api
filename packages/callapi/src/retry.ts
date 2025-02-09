@@ -1,6 +1,6 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 
-import type { ErrorContext } from "./types";
+import type { ErrorContext } from "./types/common";
 import type { AnyNumber, AnyString } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => boolean | Promise<boolean>;

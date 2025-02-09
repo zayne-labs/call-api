@@ -3,7 +3,7 @@ import type {
 	CallApiResultErrorVariant,
 	PossibleJavascriptErrorNames,
 	ResultModeMap,
-} from "./types";
+} from "./types/common";
 import { isHTTPErrorInstance, isObject } from "./utils/type-guards";
 
 type ErrorInfo = {

@@ -1,71 +1,34 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { Auth } from "./auth";
-import type { CallApiPlugin, InferPluginOptions, Plugins } from "./plugins";
-import type { RetryOptions } from "./retry";
-import type { UrlOptions } from "./url";
-import type { getResponseType } from "./utils/common";
-import type { fetchSpecificKeys } from "./utils/constants";
-import {
-	type AnyString,
-	type Awaitable,
-	type CommonAuthorizationHeaders,
-	type CommonContentTypes,
-	type CommonRequestHeaders,
-	type UnmaskType,
-	defineEnum,
-} from "./utils/type-helpers";
-import type { InferSchemaResult, Schemas, Validators } from "./validation";
-
-type Body = Record<string, unknown> | RequestInit["body"];
-
-type Method =
-	| "CONNECT"
-	| "DELETE"
-	| "GET"
-	| "HEAD"
-	| "OPTIONS"
-	| "PATCH"
-	| "POST"
-	| "PUT"
-	| "TRACE"
-	| AnyString;
-
-type Headers =
-	| Record<"Authorization", CommonAuthorizationHeaders>
-	| Record<"Content-Type", CommonContentTypes>
-	| Record<CommonRequestHeaders, string | undefined>
-	| Record<string, string | undefined>
-	| RequestInit["headers"];
+import type { Auth } from "../auth";
+import type { CallApiPlugin, DefaultPlugins, InferPluginOptions, Plugins } from "../plugins";
+import type { RetryOptions } from "../retry";
+import type { UrlOptions } from "../url";
+import type { getResponseType } from "../utils/common";
+import type { fetchSpecificKeys } from "../utils/constants";
+import { type Awaitable, type UnmaskType, defineEnum } from "../utils/type-helpers";
+import type { Schemas, Validators } from "../validation";
+import type {
+	BodyOption,
+	HeadersOption,
+	MetaOption,
+	MethodOption,
+	ResultModeOption,
+} from "./conditionalOptionTypes";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
-// prettier-ignore
-export interface CallApiRequestOptions<TSchemas extends Schemas = DefaultMoreOptions> extends Pick<RequestInit, FetchSpecificKeysUnion> {
-	/**
-	 * Optional body of the request, can be a object or any other supported body type.
-	 */
-	body?: InferSchemaResult<TSchemas["body"], Body>;
+export type CallApiRequestOptions<TSchemas extends Schemas = DefaultMoreOptions> = BodyOption<TSchemas> &
+	HeadersOption<TSchemas> &
+	MethodOption<TSchemas> &
+	Pick<RequestInit, FetchSpecificKeysUnion>;
 
-	/**
-	 * Headers to be used in the request.
-	 */
-	headers?: InferSchemaResult<TSchemas["headers"], Headers>;
-
-	/**
-	 * HTTP method for the request.
-	 * @default "GET"
-	 */
-	method?: InferSchemaResult<TSchemas["method"], Method>;
-}
-
-export interface CallApiRequestOptionsForHooks extends Omit<CallApiRequestOptions, "headers"> {
+export type CallApiRequestOptionsForHooks<TSchemas extends Schemas = DefaultMoreOptions> = Omit<
+	CallApiRequestOptions<TSchemas>,
+	"headers"
+> & {
 	headers?: Record<string, string | undefined>;
-}
+};
 
-// eslint-disable-next-line ts-eslint/no-empty-object-type -- This needs to be empty to allow users to register their own meta
-export interface Register {
-	// == meta: Meta
-}
 export type DefaultDataType = unknown;
 
 export type DefaultMoreOptions = NonNullable<unknown>;
@@ -133,14 +96,12 @@ export type InterceptorsOrInterceptorArray<
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
-export type Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
-
 export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
+	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
 > = {
 	/**
 	 * Authorization header value.
@@ -209,31 +170,6 @@ export type ExtraOptions<
 	mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
 
 	/**
-	 * - An optional field you can fill with additional information,
-	 * to associate with the request, typically used for logging or tracing.
-	 *
-	 * - A good use case for this, would be to use the info to handle specific cases in any of the shared interceptors.
-	 *
-	 * @example
-	 * ```ts
-	 * const callMainApi = callApi.create({
-	 * 	baseURL: "https://main-api.com",
-	 * 	onResponseError: ({ response, options }) => {
-	 * 		if (options.meta?.userId) {
-	 * 			console.error(`User ${options.meta.userId} made an error`);
-	 * 		}
-	 * 	},
-	 * });
-	 *
-	 * const response = await callMainApi({
-	 * 	url: "https://example.com/api/data",
-	 * 	meta: { userId: "123" },
-	 * });
-	 * ```
-	 */
-	meta?: Meta;
-
-	/**
 	 * An array of CallApi plugins. It allows you to extend the behavior of the library.
 	 */
 	plugins?: Plugins<TPluginArray>;
@@ -280,7 +216,9 @@ export type ExtraOptions<
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 } & InterceptorsOrInterceptorArray<TData, TErrorData> &
 	Partial<InferPluginOptions<TPluginArray>> &
+	MetaOption<TSchemas> &
 	RetryOptions<TErrorData> &
+	ResultModeOption<TErrorData, TResultMode> &
 	UrlOptions<TSchemas>;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 
@@ -292,15 +230,15 @@ export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
+	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
 > = CallApiRequestOptions<TSchemas> &
-	ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> & {
+	ExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray> & {
 		/**
 		 * Options that should extend the base options.
 		 */
 		extend?: Pick<
-			ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>,
+			ExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray>,
 			(typeof optionsEnumToExtendFromBase)[number]
 		>;
 	};
@@ -313,10 +251,12 @@ export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TBaseSchemas extends Schemas = DefaultMoreOptions,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPlugins,
 > = Omit<
-	CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray, TBaseSchemas>,
+	Partial<
+		CallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBaseSchemas, TBasePluginArray>
+	>,
 	(typeof optionsEnumToOmitFromBase)[number]
 >;
 
@@ -324,20 +264,20 @@ export type CombinedCallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
-> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> &
-	CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>;
+	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
+> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray> &
+	CallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray>;
 
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
+	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
 > = [
 	initURL: UrlOptions<TSchemas>["initURL"],
-	config?: CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>,
+	config?: CallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray>,
 ];
 
 export type RequestContext = UnmaskType<{

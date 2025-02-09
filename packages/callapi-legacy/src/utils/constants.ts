@@ -1,4 +1,4 @@
-import type { BaseCallApiExtraOptions } from "../types";
+import type { BaseCallApiExtraOptions } from "../types/common";
 import { defineEnum } from "./type-helpers";
 
 export const fetchSpecificKeys = defineEnum([

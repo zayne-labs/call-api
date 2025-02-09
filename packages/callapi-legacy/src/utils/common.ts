@@ -6,7 +6,7 @@ import {
 	type CallApiRequestOptions,
 	type ResultModeMap,
 	optionsEnumToOmitFromBase,
-} from "../types";
+} from "../types/common";
 import { fetchSpecificKeys } from "./constants";
 import { isArray, isFunction, isPlainObject, isQueryString, isString } from "./type-guards";
 import type { AnyFunction, Awaitable } from "./type-helpers";
@@ -124,11 +124,7 @@ export const mergeAndResolveHeaders = (options: {
 	return headersObject;
 };
 
-export const combineHooks = <
-	TInterceptor extends
-		| AnyFunction<Awaitable<unknown>>
-		| Array<AnyFunction<Awaitable<unknown>> | undefined>,
->(
+export const combineHooks = <TInterceptor extends AnyFunction | Array<AnyFunction | undefined>>(
 	baseInterceptor: TInterceptor | undefined,
 	interceptor: TInterceptor | undefined
 ) => {

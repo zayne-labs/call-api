@@ -1,4 +1,4 @@
-import type { CallApiExtraOptions, CallApiRequestOptions } from "./types";
+import type { CallApiExtraOptions, CallApiRequestOptions } from "./types/common";
 import { getFetchImpl, waitUntil } from "./utils/common";
 
 type RequestInfo = {

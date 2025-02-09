@@ -1,6 +1,6 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 
-import type { ErrorContext } from "./types";
+import type { ErrorContext } from "./types/common";
 import type { AnyNumber, AnyString } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => boolean | Promise<boolean>;
@@ -73,35 +73,38 @@ export const createRetryStrategy = <TErrorData>(
 ) => {
 	const currentRetryCount = options["~retryCount"] ?? 0;
 
+	const getDelay = () => {
+		if (options.retryStrategy === "exponential") {
+			return getExponentialDelay(currentRetryCount, options);
+		}
+
+		return getLinearDelay(options);
+	};
+
+	const shouldAttemptRetry = async () => {
+		const customRetryCondition = (await options.retryCondition?.(ctx)) ?? true;
+
+		const maxRetryAttempts = options.retryAttempts ?? 0;
+
+		const baseRetryCondition = maxRetryAttempts > currentRetryCount && customRetryCondition;
+
+		if (ctx.error.name !== "HTTPError") {
+			return baseRetryCondition;
+		}
+
+		const includesMethod =
+			// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
+			!!ctx.request.method && options.retryMethods?.includes(ctx.request.method);
+
+		const includesCodes =
+			// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
+			!!ctx.response?.status && options.retryStatusCodes?.includes(ctx.response.status);
+
+		return includesCodes && includesMethod && baseRetryCondition;
+	};
+
 	return {
-		getDelay: () => {
-			if (options.retryStrategy === "exponential") {
-				return getExponentialDelay(currentRetryCount, options);
-			}
-
-			return getLinearDelay(options);
-		},
-
-		shouldAttemptRetry: async () => {
-			const customRetryCondition = (await options.retryCondition?.(ctx)) ?? true;
-
-			const maxRetryAttempts = options.retryAttempts ?? 0;
-
-			const baseRetryCondition = maxRetryAttempts > currentRetryCount && customRetryCondition;
-
-			if (ctx.error.name !== "HTTPError") {
-				return baseRetryCondition;
-			}
-
-			const includesMethod =
-				// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
-				!!ctx.request.method && options.retryMethods?.includes(ctx.request.method);
-
-			const includesCodes =
-				// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
-				!!ctx.response?.status && options.retryStatusCodes?.includes(ctx.response.status);
-
-			return includesCodes && includesMethod && baseRetryCondition;
-		},
+		getDelay,
+		shouldAttemptRetry,
 	};
 };

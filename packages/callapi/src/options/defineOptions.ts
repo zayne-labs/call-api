@@ -1,4 +1,4 @@
-import type { ResultModeUnion } from "@/types";
+import type { ResultModeUnion } from "@/types/common";
 import type { CallApiExtraOptionsWithRequiredURL } from "./types";
 
 const defineOptions = <

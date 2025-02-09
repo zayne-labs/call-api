@@ -1,8 +1,9 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 
-import type { CallApiExtraOptions } from "./types";
+import type { CallApiExtraOptions } from "./types/common";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/type-guards";
+import type { UnmaskType } from "./utils/type-helpers";
 import type { InferSchemaResult, Schemas } from "./validation";
 
 const slash = "/";
@@ -67,11 +68,11 @@ export const mergeUrlWithParamsAndQuery = (
 };
 
 // eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
-type Params = Record<string, boolean | number | string> | Array<boolean | number | string>;
+type Params = UnmaskType<Record<string, boolean | number | string> | Array<boolean | number | string>>;
 
-type Query = Record<string, boolean | number | string>;
+type Query = UnmaskType<Record<string, boolean | number | string>>;
 
-type InitURL = string;
+type InitURL = UnmaskType<string>;
 
 export interface UrlOptions<TSchemas extends Schemas> {
 	/**
