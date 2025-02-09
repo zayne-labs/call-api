@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 1.5.1
+
+### Patch Changes
+
+- 301715a: refactor(types)!: ♻️ 🏗️ make schema errors intuitive and easy to disable by including undefined
+
 ## 1.5.0
 
 ### Minor Changes
