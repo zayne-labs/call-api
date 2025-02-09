@@ -8,9 +8,9 @@ icon: git-compare-arrows
 
 **Lightweight:** Small bundle size (< 3.5kb). Zero dependencies. Pure ESM with CJS support via legacy subpath.
 
-**Simple:** Based on the Fetch API and mirrors its interface. Only adds useful features with sensible defaults.
+**Simple:** Based on the Fetch API and mirrors its interface. Knowing Fetch implies knowing CallApi. Only adds useful extra features with sensible defaults.
 
-**Type-safe:** Built with TypeScript. Full type support for responses and errors via schemas, validators and manual generics. Automatic type generation via OpenAPI schemas will be available soon. Even non-TypeScript users will still get proper type information.
+**Type-safe:** Built with TypeScript. Full type support for responses and errors via schemas, validators and manual generics. Even non-TypeScript users will still get proper type information and intellisense. (Automatic type generation via OpenAPI schemas will be available soon.)
 
 **Extensible:** Plugins and hooks let you add or modify features without changing the core code.
 
@@ -22,8 +22,8 @@ But major issues with axios in this day and age involve the facts that:
 
 - It's not based on the modern Fetch API, which is a key part of web development today.
 - It's overall API for some use cases is a bit verbose.
-- Lack advanced convenience features like retries, request deduplication, schema validation, content-type detection etc.
-- It's lacks type safety, which is a real DX problem.
+- Lacks advanced convenience features like retries, request deduplication, schema validation, content-type detection etc.
+- Lacks / doesn't really care about type safety, which is a real DX problem.
 - It's quite on the heavier side, meaning it might not be suitable for smaller projects under a bundle size constraint.
 
 ## vs Ofetch
