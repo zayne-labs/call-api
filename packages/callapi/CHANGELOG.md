@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 1.5.0
+
+### Minor Changes
+
+- 7c29408: feat: add support for validating every request detail via schemas
+
 ## 1.4.4
 
 ### Patch Changes
