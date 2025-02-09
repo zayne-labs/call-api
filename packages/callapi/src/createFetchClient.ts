@@ -36,6 +36,8 @@ export const createFetchClient = <
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TBaseSchemas extends Schemas = DefaultMoreOptions,
+	TBaseComputedData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
+	TBaseComputedErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
 >(
 	baseConfig?: BaseCallApiConfig<
 		TBaseData,
@@ -50,16 +52,16 @@ export const createFetchClient = <
 	const $RequestInfoCache: RequestInfoCache = new Map();
 
 	const callApi = async <
-		TData = TBaseData,
-		TErrorData = TBaseErrorData,
+		TData = TBaseComputedData,
+		TErrorData = TBaseComputedErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 		TSchemas extends Schemas = TBaseSchemas,
-		TActualData = InferSchemaResult<TSchemas["data"], TData>,
-		TActualErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
+		TComputedData = InferSchemaResult<TSchemas["data"], TData>,
+		TComputedErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
 	>(
 		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TPluginArray, TSchemas>
-	): Promise<GetCallApiResult<TActualData, TActualErrorData, TResultMode>> => {
+	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode>> => {
 		const [initURL, config = {} as never] = parameters;
 
 		const [fetchConfig, extraOptions] = splitConfig(config);

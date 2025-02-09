@@ -1,6 +1,6 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { Auth } from "./auth";
-import type { CallApiPlugin, InferPluginOptions, PluginInitContext } from "./plugins";
+import type { CallApiPlugin, InferPluginOptions, Plugins } from "./plugins";
 import type { RetryOptions } from "./retry";
 import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
@@ -244,7 +244,7 @@ export type ExtraOptions<
 	/**
 	 * An array of CallApi plugins. It allows you to extend the behavior of the library.
 	 */
-	plugins?: TPluginArray | ((context: PluginInitContext) => TPluginArray);
+	plugins?: Plugins<TPluginArray>;
 
 	/**
 	 * Query parameters to append to the URL.

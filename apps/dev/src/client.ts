@@ -42,13 +42,14 @@ const plugin2 = definePlugin(() => ({
 
 	hooks: {
 		onRequest: () => console.info("PLUGIN2-OnRequest"),
-		onSuccess: (_ctx: SuccessContext<{ foo: "ckay" }>) => {},
+		onSuccess: (ctx: SuccessContext<{ foo: string }>) => console.info({ data: ctx.data }),
 	} satisfies InterceptorsOrInterceptorArray<never, never, z.infer<typeof newOptionSchema2>>,
 
 	id: "2",
 
 	init: ({ options, request }: PluginInitContext<z.infer<typeof newOptionSchema2>>) => {
 		options.onUploadSuccess?.({ load: 0, tots: 0 });
+
 		return {
 			request: {
 				...request,
