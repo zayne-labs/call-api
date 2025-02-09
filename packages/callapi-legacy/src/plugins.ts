@@ -4,7 +4,6 @@ import type {
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
 	DefaultMoreOptions,
-	ExtraOptions,
 	Interceptors,
 	InterceptorsOrInterceptorArray,
 	WithMoreOptions,
@@ -118,6 +117,10 @@ export const hooksEnum = {
 	onSuccess: new Set(),
 } satisfies HookRegistries;
 
+export type Plugins<TPluginArray extends CallApiPlugin[]> =
+	| TPluginArray
+	| ((context: PluginInitContext) => TPluginArray);
+
 export const initializePlugins = async (context: PluginInitContext) => {
 	const { initURL, options, request } = context;
 
@@ -143,7 +146,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		addMainHooks();
 	}
 
-	const getPluginArray = (plugins: ExtraOptions["plugins"]) => {
+	const getPluginArray = (plugins: Plugins<CallApiPlugin[]> | undefined) => {
 		if (!plugins) {
 			return [];
 		}

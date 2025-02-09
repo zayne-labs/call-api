@@ -65,17 +65,29 @@ const plugin2 = definePlugin(() => ({
 }));
 
 const callApi = createFetchClient({
+	body: {},
 	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => console.info({ progress }),
 	onUploadSuccess: (progress) => console.info({ progress }),
 	plugins: [plugin1, plugin2()],
 	schemas: {
+		body: z.object({
+			foo: z.number().optional(),
+		}),
 		data: z.object({
 			foo: z.number(),
 		}),
 		errorData: z.object({
 			message: z.string(),
+		}),
+		headers: z.object({
+			"X-Environment": z.string(),
+		}),
+		initURL: z.literal("https://dummyjson.com/products/:id"),
+		method: z.enum(["GET", "POST"]),
+		query: z.object({
+			id: z.string(),
 		}),
 	},
 });

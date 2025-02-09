@@ -1,7 +1,8 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { Auth } from "./auth";
-import type { CallApiPlugin, InferPluginOptions, PluginInitContext } from "./plugins";
+import type { CallApiPlugin, InferPluginOptions, Plugins } from "./plugins";
 import type { RetryOptions } from "./retry";
+import type { UrlOptions } from "./url";
 import type { getResponseType } from "./utils/common";
 import type { fetchSpecificKeys } from "./utils/constants";
 import {
@@ -13,41 +14,48 @@ import {
 	type UnmaskType,
 	defineEnum,
 } from "./utils/type-helpers";
-import type { Schemas, Validators } from "./validation";
+import type { InferSchemaResult, Schemas, Validators } from "./validation";
+
+type Body = Record<string, unknown> | RequestInit["body"];
+
+type Method =
+	| "CONNECT"
+	| "DELETE"
+	| "GET"
+	| "HEAD"
+	| "OPTIONS"
+	| "PATCH"
+	| "POST"
+	| "PUT"
+	| "TRACE"
+	| AnyString;
+
+type Headers =
+	| Record<"Authorization", CommonAuthorizationHeaders>
+	| Record<"Content-Type", CommonContentTypes>
+	| Record<CommonRequestHeaders, string | undefined>
+	| Record<string, string | undefined>
+	| RequestInit["headers"];
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
-export interface CallApiRequestOptions extends Pick<RequestInit, FetchSpecificKeysUnion> {
+// prettier-ignore
+export interface CallApiRequestOptions<TSchemas extends Schemas = DefaultMoreOptions> extends Pick<RequestInit, FetchSpecificKeysUnion> {
 	/**
 	 * Optional body of the request, can be a object or any other supported body type.
 	 */
-	body?: Record<string, unknown> | RequestInit["body"];
+	body?: InferSchemaResult<TSchemas["body"], Body>;
 
 	/**
 	 * Headers to be used in the request.
 	 */
-	headers?:
-		| Record<"Authorization", CommonAuthorizationHeaders>
-		| Record<"Content-Type", CommonContentTypes>
-		| Record<CommonRequestHeaders, string | undefined>
-		| Record<string, string | undefined>
-		| RequestInit["headers"];
+	headers?: InferSchemaResult<TSchemas["headers"], Headers>;
 
 	/**
 	 * HTTP method for the request.
 	 * @default "GET"
 	 */
-	method?:
-		| "CONNECT"
-		| "DELETE"
-		| "GET"
-		| "HEAD"
-		| "OPTIONS"
-		| "PATCH"
-		| "POST"
-		| "PUT"
-		| "TRACE"
-		| AnyString;
+	method?: InferSchemaResult<TSchemas["method"], Method>;
 }
 
 export interface CallApiRequestOptionsForHooks extends Omit<CallApiRequestOptions, "headers"> {
@@ -127,10 +135,6 @@ type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) 
 
 export type Meta = Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
 
-// Helper type to extract plugin options
-
-// Helper type to merge all plugin options into a single type
-
 export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
@@ -142,7 +146,6 @@ export type ExtraOptions<
 	 * Authorization header value.
 	 */
 	auth?: string | Auth | null;
-
 	/**
 	 * Base URL to be prepended to all request URLs
 	 */
@@ -192,11 +195,6 @@ export type ExtraOptions<
 	readonly fullURL?: string;
 
 	/**
-	 * URL to be used in the request.
-	 */
-	readonly initURL?: string;
-
-	/**
 	 * Defines the mode in which the merged hooks are executed, can be set to "parallel" | "sequential".
 	 * - If set to "parallel", main and plugin hooks will be executed in parallel.
 	 * - If set to "sequential", the plugin hooks will be executed first, followed by the main hook.
@@ -236,20 +234,9 @@ export type ExtraOptions<
 	meta?: Meta;
 
 	/**
-	 * Params to be appended to the URL (i.e: /:id)
-	 */
-	// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
-	params?: Record<string, boolean | number | string> | Array<boolean | number | string>;
-
-	/**
 	 * An array of CallApi plugins. It allows you to extend the behavior of the library.
 	 */
-	plugins?: TPluginArray | ((context: PluginInitContext) => TPluginArray);
-
-	/**
-	 * Query parameters to append to the URL.
-	 */
-	query?: Record<string, boolean | number | string>;
+	plugins?: Plugins<TPluginArray>;
 
 	/**
 	 * Custom function to parse the response string into a object.
@@ -293,7 +280,8 @@ export type ExtraOptions<
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 } & InterceptorsOrInterceptorArray<TData, TErrorData> &
 	Partial<InferPluginOptions<TPluginArray>> &
-	RetryOptions<TErrorData>;
+	RetryOptions<TErrorData> &
+	UrlOptions<TSchemas>;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 
 export const optionsEnumToExtendFromBase = defineEnum(["plugins", "validators", "schemas"] satisfies Array<
@@ -306,15 +294,16 @@ export type CallApiExtraOptions<
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
-> = ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> & {
-	/**
-	 * Options that should extend the base options.
-	 */
-	extend?: Pick<
-		ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>,
-		(typeof optionsEnumToExtendFromBase)[number]
-	>;
-};
+> = CallApiRequestOptions<TSchemas> &
+	ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> & {
+		/**
+		 * Options that should extend the base options.
+		 */
+		extend?: Pick<
+			ExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>,
+			(typeof optionsEnumToExtendFromBase)[number]
+		>;
+	};
 
 export const optionsEnumToOmitFromBase = defineEnum(["extend", "dedupeKey"] satisfies Array<
 	keyof CallApiExtraOptions
@@ -340,33 +329,16 @@ export type CombinedCallApiExtraOptions<
 > = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> &
 	CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>;
 
-export type CallApiConfig<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
-	TSchemas extends Schemas = DefaultMoreOptions,
-> = CallApiRequestOptions &
-	// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow request options to be first due to docs
-	CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>;
-
-export type BaseCallApiConfig<
-	TBaseData = DefaultDataType,
-	TBaseErrorData = DefaultDataType,
-	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBasePluginArray extends CallApiPlugin[] = CallApiPlugin[],
-	TBaseSchemas extends Schemas = DefaultMoreOptions,
-> = CallApiRequestOptions &
-	// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow request options to be first due to docs
-	BaseCallApiExtraOptions<TBaseData, TBaseErrorData, TBaseResultMode, TBasePluginArray, TBaseSchemas>;
-
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = DefaultMoreOptions,
-> = [initURL: string, config?: CallApiConfig<TData, TErrorData, TResultMode, TPluginArray, TSchemas>];
+> = [
+	initURL: UrlOptions<TSchemas>["initURL"],
+	config?: CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas>,
+];
 
 export type RequestContext = UnmaskType<{
 	options: CombinedCallApiExtraOptions;

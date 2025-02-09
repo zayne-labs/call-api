@@ -3,7 +3,7 @@ import { HTTPError, resolveErrorResult } from "./error";
 import { type CallApiPlugin, hooksEnum, initializePlugins } from "./plugins";
 import { createRetryStrategy } from "./retry";
 import type {
-	BaseCallApiConfig,
+	BaseCallApiExtraOptions,
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
@@ -39,7 +39,7 @@ export const createFetchClient = <
 	TBaseComputedData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
 	TBaseComputedErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
 >(
-	baseConfig?: BaseCallApiConfig<
+	baseConfig?: BaseCallApiExtraOptions<
 		TBaseData,
 		TBaseErrorData,
 		TBaseResultMode,
@@ -121,7 +121,7 @@ export const createFetchClient = <
 		} satisfies CallApiRequestOptions;
 
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
-			initURL,
+			initURL: initURL as string,
 			options: defaultExtraOptions,
 			request: defaultRequestOptions,
 		});
@@ -132,7 +132,7 @@ export const createFetchClient = <
 			...resolvedOptions,
 			...resolvedHooks,
 			fullURL,
-			initURL,
+			initURL: initURL as string,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof resolvedHooks;
 
 		const newFetchController = new AbortController();

@@ -1,6 +1,9 @@
-import type { CallApiConfig, CallApiExtraOptions } from "./types";
+/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+
+import type { CallApiExtraOptions } from "./types";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/type-guards";
+import type { InferSchemaResult, Schemas } from "./validation";
 
 const slash = "/";
 const column = ":";
@@ -31,7 +34,7 @@ const mergeUrlWithParams = (url: string, params: CallApiExtraOptions["params"]) 
 
 const questionMark = "?";
 const ampersand = "&";
-const mergeUrlWithQuery = (url: string, query: CallApiConfig["query"]): string => {
+const mergeUrlWithQuery = (url: string, query: CallApiExtraOptions["query"]): string => {
 	if (!query) {
 		return url;
 	}
@@ -62,3 +65,27 @@ export const mergeUrlWithParamsAndQuery = (
 
 	return mergeUrlWithQuery(urlWithMergedParams, query);
 };
+
+// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
+type Params = Record<string, boolean | number | string> | Array<boolean | number | string>;
+
+type Query = Record<string, boolean | number | string>;
+
+type InitURL = string;
+
+export interface UrlOptions<TSchemas extends Schemas> {
+	/**
+	 * URL to be used in the request.
+	 */
+	readonly initURL?: InferSchemaResult<TSchemas["initURL"], InitURL>;
+
+	/**
+	 * Parameters to be appended to the URL (i.e: /:id)
+	 */
+	params?: InferSchemaResult<TSchemas["params"], Params>;
+
+	/**
+	 * Query parameters to append to the URL.
+	 */
+	query?: InferSchemaResult<TSchemas["query"], Query>;
+}

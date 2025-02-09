@@ -18,6 +18,11 @@ export const standardSchemaParser = async <TSchema extends StandardSchemaV1>(
 
 export interface Schemas {
 	/**
+	 *  The schema to use for validating the request body.
+	 */
+	body?: StandardSchemaV1;
+
+	/**
 	 *  The schema to use for validating the response data.
 	 */
 	data?: StandardSchemaV1;
@@ -26,6 +31,31 @@ export interface Schemas {
 	 *  The schema to use for validating the response error data.
 	 */
 	errorData?: StandardSchemaV1;
+
+	/**
+	 *  The schema to use for validating the request headers.
+	 */
+	headers?: StandardSchemaV1;
+
+	/**
+	 *  The schema to use for validating the request url.
+	 */
+	initURL?: StandardSchemaV1;
+
+	/**
+	 *  The schema to use for validating the request method.
+	 */
+	method?: StandardSchemaV1;
+
+	/**
+	 *  The schema to use for validating the request url parameter.
+	 */
+	params?: StandardSchemaV1;
+
+	/**
+	 *  The schema to use for validating the request url querys.
+	 */
+	query?: StandardSchemaV1;
 }
 
 export interface Validators<TData = unknown, TErrorData = unknown> {

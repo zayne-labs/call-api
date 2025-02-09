@@ -7,9 +7,7 @@ export type { InferSchemaResult } from "./validation";
 export { HTTPError } from "./error";
 
 export type {
-	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
-	CallApiConfig,
 	CallApiExtraOptions,
 	PossibleJavaScriptError,
 	PossibleHTTPError,

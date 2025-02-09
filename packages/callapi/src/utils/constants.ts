@@ -1,4 +1,4 @@
-import type { BaseCallApiConfig } from "../types";
+import type { BaseCallApiExtraOptions } from "../types";
 import { defineEnum } from "./type-helpers";
 
 export const fetchSpecificKeys = defineEnum([
@@ -29,7 +29,7 @@ const retryStatusCodesLookup = defineEnum({
 	504: "Gateway Timeout",
 });
 
-export const defaultRetryMethods = ["GET", "POST"] satisfies BaseCallApiConfig["retryMethods"];
+export const defaultRetryMethods = ["GET", "POST"] satisfies BaseCallApiExtraOptions["retryMethods"];
 
 // prettier-ignore
-export const defaultRetryStatusCodes = Object.keys(retryStatusCodesLookup).map(Number) as Required<BaseCallApiConfig>["retryStatusCodes"];
+export const defaultRetryStatusCodes = Object.keys(retryStatusCodesLookup).map(Number) as Required<BaseCallApiExtraOptions>["retryStatusCodes"];

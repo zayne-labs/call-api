@@ -2,7 +2,6 @@ import { getAuthHeader } from "@/auth";
 import { type Schemas, type Validators, standardSchemaParser } from "@/validation";
 import {
 	type BaseCallApiExtraOptions,
-	type CallApiConfig,
 	type CallApiExtraOptions,
 	type CallApiRequestOptions,
 	type ResultModeMap,
@@ -72,8 +71,8 @@ export const objectifyHeaders = (headers: CallApiRequestOptions["headers"]) => {
 };
 
 type ToQueryStringFn = {
-	(params: CallApiConfig["query"]): string | null;
-	(params: Required<CallApiConfig>["query"]): string;
+	(params: CallApiExtraOptions["query"]): string | null;
+	(params: Required<CallApiExtraOptions>["query"]): string;
 };
 
 export const toQueryString: ToQueryStringFn = (params) => {
@@ -89,10 +88,10 @@ export const toQueryString: ToQueryStringFn = (params) => {
 // export mergeAndResolve
 
 export const mergeAndResolveHeaders = (options: {
-	auth: CallApiConfig["auth"];
-	baseHeaders: CallApiConfig["headers"];
-	body: CallApiConfig["body"];
-	headers: CallApiConfig["headers"];
+	auth: CallApiExtraOptions["auth"];
+	baseHeaders: CallApiExtraOptions["headers"];
+	body: CallApiExtraOptions["body"];
+	headers: CallApiExtraOptions["headers"];
 }) => {
 	const { auth, baseHeaders, body, headers } = options;
 

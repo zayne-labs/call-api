@@ -4,7 +4,7 @@ import { HTTPError, resolveErrorResult } from "@/error";
 import { type CallApiPlugin, hooksEnum, initializePlugins } from "@/plugins";
 import { createRetryStrategy } from "@/retry";
 import type {
-	BaseCallApiConfig,
+	BaseCallApiExtraOptions,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
@@ -29,7 +29,7 @@ import { defaultRetryMethods, defaultRetryStatusCodes } from "@/utils/constants"
 import { createCombinedSignal, createTimeoutSignal } from "@/utils/polyfills";
 import { isFunction, isHTTPErrorInstance, isPlainObject } from "@/utils/type-guards";
 import { type InferSchemaResult, type Schemas, createExtensibleSchemasAndValidators } from "@/validation";
-import type { CallApiConfigWithRequiredURL } from "./types";
+import type { CallApiExtraOptionsWithRequiredURL } from "./types";
 
 export const createFetchClientWithOptions = <
 	TBaseData = DefaultDataType,
@@ -40,7 +40,7 @@ export const createFetchClientWithOptions = <
 	TBaseComputedData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
 	TBaseComputedErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
 >(
-	baseConfig?: BaseCallApiConfig<
+	baseConfig?: BaseCallApiExtraOptions<
 		TBaseData,
 		TBaseErrorData,
 		TBaseResultMode,
@@ -61,7 +61,7 @@ export const createFetchClientWithOptions = <
 		TComputedData = InferSchemaResult<TSchemas["data"], TData>,
 		TComputedErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
 	>(
-		config: CallApiConfigWithRequiredURL<TData, TErrorData, TResultMode, TPluginArray, TSchemas>
+		config: CallApiExtraOptionsWithRequiredURL<TData, TErrorData, TResultMode, TPluginArray, TSchemas>
 	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode>> => {
 		const { initURL, ...restOfConfig } = config;
 
@@ -122,7 +122,7 @@ export const createFetchClientWithOptions = <
 		} satisfies CallApiRequestOptions;
 
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
-			initURL,
+			initURL: initURL as string,
 			options: defaultExtraOptions,
 			request: defaultRequestOptions,
 		});
@@ -133,7 +133,7 @@ export const createFetchClientWithOptions = <
 			...resolvedOptions,
 			...resolvedHooks,
 			fullURL,
-			initURL,
+			initURL: initURL as string,
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof resolvedHooks;
 
 		const newFetchController = new AbortController();

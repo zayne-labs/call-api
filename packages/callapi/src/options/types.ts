@@ -1,13 +1,14 @@
 import type { CallApiPlugin } from "@/plugins";
-import type { CallApiConfig, DefaultDataType, ResultModeUnion } from "@/types";
+import type { CallApiExtraOptions, DefaultDataType, ResultModeUnion } from "@/types";
+import type { UrlOptions } from "@/url";
 import type { Schemas } from "@/validation";
 
-export type CallApiConfigWithRequiredURL<
+export type CallApiExtraOptionsWithRequiredURL<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TPluginArray extends CallApiPlugin[] = CallApiPlugin[],
 	TSchemas extends Schemas = Schemas,
-> = CallApiConfig<TData, TErrorData, TResultMode, TPluginArray, TSchemas> & {
-	initURL: string;
+> = CallApiExtraOptions<TData, TErrorData, TResultMode, TPluginArray, TSchemas> & {
+	initURL: UrlOptions<TSchemas>["initURL"];
 };
