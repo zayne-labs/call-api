@@ -98,7 +98,7 @@ const { data, error } = await callApi("https://api.example.com/data", {
 
 CallApi naturally supports all request body types that Fetch does, with a few additional conveniences:
 
-**Object literals:**
+**Object literals**
 
 ```ts title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
@@ -127,9 +127,9 @@ const result = await callApi("https://api.example.com/data", {
 });
 ```
 
-**URLSearchParams:**
+**Query Strings**
 
-Fetch supports [URLSearchParams](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams) as a request body out of the box. However this usually requires manual setting with `new URLSearchParams()` and `set()` or `append()`.
+Fetch supports [query strings](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams) as a request body out of the box. However this usually requires manual setting with `new URLSearchParams()` and `set()` or `append()`.
 
 CallApi provides the `toQueryString` utility that converts objects to URL-encoded strings:
 
