@@ -1,7 +1,7 @@
 {
 	"root": true,
 	"title": "Version 0",
-	"description": "0.8.0",
+	"description": "v0.8.0",
 	"icon": "tag",
 	"pages": ["index", "getting-started", "features", "advanced", "api-reference"]
 }

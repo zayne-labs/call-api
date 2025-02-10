@@ -128,27 +128,14 @@ const myPlugin = definePlugin({
 	version: "1.0.0",
 
 	hooks: {
-		onRequest: (ctx) => {
-			// Do something with context object
-		},
-		onRequestError: (ctx) => {
-			// Do something with context object
-		},
-		onResponse: (ctx) => {
-			// Do something with context object
-		},
-		onResponseError: (ctx) => {
-			// Do something with context object
-		},
 		onError: (ctx) => {
 			// Do something with context object
 		},
 		onSuccess: (ctx) => {
 			// Do something with context object
 		},
-		onRetry: (ctx) => {
-			// Do something with context object
-		},
+
+		// More hooks can be added here
 	},
 });
 
@@ -165,7 +152,7 @@ const callBackendApi = createFetchClient({
 
 ### CreateExtraOptions
 
-Sometimes your plugin needs additional configuration options beyond the standard `CallApiPlugin` interface. TypeScript automatically infers the return type of `createExtraOptions` and merges it with the callApi's options type.
+Sometimes your plugin needs additional configuration options beyond the standard `CallApiPlugin` interface. To handle this, you can use the `createExtraOptions` function to return a validation schema that defines those options.
 
 For example, let's create a plugin that tracks upload progress:
 
@@ -183,7 +170,7 @@ const uploadProgressPlugin = definePlugin({
 	description: "A plugin that tracks upload progress",
 	version: "1.0.0",
 
-	createExtraOptions: pluginOptionsSchema.parse,
+	createExtraOptions: () => pluginOptionsSchema,
 
 	init: ({ request, options }: PluginInitContext<z.infer<typeof pluginOptionsSchema>>) => {
 		const xhr = new XMLHttpRequest();

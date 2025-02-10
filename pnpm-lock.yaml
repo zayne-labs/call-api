@@ -91,8 +91,8 @@ importers:
         specifier: ^2.2.0
         version: 2.3.1(typescript@5.7.3)
       '@zayne-labs/callapi':
-        specifier: 1.5.0
-        version: 1.5.0(@standard-schema/spec@1.0.0)
+        specifier: 1.5.1
+        version: 1.5.1(@standard-schema/spec@1.0.0)
       '@zayne-labs/toolkit':
         specifier: ^0.8.34
         version: 0.8.34(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(zustand@5.0.3(@types/react@19.0.8)(react@19.0.0))
@@ -1920,8 +1920,8 @@ packages:
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
 
-  '@zayne-labs/callapi@1.5.0':
-    resolution: {integrity: sha512-42LkXF/i2ixbj9iPJ0ipaq+JkMl7zjNtCafFB80b52b3E2HqZqF6cCY88GTBhPPF/sudnXwIWjuebBxZyXaX/A==}
+  '@zayne-labs/callapi@1.5.1':
+    resolution: {integrity: sha512-dKfA0d1UsJQqdWvqWLgX1r3GveQK9RA+YC+195s9Ys+I5OhdHk26iniEOuOL4VUhAyUrmU2mMSzxp/6P5GyzZA==}
     engines: {node: '>=v18.17.0'}
     peerDependencies:
       '@standard-schema/spec': ^1.0.0
@@ -6587,7 +6587,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@zayne-labs/callapi@1.5.0(@standard-schema/spec@1.0.0)':
+  '@zayne-labs/callapi@1.5.1(@standard-schema/spec@1.0.0)':
     dependencies:
       '@standard-schema/spec': 1.0.0
 

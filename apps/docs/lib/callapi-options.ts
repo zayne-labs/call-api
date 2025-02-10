@@ -1,1 +1,6 @@
-export type { CallApiExtraOptions, CallApiPlugin, CallApiRequestOptions } from "@zayne-labs/callapi";
+export type {
+	CallApiExtraOptions,
+	CallApiPlugin,
+	CallApiRequestOptions,
+	InterceptorsOrInterceptorArray,
+} from "@zayne-labs/callapi";
