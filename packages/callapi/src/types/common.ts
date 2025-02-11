@@ -259,7 +259,7 @@ export type BaseCallApiExtraOptions<
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 > = Omit<
 	Partial<
-		ExtraOptions<
+		CallApiExtraOptions<
 			TBaseData,
 			TBaseErrorData,
 			TBaseResultMode,
