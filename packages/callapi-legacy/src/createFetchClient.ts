@@ -1,6 +1,7 @@
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
 import { type CallApiPlugin, type DefaultPlugins, hooksEnum, initializePlugins } from "./plugins";
+import { type ResponseTypeUnion, resolveResponseData, resolveSuccessResult } from "./response";
 import { createRetryStrategy } from "./retry";
 import type {
 	BaseCallApiExtraOptions,
@@ -18,9 +19,7 @@ import { mergeUrlWithParamsAndQuery } from "./url";
 import {
 	combineHooks,
 	executeHooks,
-	getResponseData,
 	mergeAndResolveHeaders,
-	resolveSuccessResult,
 	splitBaseConfig,
 	splitConfig,
 	waitUntil,
@@ -28,13 +27,18 @@ import {
 import { defaultRetryMethods, defaultRetryStatusCodes } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
 import { isFunction, isHTTPErrorInstance, isPlainObject } from "./utils/type-guards";
-import { type InferSchemaResult, type Schemas, createExtensibleSchemasAndValidators } from "./validation";
+import {
+	type CallApiSchemas,
+	type InferSchemaResult,
+	createExtensibleSchemasAndValidators,
+} from "./validation";
 
 export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBaseSchemas extends Schemas = DefaultMoreOptions,
+	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPlugins,
 	TBaseComputedData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
 	TBaseComputedErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
@@ -44,10 +48,11 @@ export const createFetchClient = <
 		TBaseErrorData,
 		TBaseResultMode,
 		TBaseSchemas,
-		TBasePluginArray
+		TBasePluginArray,
+		TBaseResponseType
 	>
 ) => {
-	const [baseFetchConfig, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
+	const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
 
 	const $RequestInfoCache: RequestInfoCache = new Map();
 
@@ -55,16 +60,24 @@ export const createFetchClient = <
 		TData = TBaseComputedData,
 		TErrorData = TBaseComputedErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
-		TSchemas extends Schemas = TBaseSchemas,
+		TResponseType extends ResponseTypeUnion = TBaseResponseType,
+		TSchemas extends CallApiSchemas = TBaseSchemas,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 		TComputedData = InferSchemaResult<TSchemas["data"], TData>,
 		TComputedErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
 	>(
-		...parameters: CallApiParameters<TData, TErrorData, TResultMode, TSchemas, TPluginArray>
-	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode>> => {
+		...parameters: CallApiParameters<
+			TData,
+			TErrorData,
+			TResultMode,
+			TSchemas,
+			TPluginArray,
+			TResponseType
+		>
+	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TBaseResponseType>> => {
 		const [initURL, config = {} as never] = parameters;
 
-		const [fetchConfig, extraOptions] = splitConfig(config);
+		const [fetchOptions, extraOptions] = splitConfig(config);
 
 		const initCombinedHooks = {} as Required<Interceptors>;
 
@@ -100,23 +113,23 @@ export const createFetchClient = <
 			...initCombinedHooks,
 		} satisfies CombinedCallApiExtraOptions;
 
-		const body = fetchConfig.body ?? baseFetchConfig.body;
+		const body = fetchOptions.body ?? baseFetchOptions.body;
 
 		// == Default Request Options
 		const defaultRequestOptions = {
 			body: isPlainObject(body) ? defaultExtraOptions.bodySerializer(body) : body,
 
-			...baseFetchConfig,
-			...fetchConfig,
+			...baseFetchOptions,
+			...fetchOptions,
 
 			headers: mergeAndResolveHeaders({
 				auth: defaultExtraOptions.auth,
-				baseHeaders: baseFetchConfig.headers,
+				baseHeaders: baseFetchOptions.headers,
 				body,
-				headers: fetchConfig.headers,
+				headers: fetchOptions.headers,
 			}),
 
-			signal: fetchConfig.signal ?? baseFetchConfig.signal,
+			signal: fetchOptions.signal ?? baseFetchOptions.signal,
 		} satisfies CallApiRequestOptions;
 
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
@@ -163,7 +176,7 @@ export const createFetchClient = <
 			// == Apply determined headers again after onRequest incase they were modified
 			request.headers = mergeAndResolveHeaders({
 				auth: options.auth,
-				baseHeaders: baseFetchConfig.headers,
+				baseHeaders: baseFetchOptions.headers,
 				body,
 				headers: request.headers,
 			});
@@ -176,7 +189,7 @@ export const createFetchClient = <
 			const { schemas, validators } = createExtensibleSchemasAndValidators(options);
 
 			if (!response.ok) {
-				const errorData = await getResponseData<TErrorData>(
+				const errorData = await resolveResponseData<TErrorData>(
 					shouldCloneResponse ? response.clone() : response,
 					options.responseType,
 					options.responseParser,
@@ -192,7 +205,7 @@ export const createFetchClient = <
 				});
 			}
 
-			const successData = await getResponseData<TData>(
+			const successData = await resolveResponseData<TData>(
 				shouldCloneResponse ? response.clone() : response,
 				options.responseType,
 				options.responseParser,

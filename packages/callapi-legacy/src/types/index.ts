@@ -1,2 +1,2 @@
 export * from "./common";
-export * from "./conditionalOptionTypes";
+export * from "./conditional-types";

@@ -6,7 +6,7 @@ import type {
 	CommonRequestHeaders,
 	UnmaskType,
 } from "@/utils/type-helpers";
-import type { InferSchemaResult, Schemas } from "@/validation";
+import type { CallApiSchemas, InferSchemaResult } from "@/validation";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { ResultModeUnion } from "./common";
 
@@ -22,9 +22,9 @@ type MakeSchemaOptionRequired<
 		? TObject
 		: Required<TObject>;
 
-type Body = UnmaskType<Record<string, unknown> | RequestInit["body"]>;
+export type Body = UnmaskType<Record<string, unknown> | RequestInit["body"]>;
 
-export type BodyOption<TSchemas extends Schemas> = MakeSchemaOptionRequired<
+export type BodyOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
 	TSchemas["body"],
 	{
 		/**
@@ -38,7 +38,7 @@ export type Method = UnmaskType<
 	"CONNECT" | "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "TRACE" | AnyString
 >;
 
-export type MethodOption<TSchemas extends Schemas> = MakeSchemaOptionRequired<
+export type MethodOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
 	TSchemas["method"],
 	{
 		/**
@@ -49,7 +49,7 @@ export type MethodOption<TSchemas extends Schemas> = MakeSchemaOptionRequired<
 	}
 >;
 
-type Headers = UnmaskType<
+export type Headers = UnmaskType<
 	| Record<"Authorization", CommonAuthorizationHeaders>
 	| Record<"Content-Type", CommonContentTypes>
 	| Record<CommonRequestHeaders, string | undefined>
@@ -57,7 +57,7 @@ type Headers = UnmaskType<
 	| RequestInit["headers"]
 >;
 
-export type HeadersOption<TSchemas extends Schemas> = MakeSchemaOptionRequired<
+export type HeadersOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
 	TSchemas["headers"],
 	{
 		/**
@@ -72,9 +72,11 @@ export interface Register {
 	// == meta: Meta
 }
 
-type GlobalMeta = Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
+export type GlobalMeta = Register extends { meta?: infer TMeta extends Record<string, unknown> }
+	? TMeta
+	: never;
 
-export type MetaOption<TSchemas extends Schemas> = {
+export type MetaOption<TSchemas extends CallApiSchemas> = {
 	/**
 	 * - An optional field you can fill with additional information,
 	 * to associate with the request, typically used for logging or tracing.

@@ -1,4 +1,5 @@
 import {
+	type CallApiSchemas,
 	type InterceptorsOrInterceptorArray,
 	type PluginInitContext,
 	type SuccessContext,
@@ -7,7 +8,7 @@ import {
 } from "@zayne-labs/callapi";
 import { z } from "zod";
 
-const newOptionSchema = z.object({
+const newOptionSchema1 = z.object({
 	onUpload: z.function().args(
 		z.object({
 			loaded: z.number(),
@@ -26,7 +27,7 @@ const newOptionSchema2 = z.object({
 });
 
 const plugin1 = definePlugin({
-	createExtraOptions: () => newOptionSchema,
+	createExtraOptions: () => newOptionSchema1,
 
 	hooks: {
 		onRequest: () => console.info("PLUGIN1-OnRequest"),
@@ -64,54 +65,41 @@ const plugin2 = definePlugin(() => ({
 	name: "plugin",
 }));
 
+const baseSchemas = {
+	// body: z.object({
+	// 	foo: z.number(),
+	// }),
+	// data: z.object({
+	// 	foo: z.number(),
+	// }),
+	initURL: z.literal("https://dummyjson.com/products/:id"),
+	method: z.enum(["GET"]),
+	// errorData: z.object({
+	// 	message: z.string(),
+	// }),
+	// headers: z.object({
+	// 	"X-Environment": z.string(),
+	// }),
+	// query: z.object({
+	// 	id: z.string(),
+	// }),
+} satisfies CallApiSchemas;
+
 const callApi = createFetchClient({
 	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => console.info({ progress }),
 	onUploadSuccess: (progress) => console.info({ progress }),
 	plugins: [plugin1, plugin2()],
-	schemas: {
-		// body: z.object({d
-		// 	foo: z.number(),
-		// }),
-		data: z.object({
-			foo: z.number(),
-		}),
-		errorData: z.object({
-			message: z.string(),
-		}),
-		// headers: z.object({
-		// 	"X-Environment": z.string(),
-		// }),
-		initURL: z.literal("https://dummyjson.com/products/:id"),
-		method: z.union([z.literal("GET"), z.literal("POST")]),
-		// query: z.object({
-		// 	id: z.string(),
-		// }),
-	},
+	responseType: "arrayBuffer",
+	// resultMode: "onlySuccess",
+	schemas: baseSchemas,
 });
-
-// const foo1 = void callApi("https://dummyjson.com/products/:id", {
-// 	method: "GET",
-// 	params: [1],
-// });
-// const foo2 = void callApi("https://dummyjson.com/products/:id", {
-// 	method: "GET",
-// 	params: [1],
-// });
-// const foo3 = void callApi("https://dummyjson.com/products/:id", {
-// 	method: "GET",
-// 	params: [1],
-// });
-// const foo4 = void callApi("https://dummyjson.com/products/:id", {
-// 	method: "GET",
-// 	params: [1],
-// });
 
 const [foo1, foo2, foo3, foo4] = await Promise.all([
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
-		params: [1],
+		params: { id: 1 },
 	}),
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
@@ -129,3 +117,20 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 ]);
 
 console.info(foo1, foo2, foo3, foo4);
+
+// const foo1 = void callApi("https://dummyjson.com/products/:id", {
+// 	method: "GET",
+// 	params: [1],
+// });
+// const foo2 = void callApi("https://dummyjson.com/products/:id", {
+// 	method: "GET",
+// 	params: [1],
+// });
+// const foo3 = void callApi("https://dummyjson.com/products/:id", {
+// 	method: "GET",
+// 	params: [1],
+// });
+// const foo4 = void callApi("https://dummyjson.com/products/:id", {
+// 	method: "GET",
+// 	params: [1],
+// });

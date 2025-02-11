@@ -1,7 +1,8 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 
+import type { Method } from "./types";
 import type { ErrorContext } from "./types/common";
-import type { AnyNumber, AnyString } from "./utils/type-helpers";
+import type { AnyNumber } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => boolean | Promise<boolean>;
 
@@ -39,7 +40,7 @@ export interface RetryOptions<TErrorData> {
 	 * HTTP methods that are allowed to retry
 	 * @default ["GET", "POST"]
 	 */
-	retryMethods?: Array<"GET" | "POST" | AnyString>;
+	retryMethods?: Method[];
 
 	/**
 	 * HTTP status codes that trigger a retry

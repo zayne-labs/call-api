@@ -1,6 +1,8 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { StandardSchemaV1 } from "@standard-schema/spec";
+import type { Body, GlobalMeta, Headers, Method } from "./types";
 import type { CombinedCallApiExtraOptions } from "./types/common";
+import type { InitURL, Params, Query } from "./url";
 
 export const standardSchemaParser = async <TSchema extends StandardSchemaV1>(
 	schema: TSchema,
@@ -16,11 +18,11 @@ export const standardSchemaParser = async <TSchema extends StandardSchemaV1>(
 	return result.value;
 };
 
-export interface Schemas {
+export interface CallApiSchemas {
 	/**
 	 *  The schema to use for validating the request body.
 	 */
-	body?: StandardSchemaV1;
+	body?: StandardSchemaV1<Body>;
 
 	/**
 	 *  The schema to use for validating the response data.
@@ -35,35 +37,35 @@ export interface Schemas {
 	/**
 	 *  The schema to use for validating the request headers.
 	 */
-	headers?: StandardSchemaV1;
+	headers?: StandardSchemaV1<Headers>;
 
 	/**
 	 *  The schema to use for validating the request url.
 	 */
-	initURL?: StandardSchemaV1;
+	initURL?: StandardSchemaV1<InitURL>;
 
 	/**
 	 *  The schema to use for validating the meta option.
 	 */
-	meta?: StandardSchemaV1;
+	meta?: StandardSchemaV1<GlobalMeta>;
 
 	/**
 	 *  The schema to use for validating the request method.
 	 */
-	method?: StandardSchemaV1;
+	method?: StandardSchemaV1<Method>;
 
 	/**
 	 *  The schema to use for validating the request url parameter.
 	 */
-	params?: StandardSchemaV1;
+	params?: StandardSchemaV1<Params>;
 
 	/**
 	 *  The schema to use for validating the request url querys.
 	 */
-	query?: StandardSchemaV1;
+	query?: StandardSchemaV1<Query>;
 }
 
-export interface Validators<TData = unknown, TErrorData = unknown> {
+export interface CallApiValidators<TData = unknown, TErrorData = unknown> {
 	/**
 	 * Custom function to validate the response data.
 	 */
@@ -81,7 +83,8 @@ export type InferSchemaResult<TSchema, TData> = TSchema extends StandardSchemaV1
 	: TData;
 
 export const createExtensibleSchemasAndValidators = (options: CombinedCallApiExtraOptions) => {
-	const schemas = options.schemas && ({ ...options.schemas, ...options.extend?.schemas } as Schemas);
+	const schemas =
+		options.schemas && ({ ...options.schemas, ...options.extend?.schemas } as CallApiSchemas);
 
 	const validators = options.validators && { ...options.validators, ...options.extend?.validators };
 

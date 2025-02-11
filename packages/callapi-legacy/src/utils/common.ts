@@ -1,10 +1,8 @@
 import { getAuthHeader } from "@/auth";
-import { type Schemas, type Validators, standardSchemaParser } from "@/validation";
 import {
 	type BaseCallApiExtraOptions,
 	type CallApiExtraOptions,
 	type CallApiRequestOptions,
-	type ResultModeMap,
 	optionsEnumToOmitFromBase,
 } from "../types/common";
 import { fetchSpecificKeys } from "./constants";
@@ -147,79 +145,8 @@ export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchIm
 	throw new Error("No fetch implementation found");
 };
 
-export const getResponseType = <TResponse>(
-	response: Response,
-	parser?: Required<CallApiExtraOptions>["responseParser"]
-) => ({
-	arrayBuffer: () => response.arrayBuffer() as Promise<TResponse>,
-	blob: () => response.blob() as Promise<TResponse>,
-	formData: () => response.formData() as Promise<TResponse>,
-	json: async () => {
-		if (parser) {
-			const text = await response.text();
-			return parser(text);
-		}
-
-		return response.json() as Promise<TResponse>;
-	},
-	stream: () => response.body,
-	text: () => response.text() as Promise<TResponse>,
-});
-
 export const executeHooks = <TInterceptor extends Awaitable<unknown>>(...interceptors: TInterceptor[]) =>
 	Promise.all(interceptors);
-
-export const getResponseData = async <TResponse>(
-	response: Response,
-	responseType: keyof ReturnType<typeof getResponseType>,
-	parser: CallApiExtraOptions["responseParser"],
-	schema?: NonNullable<Schemas>[keyof NonNullable<Schemas>],
-	validator?: NonNullable<Validators>[keyof NonNullable<Validators>]
-) => {
-	const RESPONSE_TYPE_LOOKUP = getResponseType<TResponse>(response, parser);
-
-	if (!Object.hasOwn(RESPONSE_TYPE_LOOKUP, responseType)) {
-		throw new Error(`Invalid response type: ${responseType}`);
-	}
-
-	const responseData = await RESPONSE_TYPE_LOOKUP[responseType]();
-
-	const validResponseData = validator ? validator(responseData) : responseData;
-
-	const schemaValidResponseData = schema
-		? await standardSchemaParser(schema, validResponseData)
-		: validResponseData;
-
-	return schemaValidResponseData;
-};
-
-type SuccessInfo = {
-	data: unknown;
-	response: Response;
-	resultMode: CallApiExtraOptions["resultMode"];
-};
-
-// == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
-// LINK - See https://www.zhenghao.io/posts/type-functions for more info
-export const resolveSuccessResult = <TCallApiResult>(info: SuccessInfo): TCallApiResult => {
-	const { data, response, resultMode } = info;
-
-	const apiDetails = { data, error: null, response };
-
-	if (!resultMode) {
-		return apiDetails as TCallApiResult;
-	}
-
-	const resultModeMap: ResultModeMap = {
-		all: apiDetails,
-		onlyError: apiDetails.error,
-		onlyResponse: apiDetails.response,
-		onlySuccess: apiDetails.data,
-		onlySuccessWithException: apiDetails.data,
-	};
-
-	return resultModeMap[resultMode] as TCallApiResult;
-};
 
 const PromiseWithResolvers = () => {
 	let reject!: (reason?: unknown) => void;

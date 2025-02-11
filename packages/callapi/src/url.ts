@@ -4,7 +4,7 @@ import type { CallApiExtraOptions } from "./types/common";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/type-guards";
 import type { UnmaskType } from "./utils/type-helpers";
-import type { InferSchemaResult, Schemas } from "./validation";
+import type { CallApiSchemas, InferSchemaResult } from "./validation";
 
 const slash = "/";
 const column = ":";
@@ -67,14 +67,16 @@ export const mergeUrlWithParamsAndQuery = (
 	return mergeUrlWithQuery(urlWithMergedParams, query);
 };
 
-// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
-type Params = UnmaskType<Record<string, boolean | number | string> | Array<boolean | number | string>>;
+export type Params = UnmaskType<
+	// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
+	Record<string, boolean | number | string> | Array<boolean | number | string>
+>;
 
-type Query = UnmaskType<Record<string, boolean | number | string>>;
+export type Query = UnmaskType<Record<string, boolean | number | string>>;
 
-type InitURL = UnmaskType<string>;
+export type InitURL = UnmaskType<string>;
 
-export interface UrlOptions<TSchemas extends Schemas> {
+export interface UrlOptions<TSchemas extends CallApiSchemas> {
 	/**
 	 * URL to be used in the request.
 	 */

@@ -15,25 +15,15 @@ import { definePlugin, createFetchClient } from "@zayne-labs/callapi";
 const envPlugin = definePlugin({
 	id: "env-plugin",
 	name: "Environment Plugin",
-	description: "A plugin that adds environment-specific headers to requests",
+	description: "Adds environment-specific headers to requests",
 	version: "1.0.0",
 
 	init: ({ request }) => {
-		const env = process.env.NODE_ENV ?? "development";
-
-		const clientInfo = {
-			platform: typeof window !== "undefined" ? "browser" : "node",
-			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-		};
+		const env = process.env.NODE_ENV || "development";
 
 		const updatedRequest = {
 			...request,
-			headers: {
-				...request.headers,
-				"X-Environment": env,
-				"X-Client-Platform": clientInfo.platform,
-				"X-Client-Timezone": clientInfo.timezone,
-			},
+			headers: { ...request.headers, "X-Environment": env },
 		};
 
 		return {
@@ -61,21 +51,14 @@ const envPlugin = {
 
 	init: ({ request }) => {
 		const env = process.env.NODE_ENV || "development";
-		const clientInfo = {
-			platform: typeof window !== "undefined" ? "browser" : "node",
-			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+
+		const updatedRequest = {
+			...request,
+			headers: { ...request.headers, "X-Environment": env },
 		};
 
 		return {
-			request: {
-				...request,
-				headers: {
-					...request.headers,
-					"X-Environment": env,
-					"X-Client-Platform": clientInfo.platform,
-					"X-Client-Timezone": clientInfo.timezone,
-				},
-			},
+			request: updatedRequest,
 		};
 	},
 } satisfies CallApiPlugin;
@@ -85,7 +68,10 @@ const envPlugin = {
 
 The init function is called before the request is made and any of CallApi's internal functions are called. It takes the url, options, and request as arguments and is expected to return the modified url, options and request if necessary.
 
-```ts title="plugins.ts"
+```ts twoslash title="plugins.ts"
+import { definePlugin } from "@zayne-labs/callapi";
+
+// ---cut---
 const envPlugin = definePlugin({
 	id: "env-plugin",
 	name: "Environment Plugin",
@@ -260,13 +246,14 @@ const metricsPlugin = definePlugin({
 	name: "Metrics Plugin",
 	description: "Tracks API response times and success rates",
 
-	init: ({ initURL }) => {
+	init: ({ initURL, options }) => {
 		console.info(`Starting request to ${initURL}`);
 
 		const startTime = performance.now();
 
 		return {
 			options: {
+				...options,
 				meta: { startTime },
 			},
 		};
@@ -274,12 +261,16 @@ const metricsPlugin = definePlugin({
 
 	hooks: {
 		onSuccess: ({ options }) => {
-			const duration = performance.now() - (options.meta?.startTime ?? 0);
+			const startTime = options.meta?.startTime ?? 0;
+			const duration = performance.now() - startTime;
+
 			console.info(`Request completed in ${duration}ms`);
 		},
 
 		onError: ({ error, options }) => {
-			const duration = performance.now() - (options.meta?.startTime ?? 0);
+			const startTime = options.meta?.startTime ?? 0;
+			const duration = performance.now() - startTime;
+
 			console.error(`Request failed after ${duration}ms:`, error);
 		},
 	},

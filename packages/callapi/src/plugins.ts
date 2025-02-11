@@ -126,6 +126,14 @@ export type Plugins<TPluginArray extends CallApiPlugin[]> =
 	| TPluginArray
 	| ((context: PluginInitContext) => TPluginArray);
 
+const getPluginArray = (plugins: Plugins<CallApiPlugin[]> | undefined, context: PluginInitContext) => {
+	if (!plugins) {
+		return [];
+	}
+
+	return isFunction(plugins) ? plugins(context) : plugins;
+};
+
 export const initializePlugins = async (context: PluginInitContext) => {
 	const { initURL, options, request } = context;
 
@@ -151,18 +159,10 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		addMainHooks();
 	}
 
-	const getPluginArray = (plugins: Plugins<CallApiPlugin[]> | undefined) => {
-		if (!plugins) {
-			return [];
-		}
-
-		return isFunction(plugins) ? plugins({ initURL, options, request }) : plugins;
-	};
-
 	const resolvedPlugins = [
-		...getPluginArray(options.plugins),
-		...getPluginArray(options.extend?.plugins),
-	] as CallApiPlugin[];
+		...getPluginArray(options.plugins, context),
+		...getPluginArray(options.extend?.plugins, context),
+	];
 
 	let resolvedUrl = initURL;
 	let resolvedOptions = options;
