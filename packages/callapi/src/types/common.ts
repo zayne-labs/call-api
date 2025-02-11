@@ -192,7 +192,7 @@ export type ExtraOptions<
 	 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
 	 * @default "all"
 	 */
-	resultMode?: TErrorData extends false ? "onlySuccessWithException" : TResultMode | undefined;
+	resultMode?: TResultMode;
 
 	/**
 	 * Type-safe schemas for the response validation.

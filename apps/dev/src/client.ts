@@ -91,8 +91,8 @@ const callApi = createFetchClient({
 	onUpload: (progress) => console.info({ progress }),
 	onUploadSuccess: (progress) => console.info({ progress }),
 	plugins: [plugin1, plugin2()],
-	responseType: "arrayBuffer",
-	// resultMode: "onlySuccess",
+	responseType: "blob",
+	resultMode: "onlySuccess",
 	schemas: baseSchemas,
 });
 
