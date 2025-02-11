@@ -1,5 +1,11 @@
 # @zayne-labs/callapi-legacy
 
+## 1.6.0
+
+### Minor Changes
+
+- d378e41: feat: add generic argument support and inference for response type
+
 ## 1.5.1
 
 ### Patch Changes
