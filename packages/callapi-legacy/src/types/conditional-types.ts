@@ -104,19 +104,5 @@ export type MetaOption<TSchemas extends CallApiSchemas> = {
 };
 
 export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> = TErrorData extends false
-	? {
-			/**
-			 * Mode of the result, can influence how results are handled or returned.
-			 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
-			 * @default "all"
-			 */
-			resultMode: "onlySuccessWithException";
-		}
-	: {
-			/**
-			 * Mode of the result, can influence how results are handled or returned.
-			 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
-			 * @default "all"
-			 */
-			resultMode?: TResultMode;
-		};
+	? { resultMode: "onlySuccessWithException" }
+	: { resultMode?: TResultMode };
