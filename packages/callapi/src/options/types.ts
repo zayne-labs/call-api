@@ -8,9 +8,9 @@ export type CallApiExtraOptionsWithRequiredURL<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TSchemas extends CallApiSchemas = CallApiSchemas,
 	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
-	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-> = CallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType> & {
+> = CallApiExtraOptions<TData, TErrorData, TResultMode, TResponseType, TSchemas, TPluginArray> & {
 	initURL: UrlOptions<TSchemas>["initURL"];
 };

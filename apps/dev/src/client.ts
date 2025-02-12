@@ -86,10 +86,11 @@ const baseSchemas = {
 } satisfies CallApiSchemas;
 
 const callApi = createFetchClient({
+	baseURL: "https://dummyjson.com",
 	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => console.info({ progress }),
-	onUploadSuccess: (progress) => console.info({ progress }),
+	// onUploadSuccess: (progress) => console.info({ progress }),
 	plugins: [plugin1, plugin2()],
 	schemas: baseSchemas,
 });

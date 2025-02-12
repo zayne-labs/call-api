@@ -48,9 +48,9 @@ export const createFetchClientWithOptions = <
 		TBaseData,
 		TBaseErrorData,
 		TBaseResultMode,
+		TBaseResponseType,
 		TBaseSchemas,
-		TBasePluginArray,
-		TBaseResponseType
+		TBasePluginArray
 	>
 ) => {
 	const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
@@ -71,9 +71,9 @@ export const createFetchClientWithOptions = <
 			TData,
 			TErrorData,
 			TResultMode,
+			TResponseType,
 			TSchemas,
-			TPluginArray,
-			TResponseType
+			TPluginArray
 		>
 	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TBaseResponseType>> => {
 		const { initURL, ...restOfConfig } = config;

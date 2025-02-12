@@ -101,9 +101,9 @@ export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
-	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 > = {
 	/**
 	 * Authorization header value.
@@ -232,16 +232,16 @@ export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
-	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 > = CallApiRequestOptions<TSchemas> &
-	ExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType> & {
+	ExtraOptions<TData, TErrorData, TResultMode, TResponseType, TSchemas, TPluginArray> & {
 		/**
 		 * Options that should extend the base options.
 		 */
 		extend?: Pick<
-			ExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType>,
+			ExtraOptions<TData, TErrorData, TResultMode, TResponseType, TSchemas, TPluginArray>,
 			(typeof optionsEnumToExtendFromBase)[number]
 		>;
 	};
@@ -254,43 +254,35 @@ export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPlugins,
-	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 > = Omit<
 	Partial<
 		CallApiExtraOptions<
 			TBaseData,
 			TBaseErrorData,
 			TBaseResultMode,
+			TBaseResponseType,
 			TBaseSchemas,
-			TBasePluginArray,
-			TBaseResponseType
+			TBasePluginArray
 		>
 	>,
 	(typeof optionsEnumToOmitFromBase)[number]
 >;
 
-export type CombinedCallApiExtraOptions<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
-	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType> &
-	CallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType>;
+export type CombinedCallApiExtraOptions = BaseCallApiExtraOptions & CallApiExtraOptions;
 
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
-	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 > = [
 	initURL: UrlOptions<TSchemas>["initURL"],
-	config?: CallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType>,
+	config?: CallApiExtraOptions<TData, TErrorData, TResultMode, TResponseType, TSchemas, TPluginArray>,
 ];
 
 export type RequestContext = UnmaskType<{
