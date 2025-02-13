@@ -105,4 +105,6 @@ export type MetaOption<TSchemas extends CallApiSchemas> = {
 
 export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> = TErrorData extends false
 	? { resultMode: "onlySuccessWithException" }
-	: { resultMode?: TResultMode };
+	: undefined extends TResultMode
+		? { resultMode?: TResultMode }
+		: { resultMode: TResultMode };
