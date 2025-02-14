@@ -1,4 +1,4 @@
-import { source } from "@/app/source";
+import { source } from "@/lib/source";
 import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui";
 import { AutoTypeTable } from "fumadocs-typescript/ui";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";

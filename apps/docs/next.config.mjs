@@ -9,6 +9,9 @@ const config = {
 	devIndicators: {
 		appIsrStatus: false,
 	},
+	eslint: {
+		ignoreDuringBuilds: true,
+	},
 	experimental: {
 		reactOwnerStack: true,
 	},

@@ -16,8 +16,8 @@ export default function HomePage() {
 				<h1 className="mb-4 text-center text-5xl font-bold">CallApi</h1>
 
 				<p className="mx-auto max-w-2xl text-center text-fd-muted-foreground">
-					A minimal Fetch API wrapper with dozens of convenience features. Built for developers who
-					want a lightweight, but convenient interface for making HTTP requests.
+					A lightweight, type-safe Fetch API wrapper with dozens of convenience features. Built for
+					developers who want a lightweight, but convenient interface for making HTTP requests.
 				</p>
 
 				<div className="flex w-full items-center justify-center gap-4 py-4">

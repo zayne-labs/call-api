@@ -1,35 +1,34 @@
 import { baseUrl } from "@/lib/metadata";
+import { source } from "@/lib/source";
 import type { MetadataRoute } from "next";
-import { source } from "./source";
+
+export const revalidate = false;
+
+const getURL = (path: string): string => new URL(path, baseUrl).toString();
 
 export default function sitemap(): MetadataRoute.Sitemap {
-	const siteUrl = baseUrl.toString();
+	const pageConfigs = source.getPages().map((page) => {
+		const { lastModified } = page.data;
 
-	// Get all doc pages
-	const pages = source.getPages();
+		return {
+			changeFrequency: "weekly",
+			lastModified: lastModified ? new Date(lastModified) : undefined,
+			priority: 0.5,
+			url: getURL(page.url),
+		} as MetadataRoute.Sitemap[number];
+	});
 
-	const docPages = pages.map((page) => ({
-		changeFrequency: "weekly" as const,
-		lastModified: new Date(),
-		priority: 0.7,
-		url: `${siteUrl}/docs/${page.slugs.join("/")}`,
-	}));
-
-	// Base pages with higher priority
-	const basePages = [
+	return [
 		{
-			changeFrequency: "monthly" as const,
-			lastModified: new Date(),
+			changeFrequency: "monthly",
 			priority: 1,
-			url: siteUrl,
+			url: getURL("/"),
 		},
 		{
-			changeFrequency: "weekly" as const,
-			lastModified: new Date(),
+			changeFrequency: "monthly",
 			priority: 0.8,
-			url: `${siteUrl}/docs`,
+			url: getURL("/docs"),
 		},
+		...pageConfigs,
 	];
-
-	return [...basePages, ...docPages];
 }

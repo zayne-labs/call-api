@@ -1,11 +1,11 @@
 import { GitHubIcon } from "@/components/icons";
+import { source } from "@/lib/source";
 import { assertDefined } from "@zayne-labs/toolkit/type-helpers";
 import type { DocsLayoutProps, LinkItemType } from "fumadocs-ui/layouts/docs";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
 import Link from "next/link";
 import Logo from "public/logo.png";
-import { source } from "./source";
 
 /**
  * Shared layout configurations
