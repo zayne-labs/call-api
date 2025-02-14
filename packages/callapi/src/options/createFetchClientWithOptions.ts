@@ -75,7 +75,7 @@ export const createFetchClientWithOptions = <
 			TSchemas,
 			TPluginArray
 		>
-	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TBaseResponseType>> => {
+	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TResponseType>> => {
 		const { initURL, ...restOfConfig } = config;
 
 		const [fetchOptions, extraOptions] = splitConfig(restOfConfig);
