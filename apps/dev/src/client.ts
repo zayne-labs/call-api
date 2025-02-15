@@ -43,7 +43,7 @@ const plugin2 = definePlugin(() => ({
 
 	hooks: {
 		onRequest: () => console.info("PLUGIN2-OnRequest"),
-		onSuccess: (ctx: SuccessContext<{ foo: string }>) => console.info({ data: ctx.data }),
+		onSuccess: (_ctx: SuccessContext<{ foo: string }>) => console.info("PLUGIN2-OnSuccess"),
 	} satisfies InterceptorsOrInterceptorArray<never, never, z.infer<typeof newOptionSchema2>>,
 
 	id: "2",
@@ -72,7 +72,7 @@ const baseSchemas = {
 	// data: z.object({
 	// 	foo: z.number(),
 	// }),
-	initURL: z.literal("https://dummyjson.com/products/:id"),
+	initURL: z.literal("/products/:id"),
 	method: z.enum(["GET"]),
 	// errorData: z.object({
 	// 	message: z.string(),
@@ -87,7 +87,6 @@ const baseSchemas = {
 
 const callApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
-	dedupeStrategy: "cancel",
 	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => console.info({ progress }),
 	onUploadSuccess: (progress) => console.info({ progress }),
@@ -96,41 +95,41 @@ const callApi = createFetchClient({
 });
 
 const [foo1, foo2, foo3, foo4] = await Promise.all([
-	callApi("https://dummyjson.com/products/:id", {
-		method: "GET",
-		params: { id: 1 },
-		responseType: "arrayBuffer",
-	}),
-	callApi("https://dummyjson.com/products/:id", {
+	callApi("/products/:id", {
 		method: "GET",
 		params: [1],
 	}),
-	callApi("https://dummyjson.com/products/:id", {
+	callApi("/products/:id", {
 		method: "GET",
 		params: [1],
 	}),
-	callApi("https://dummyjson.com/products/:id", {
+	callApi("/products/:id", {
+		method: "GET",
+		params: [1],
+	}),
+	callApi("/products/:id", {
 		method: "GET",
 		onRequest: () => console.info("OnRequest"),
 		params: [1320],
 	}),
 ]);
 
-console.info(foo1, foo2, foo3, foo4);
+// const foo1 = void callApi("/products/:id", {
+// 	method: "GET",
+// 	params: [1],
+// });
+// const foo2 = void callApi("/products/:id", {
+// 	method: "GET",
+// 	params: [1],
+// });
+// const foo3 = void callApi("/products/:id", {
+// 	method: "GET",
+// 	params: [1],
+// });
+// const foo4 = void callApi("/products/:id", {
+// 	method: "GET",
+// 	onRequest: () => console.info("OnRequest"),
+// 	params: [1320],
+// });
 
-// const foo1 = void callApi("https://dummyjson.com/products/:id", {
-// 	method: "GET",
-// 	params: [1],
-// });
-// const foo2 = void callApi("https://dummyjson.com/products/:id", {
-// 	method: "GET",
-// 	params: [1],
-// });
-// const foo3 = void callApi("https://dummyjson.com/products/:id", {
-// 	method: "GET",
-// 	params: [1],
-// });
-// const foo4 = void callApi("https://dummyjson.com/products/:id", {
-// 	method: "GET",
-// 	params: [1],
-// });
+console.info(foo1, foo2, foo3, foo4);

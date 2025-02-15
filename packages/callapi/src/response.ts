@@ -1,4 +1,4 @@
-import type { CallApiExtraOptions, ResultModeMap } from "./types";
+import type { CallApiExtraOptions, CallApiResultSuccessVariant, ResultModeMap } from "./types";
 import type { Awaitable } from "./utils/type-helpers";
 import { type CallApiSchemas, type CallApiValidators, standardSchemaParser } from "./validation";
 
@@ -73,19 +73,21 @@ type SuccessInfo = {
 export const resolveSuccessResult = <TCallApiResult>(info: SuccessInfo): TCallApiResult => {
 	const { data, response, resultMode } = info;
 
-	const apiDetails = { data, error: null, response };
+	const apiDetails = { data, error: null, response } satisfies CallApiResultSuccessVariant<unknown>;
 
 	if (!resultMode) {
 		return apiDetails as TCallApiResult;
 	}
 
-	const resultModeMap: ResultModeMap = {
+	const resultModeMap = {
 		all: apiDetails,
+		allWithException: apiDetails,
 		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
+		onlyResponseWithException: apiDetails.response,
 		onlySuccess: apiDetails.data,
 		onlySuccessWithException: apiDetails.data,
-	};
+	} satisfies ResultModeMap;
 
 	return resultModeMap[resultMode] as TCallApiResult;
 };

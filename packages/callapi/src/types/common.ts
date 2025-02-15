@@ -1,6 +1,6 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { Auth } from "../auth";
-import type { CallApiPlugin, DefaultPlugins, InferPluginOptions, Plugins } from "../plugins";
+import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
 import type { GetResponseType, ResponseTypeUnion } from "../response";
 import type { RetryOptions } from "../retry";
 import type { UrlOptions } from "../url";
@@ -14,6 +14,12 @@ import type {
 	MethodOption,
 	ResultModeOption,
 } from "./conditional-types";
+import type {
+	DefaultDataType,
+	DefaultMoreOptions,
+	DefaultPluginArray,
+	DefaultThrowOnError,
+} from "./default-types";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
@@ -29,10 +35,6 @@ export type CallApiRequestOptionsForHooks<TSchemas extends CallApiSchemas = Defa
 > & {
 	headers?: Record<string, string | undefined>;
 };
-
-export type DefaultDataType = unknown;
-
-export type DefaultMoreOptions = NonNullable<unknown>;
 
 export type WithMoreOptions<TMoreOptions = DefaultMoreOptions> = {
 	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
@@ -101,9 +103,10 @@ export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 > = {
 	/**
 	 * Authorization header value.
@@ -204,7 +207,7 @@ export type ExtraOptions<
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
 	 */
-	throwOnError?: boolean | ((context: ErrorContext<TErrorData>) => boolean);
+	throwOnError?: TThrowOnError | ((context: ErrorContext<TErrorData>) => TThrowOnError);
 
 	/**
 	 * Request timeout in milliseconds
@@ -232,16 +235,25 @@ export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 > = CallApiRequestOptions<TSchemas> &
-	ExtraOptions<TData, TErrorData, TResultMode, TResponseType, TSchemas, TPluginArray> & {
+	ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TSchemas, TPluginArray> & {
 		/**
 		 * Options that should extend the base options.
 		 */
 		extend?: Pick<
-			ExtraOptions<TData, TErrorData, TResultMode, TResponseType, TSchemas, TPluginArray>,
+			ExtraOptions<
+				TData,
+				TErrorData,
+				TResultMode,
+				TThrowOnError,
+				TResponseType,
+				TSchemas,
+				TPluginArray
+			>,
 			(typeof optionsEnumToExtendFromBase)[number]
 		>;
 	};
@@ -254,15 +266,17 @@ export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TBasePluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 > = Omit<
 	Partial<
 		CallApiExtraOptions<
 			TBaseData,
 			TBaseErrorData,
 			TBaseResultMode,
+			TBaseThrowOnError,
 			TBaseResponseType,
 			TBaseSchemas,
 			TBasePluginArray
@@ -277,12 +291,21 @@ export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 > = [
 	initURL: UrlOptions<TSchemas>["initURL"],
-	config?: CallApiExtraOptions<TData, TErrorData, TResultMode, TResponseType, TSchemas, TPluginArray>,
+	config?: CallApiExtraOptions<
+		TData,
+		TErrorData,
+		TResultMode,
+		TThrowOnError,
+		TResponseType,
+		TSchemas,
+		TPluginArray
+	>,
 ];
 
 export type RequestContext = UnmaskType<{
@@ -391,6 +414,8 @@ export type ResultModeMap<
 	/* eslint-disable perfectionist/sort-union-types -- I need the first one to be first */
 	all: CallApiResultSuccessVariant<TComputedData> | CallApiResultErrorVariant<TComputedErrorData>;
 
+	allWithException: CallApiResultSuccessVariant<TComputedData>;
+
 	onlyError:
 		| CallApiResultSuccessVariant<TComputedData>["error"]
 		| CallApiResultErrorVariant<TComputedErrorData>["error"];
@@ -398,6 +423,8 @@ export type ResultModeMap<
 	onlyResponse:
 		| CallApiResultErrorVariant<TComputedErrorData>["response"]
 		| CallApiResultSuccessVariant<TComputedData>["response"];
+
+	onlyResponseWithException: CallApiResultSuccessVariant<TComputedErrorData>["response"];
 
 	onlySuccess:
 		| CallApiResultErrorVariant<TComputedErrorData>["data"]
@@ -413,6 +440,7 @@ export type GetCallApiResult<
 	TData,
 	TErrorData,
 	TResultMode extends ResultModeUnion,
+	TThrowOnError extends boolean,
 	TResponseType extends ResponseTypeUnion,
 	TComputedMap extends ResultModeMap<TData, TErrorData, TResponseType> = ResultModeMap<
 		TData,
@@ -420,10 +448,12 @@ export type GetCallApiResult<
 		TResponseType
 	>,
 > = TErrorData extends false
-	? TComputedMap["onlySuccessWithException"]
-	: // If TResultMode is the entire ResultModeMap with undefined, we return the "all" variant
-		ResultModeUnion | undefined extends TResultMode
-		? TComputedMap["all"]
-		: TResultMode extends NonNullable<ResultModeUnion>
-			? TComputedMap[TResultMode]
-			: never;
+	? TComputedMap["allWithException"]
+	: TThrowOnError extends true
+		? TComputedMap["allWithException"]
+		: // If TResultMode is the entire ResultModeMap with undefined, we return the "all" variant
+			ResultModeUnion | undefined extends TResultMode
+			? TComputedMap["all"]
+			: TResultMode extends NonNullable<ResultModeUnion>
+				? TComputedMap[TResultMode]
+				: never;

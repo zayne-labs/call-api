@@ -27,7 +27,7 @@ export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 		response: null,
 	};
 
-	if (isHTTPErrorInstance(error)) {
+	if (isHTTPErrorInstance<never>(error)) {
 		const { errorData, message = defaultErrorMessage, name, response } = error;
 
 		errorVariantDetails = {
@@ -41,13 +41,15 @@ export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 		};
 	}
 
-	const resultModeMap: ResultModeMap = {
+	const resultModeMap = {
 		all: errorVariantDetails,
+		allWithException: errorVariantDetails as never,
 		onlyError: errorVariantDetails.error,
 		onlyResponse: errorVariantDetails.response,
+		onlyResponseWithException: errorVariantDetails.response as never,
 		onlySuccess: errorVariantDetails.data,
 		onlySuccessWithException: errorVariantDetails.data,
-	};
+	} satisfies ResultModeMap;
 
 	const getErrorResult = (customInfo?: Pick<ErrorInfo, "message">) => {
 		const errorResult = resultModeMap[resultMode ?? "all"] as TCallApiResult;
@@ -70,6 +72,7 @@ type ErrorOptions = {
 
 export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
 	errorData: ErrorDetails<TErrorResponse>["errorData"];
+
 	isHTTPError = true;
 
 	override name = "HTTPError" as const;

@@ -4,11 +4,11 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
-	DefaultMoreOptions,
 	Interceptors,
 	InterceptorsOrInterceptorArray,
 	WithMoreOptions,
 } from "./types/common";
+import type { DefaultMoreOptions } from "./types/default-types";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 import type { InferSchemaResult } from "./validation";
@@ -19,7 +19,6 @@ type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => 
 	? TParam
 	: never;
 
-export type DefaultPlugins = CallApiPlugin[];
 
 type InferSchema<TResult> = TResult extends StandardSchemaV1
 	? InferSchemaResult<TResult, NonNullable<unknown>>

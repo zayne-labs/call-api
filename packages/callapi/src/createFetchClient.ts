@@ -1,6 +1,6 @@
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
-import { type CallApiPlugin, type DefaultPlugins, hooksEnum, initializePlugins } from "./plugins";
+import { type CallApiPlugin,  hooksEnum, initializePlugins } from "./plugins";
 import { type ResponseTypeUnion, resolveResponseData, resolveSuccessResult } from "./response";
 import { createRetryStrategy } from "./retry";
 import type {
@@ -9,12 +9,11 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
-	DefaultDataType,
-	DefaultMoreOptions,
 	GetCallApiResult,
 	Interceptors,
 	ResultModeUnion,
 } from "./types/common";
+import type { DefaultDataType, DefaultMoreOptions, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
 import { mergeUrlWithParamsAndQuery } from "./url";
 import {
 	combineHooks,
@@ -37,9 +36,10 @@ export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TBasePluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseComputedData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
 	TBaseComputedErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
 >(
@@ -47,6 +47,7 @@ export const createFetchClient = <
 		TBaseData,
 		TBaseErrorData,
 		TBaseResultMode,
+		TBaseThrowOnError,
 		TBaseResponseType,
 		TBaseSchemas,
 		TBasePluginArray
@@ -60,6 +61,7 @@ export const createFetchClient = <
 		TData = TBaseComputedData,
 		TErrorData = TBaseComputedErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
+		TThrowOnError extends boolean = TBaseThrowOnError,
 		TResponseType extends ResponseTypeUnion = TBaseResponseType,
 		TSchemas extends CallApiSchemas = TBaseSchemas,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
@@ -70,11 +72,14 @@ export const createFetchClient = <
 			TData,
 			TErrorData,
 			TResultMode,
+			TThrowOnError,
 			TResponseType,
 			TSchemas,
 			TPluginArray
 		>
-	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TResponseType>> => {
+	): Promise<
+		GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TThrowOnError, TResponseType>
+	> => {
 		const [initURL, config = {} as never] = parameters;
 
 		const [fetchOptions, extraOptions] = splitConfig(config);
