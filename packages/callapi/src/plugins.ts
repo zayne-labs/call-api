@@ -19,7 +19,6 @@ type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => 
 	? TParam
 	: never;
 
-
 type InferSchema<TResult> = TResult extends StandardSchemaV1
 	? InferSchemaResult<TResult, NonNullable<unknown>>
 	: TResult;

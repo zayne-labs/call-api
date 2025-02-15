@@ -1,6 +1,6 @@
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
-import { type CallApiPlugin,  hooksEnum, initializePlugins } from "./plugins";
+import { type CallApiPlugin, hooksEnum, initializePlugins } from "./plugins";
 import { type ResponseTypeUnion, resolveResponseData, resolveSuccessResult } from "./response";
 import { createRetryStrategy } from "./retry";
 import type {
@@ -13,7 +13,12 @@ import type {
 	Interceptors,
 	ResultModeUnion,
 } from "./types/common";
-import type { DefaultDataType, DefaultMoreOptions, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
+import type {
+	DefaultDataType,
+	DefaultMoreOptions,
+	DefaultPluginArray,
+	DefaultThrowOnError,
+} from "./types/default-types";
 import { mergeUrlWithParamsAndQuery } from "./url";
 import {
 	combineHooks,
