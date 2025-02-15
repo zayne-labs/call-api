@@ -99,6 +99,7 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
 		params: { id: 1 },
+		responseType: "arrayBuffer",
 	}),
 	callApi("https://dummyjson.com/products/:id", {
 		method: "GET",
