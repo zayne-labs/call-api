@@ -447,13 +447,12 @@ export type GetCallApiResult<
 		TErrorData,
 		TResponseType
 	>,
-> = TErrorData extends false
-	? TComputedMap["allWithException"]
-	: TThrowOnError extends true
-		? TComputedMap["allWithException"]
-		: // If TResultMode is the entire ResultModeMap with undefined, we return the "all" variant
-			ResultModeUnion | undefined extends TResultMode
-			? TComputedMap["all"]
-			: TResultMode extends NonNullable<ResultModeUnion>
-				? TComputedMap[TResultMode]
-				: never;
+> = TErrorData extends false | undefined
+	? TComputedMap["onlySuccessWithException"]
+	: ResultModeUnion | undefined extends TResultMode
+		? TThrowOnError extends true
+			? TComputedMap["allWithException"]
+			: TComputedMap["all"]
+		: TResultMode extends NonNullable<ResultModeUnion>
+			? TComputedMap[TResultMode]
+			: never;

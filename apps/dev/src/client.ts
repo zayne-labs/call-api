@@ -69,9 +69,9 @@ const baseSchemas = {
 	// body: z.object({
 	// 	foo: z.number(),
 	// }),
-	// data: z.object({
-	// 	foo: z.number(),
-	// }),
+	data: z.object({
+		foo: z.number(),
+	}),
 	initURL: z.literal("/products/:id"),
 	method: z.enum(["GET"]),
 	// errorData: z.object({
@@ -95,9 +95,11 @@ const callApi = createFetchClient({
 });
 
 const [foo1, foo2, foo3, foo4] = await Promise.all([
-	callApi("/products/:id", {
+	callApi<"", false | undefined>("/products/:id", {
 		method: "GET",
 		params: [1],
+		// resultMode: "onlySuccess",
+		throwOnError: true,
 	}),
 	callApi("/products/:id", {
 		method: "GET",
