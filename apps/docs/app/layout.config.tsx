@@ -1,10 +1,8 @@
-import { GitHubIcon } from "@/components/icons";
 import { source } from "@/lib/source";
 import { assertDefined } from "@zayne-labs/toolkit/type-helpers";
 import type { DocsLayoutProps, LinkItemType } from "fumadocs-ui/layouts/docs";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
-import Link from "next/link";
 import Logo from "public/logo.png";
 
 /**
@@ -64,17 +62,7 @@ export const docsOptions: DocsLayoutProps = {
 
 	sidebar: {
 		collapsible: false,
-		// defaultOpenLevel: 0,
-
-		footer: (
-			<Link
-				href="https://github.com/zayne-labs/callapi"
-				target="_blank"
-				className="absolute bottom-[calc(12px_+_((29.6px-24px)/2))] right-4 max-md:hidden"
-			>
-				<GitHubIcon width={24} height={24} />
-			</Link>
-		),
+		defaultOpenLevel: 0,
 
 		tabs: {
 			transform: (option, node) => {
@@ -88,8 +76,8 @@ export const docsOptions: DocsLayoutProps = {
 					...option,
 					icon: (
 						<div
-							className="rounded-md border bg-gradient-to-t from-fd-background/80 p-1
-								text-fd-primary shadow-md [&_svg]:size-5"
+							className="from-fd-background/80 text-fd-primary rounded-md border bg-gradient-to-t
+								p-1 shadow-md [&_svg]:size-5"
 						>
 							{node.icon}
 						</div>

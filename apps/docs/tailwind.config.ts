@@ -1,5 +1,4 @@
 /* eslint-disable perfectionist/sort-objects -- Ignore sort here */
-import { createPreset } from "fumadocs-ui/tailwind-plugin";
 import type { Config } from "tailwindcss";
 
 const config = {
@@ -9,7 +8,6 @@ const config = {
 		"./content/**/*.{md,mdx}",
 		"./node_modules/fumadocs-ui/dist/**/*.js",
 	],
-	presets: [createPreset({})],
 
 	theme: {
 		extend: {
@@ -17,40 +15,6 @@ const config = {
 				sans: ["var(--font-geist-sans)"],
 				mono: ["var(--font-geist-mono)"],
 			},
-
-			// colors: {
-			// 	fd: {
-			// 		background: "hsl(var(--fd-background))",
-			// 		foreground: "hsl(var(--fd-foreground))",
-			// 		destructive: {
-			// 			DEFAULT: "hsl(var(--fd-destructive))",
-			// 			foreground: "hsl(var(--fd-destructive-foreground))",
-			// 		},
-			// 		primary: {
-			// 			DEFAULT: "hsl(var(--fd-primary))",
-			// 			foreground: "hsl(var(--fd-primary-foreground))",
-			// 		},
-			// 		secondary: {
-			// 			DEFAULT: "hsl(var(--fd-secondary))",
-			// 			foreground: "hsl(var(--fd-secondary-foreground))",
-			// 		},
-			// 		popover: {
-			// 			DEFAULT: "hsl(var(--fd-popover))",
-			// 			foreground: "hsl(var(--fd-popover-foreground))",
-			// 		},
-			// 		accent: {
-			// 			DEFAULT: "hsl(var(--fd-accent))",
-			// 			foreground: "hsl(var(--fd-accent-foreground))",
-			// 		},
-			// 		muted: {
-			// 			DEFAULT: "hsl(var(--fd-muted))",
-			// 			foreground: "hsl(var(--fd-muted-foreground))",
-			// 		},
-			// 		input: "hsl(var(--fd-input))",
-			// 		border: "hsl(var(--fd-border))",
-			// 		ring: "hsl(var(--fd-ring))",
-			// 	},
-			// },
 
 			backgroundImage: {
 				"gradient-radial": "radial-gradient(circle, var(--tw-gradient-stops))",

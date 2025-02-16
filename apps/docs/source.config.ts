@@ -11,6 +11,10 @@ export const { docs, meta } = defineDocs({
 export default defineConfig({
 	mdxOptions: {
 		rehypeCodeOptions: {
+			themes: {
+				dark: "github-dark",
+				light: "github-light",
+			},
 			transformers: [
 				...(rehypeCodeDefaultOptions.transformers ?? []),
 				transformerTwoslash({
