@@ -1,5 +1,5 @@
 import { BgPattern } from "@/components/icons";
-import { DocsLayout } from "fumadocs-ui/layouts/docs";
+import { DocsLayout } from "fumadocs-ui/layouts/notebook";
 import { docsOptions } from "../layout.config";
 import "fumadocs-twoslash/twoslash.css";
 

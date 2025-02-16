@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next";
 
 export const revalidate = false;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+const sitemap = (): MetadataRoute.Sitemap => {
 	const pages = source.getPages().map((page) => ({ slug: page.slugs }));
 
 	const docs = pages.map((page) => ({
@@ -12,5 +12,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		url: `${baseURL}/docs/${page.slug.join("/")}`,
 	}));
 
-	return [...docs];
-}
+	return [
+		{
+			lastModified: new Date().toISOString().split("T")[0],
+			url: baseURL.toString(),
+		},
+		...docs.toReversed(),
+	];
+};
+
+export default sitemap;

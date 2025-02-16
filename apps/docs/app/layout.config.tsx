@@ -62,7 +62,6 @@ export const docsOptions: DocsLayoutProps = {
 
 	sidebar: {
 		collapsible: false,
-		defaultOpenLevel: 0,
 
 		tabs: {
 			transform: (option, node) => {
