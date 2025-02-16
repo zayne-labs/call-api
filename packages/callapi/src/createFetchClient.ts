@@ -72,6 +72,13 @@ export const createFetchClient = <
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 		TComputedData = InferSchemaResult<TSchemas["data"], TData>,
 		TComputedErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
+		TFinalResult = GetCallApiResult<
+			TComputedData,
+			TComputedErrorData,
+			TResultMode,
+			TThrowOnError,
+			TResponseType
+		>,
 	>(
 		...parameters: CallApiParameters<
 			TData,
@@ -82,9 +89,7 @@ export const createFetchClient = <
 			TSchemas,
 			TPluginArray
 		>
-	): Promise<
-		GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TThrowOnError, TResponseType>
-	> => {
+	): Promise<TFinalResult> => {
 		const [initURL, config = {} as never] = parameters;
 
 		const [fetchOptions, extraOptions] = splitConfig(config);
