@@ -17,6 +17,8 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
 		notFound();
 	}
 
+	const path = `apps/docs/content/docs/${page.file.path}`;
+
 	const MDX = page.data.body;
 
 	return (
@@ -25,6 +27,12 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
 			tableOfContent={{
 				single: false,
 				style: "clerk",
+			}}
+			editOnGithub={{
+				owner: "zayne-labs",
+				path,
+				repo: "callapi",
+				sha: "main",
 			}}
 			full={page.data.full}
 		>

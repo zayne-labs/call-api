@@ -15,29 +15,20 @@ export default defineConfig({
 				dark: "github-dark",
 				light: "github-light",
 			},
+
 			transformers: [
 				...(rehypeCodeDefaultOptions.transformers ?? []),
+
 				transformerTwoslash({
 					twoslashOptions: {
 						// == Adding default twoslash options from shiki cuz it contains the support for custom annotation tags like `@annotate`.
 						...defaultTwoslashOptions(),
-						compilerOptions: {
-							noErrorTruncation: true,
-						},
+						compilerOptions: { noErrorTruncation: true },
 					},
 				}),
 			],
 		},
 
-		remarkPlugins: [
-			[
-				remarkInstall,
-				{
-					persist: {
-						id: "persist-install",
-					},
-				},
-			],
-		],
+		remarkPlugins: [[remarkInstall, { persist: { id: "persist-install" } }]],
 	},
 });
