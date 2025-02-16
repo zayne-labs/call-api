@@ -33,7 +33,7 @@ export default function TypingAnimation({ className, duration = 200, text }: Typ
 	return (
 		<h1
 			className={cnMerge(
-				"text-center text-4xl font-bold leading-[5rem] tracking-[-0.02em] drop-shadow-sm",
+				"text-center text-4xl leading-[5rem] font-bold tracking-[-0.02em] drop-shadow-sm",
 				className
 			)}
 		>

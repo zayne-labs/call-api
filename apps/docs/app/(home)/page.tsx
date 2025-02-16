@@ -7,15 +7,15 @@ import Link from "next/link";
 export default function HomePage() {
 	return (
 		<main
-			className="relative flex min-h-screen w-full items-center justify-center overflow-hidden
-				rounded-lg border bg-fd-background p-20 md:shadow-xl"
+			className="bg-fd-background relative flex min-h-screen w-full items-center justify-center
+				overflow-hidden rounded-lg border p-20 md:shadow-xl"
 		>
 			{/* <GridPattern /> */}
 			<Ripple />
 			<div className="z-10 flex flex-col items-center justify-center">
 				<h1 className="mb-4 text-center text-5xl font-bold">CallApi</h1>
 
-				<p className="mx-auto max-w-2xl text-center text-fd-muted-foreground">
+				<p className="text-fd-muted-foreground mx-auto max-w-2xl text-center">
 					A lightweight, type-safe Fetch API wrapper with dozens of convenience features. Built for
 					developers who want a lightweight, but convenient interface for making HTTP requests.
 				</p>
