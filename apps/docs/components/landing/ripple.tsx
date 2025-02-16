@@ -11,7 +11,7 @@ function Ripple(props: RippleProps) {
 
 	return (
 		<div
-			className="absolute inset-0 flex items-center justify-center bg-white/5
+			className="absolute inset-0 overflow-hidden bg-white/5
 				[mask-image:linear-gradient(to_bottom,white,transparent)]"
 		>
 			{Array.from({ length: numCircles }, (_, i) => {
@@ -24,8 +24,7 @@ function Ripple(props: RippleProps) {
 				return (
 					<div
 						key={i}
-						className="bg-foreground/25 absolute left-1/2 top-1/2 translate-x-1/2 translate-y-1/2
-							animate-ripple border shadow-xl"
+						className="bg-fd-foreground/25 animate-ripple absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border shadow-xl"
 						style={
 							{
 								"--i": i,

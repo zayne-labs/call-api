@@ -23,7 +23,9 @@ const { data } = await callBackendApi("/users/123/posts");
 
 Dynamic parameters enable you to include variable segments in your URL paths using the `:` prefix. For example, in a URL like `/users/:userId`, the `:userId` segment is a dynamic parameter. When making a request, these parameters are automatically replaced with the actual values provided in the `params` option.
 
-The `params` option can take in an object where the keys are the dynamic parameters and the values are the corresponding values to replace them with. It can also take in an array where the values are the values to replace the dynamic parameters in the order they appear in the URL path.
+The `params` option can take in an object where the keys are the dynamic parameters and the values are the corresponding values to replace them with.
+
+It can also take an array where the values will replace the dynamic parameters in the order they appear in the URL path. For example, if your URL is `/users/:userId/posts/:postId`, passing `params: ['123', '456']` will result in `/users/123/posts/456`.
 
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
