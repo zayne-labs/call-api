@@ -7,11 +7,8 @@ function Layout({ children }: { children: React.ReactNode }) {
 	return (
 		<DocsLayout {...docsOptions}>
 			<span
-				className="absolute inset-0 z-[-1] h-[64rem] max-h-screen overflow-hidden"
-				style={{
-					backgroundImage:
-						"radial-gradient(49.63% 57.02% at 58.99% -7.2%, hsl(var(--fd-primary)/0.1) 39.4%, transparent 100%)",
-				}}
+				className="absolute inset-0 z-[-1] h-[64rem] max-h-screen overflow-hidden
+					bg-[radial-gradient(49.63%_57.02%_at_58.99%_-7.2%,_--alpha(var(--color-fd-primary)/0.1)_39.4%,_transparent_100%)]"
 			>
 				<BgPattern />
 			</span>
