@@ -17,7 +17,7 @@ const sitemap = (): MetadataRoute.Sitemap => {
 			lastModified: new Date().toISOString().split("T")[0],
 			url: baseURL.toString(),
 		},
-		...docs.toReversed(),
+		...docs,
 	];
 };
 
