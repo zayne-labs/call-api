@@ -11,9 +11,18 @@ export function createMetadata(override: Metadata = {}): Metadata {
 		...override,
 		openGraph: {
 			description: override.description ?? undefined,
-			images: "https://zayne-labs-callapi.netlify.app/og.png",
+			images: [
+				{
+					alt: "CallApi - The Ultimate API Testing Tool",
+					height: 630,
+					type: "image/png",
+					url: "https://zayne-labs-callapi.netlify.app/og.png",
+					width: 1200,
+				},
+			],
 			siteName: "CallApi",
 			title: override.title ?? undefined,
+			type: "website",
 			url: baseURL.toString(),
 			...override.openGraph,
 		},
@@ -21,7 +30,14 @@ export function createMetadata(override: Metadata = {}): Metadata {
 			card: "summary_large_image",
 			creator: "@zayne_el_kaiser",
 			description: override.description ?? undefined,
-			images: "https://zayne-labs-callapi.netlify.app/og.png",
+			images: [
+				{
+					alt: "CallApi - The Ultimate API Testing Tool",
+					height: 630,
+					url: "https://zayne-labs-callapi.netlify.app/og.png",
+					width: 1200,
+				},
+			],
 			title: override.title ?? undefined,
 			...override.twitter,
 		},
