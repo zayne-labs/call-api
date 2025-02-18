@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 1.6.7
+
+### Patch Changes
+
+- 2ed893e: fix(callapi): fix serializer bug that prevented the body object from being stringified internally
+
 ## 1.6.0
 
 ### Minor Changes
