@@ -128,10 +128,10 @@ export const createFetchClientWithOptions = <
 
 		// == Default Request Options
 		const defaultRequestOptions = {
-			body: isPlainObject(body) ? defaultExtraOptions.bodySerializer(body) : body,
-
 			...baseFetchOptions,
 			...fetchOptions,
+
+			body: isPlainObject(body) ? defaultExtraOptions.bodySerializer(body) : body,
 
 			headers: mergeAndResolveHeaders({
 				auth: defaultExtraOptions.auth,
