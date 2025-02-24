@@ -9,6 +9,7 @@ import type {
 	WithMoreOptions,
 } from "./types/common";
 import type { DefaultMoreOptions } from "./types/default-types";
+import type { InitURL } from "./url";
 import { isFunction, isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 import type { InferSchemaResult } from "./validation";
@@ -28,7 +29,7 @@ export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIn
 >;
 
 export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = WithMoreOptions<TMoreOptions> & {
-	initURL: string;
+	initURL: InitURL | undefined;
 	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
 };
@@ -216,6 +217,6 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		resolvedHooks,
 		resolvedOptions,
 		resolvedRequestOptions,
-		url: resolvedUrl,
+		url: resolvedUrl?.toString(),
 	};
 };

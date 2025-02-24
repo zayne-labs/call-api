@@ -3,10 +3,10 @@ import type { Auth } from "../auth";
 import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
 import type { GetResponseType, ResponseTypeUnion } from "../response";
 import type { RetryOptions } from "../retry";
-import type { UrlOptions } from "../url";
+import type { InitURL, UrlOptions } from "../url";
 import type { fetchSpecificKeys } from "../utils/constants";
 import { type Awaitable, type UnmaskType, defineEnum } from "../utils/type-helpers";
-import type { CallApiSchemas, CallApiValidators } from "../validation";
+import type { CallApiSchemas, CallApiValidators, InferSchemaResult } from "../validation";
 import type {
 	BodyOption,
 	HeadersOption,
@@ -296,7 +296,7 @@ export type CallApiParameters<
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 > = [
-	initURL: UrlOptions<TSchemas>["initURL"],
+	initURL: InferSchemaResult<TSchemas["initURL"], InitURL>,
 	config?: CallApiExtraOptions<
 		TData,
 		TErrorData,

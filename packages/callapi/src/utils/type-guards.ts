@@ -23,20 +23,45 @@ export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Ar
 
 export const isObject = (value: unknown) => typeof value === "object" && value !== null;
 
+const hasObjectPrototype = (value: unknown) => {
+	return Object.prototype.toString.call(value) === "[object Object]";
+};
+
+/**
+ * @description Copied from TanStack Query's isPlainObject
+ * @see https://github.com/TanStack/query/blob/main/packages/query-core/src/utils.ts#L321
+ */
 export const isPlainObject = <TPlainObject extends Record<string, unknown>>(
 	value: unknown
 ): value is TPlainObject => {
-	if (!isObject(value)) {
+	if (!hasObjectPrototype(value)) {
 		return false;
 	}
 
-	const prototype = Object.getPrototypeOf(value) as unknown;
+	// If has no constructor
+	const constructor = (value as object | undefined)?.constructor;
+	if (constructor === undefined) {
+		return true;
+	}
 
-	// Check if it's a plain object
-	return (
-		// prettier-ignore
-		(prototype == null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in value)
-	);
+	// If has modified prototype
+	const prototype = constructor.prototype as object;
+	if (!hasObjectPrototype(prototype)) {
+		return false;
+	}
+
+	// If constructor does not have an Object-specific method
+	if (!Object.hasOwn(prototype, "isPrototypeOf")) {
+		return false;
+	}
+
+	// Handles Objects created by Object.create(<arbitrary prototype>)
+	if (Object.getPrototypeOf(value) !== Object.prototype) {
+		return false;
+	}
+
+	// It's probably a plain object at this point
+	return true;
 };
 
 export const isFunction = <TFunction extends AnyFunction>(value: unknown): value is TFunction =>

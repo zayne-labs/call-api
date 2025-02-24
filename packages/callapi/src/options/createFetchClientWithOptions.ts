@@ -86,9 +86,9 @@ export const createFetchClientWithOptions = <
 	): Promise<
 		GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TThrowOnError, TResponseType>
 	> => {
-		const { initURL, ...restOfConfig } = config;
+		const { initURL } = config;
 
-		const [fetchOptions, extraOptions] = splitConfig(restOfConfig);
+		const [fetchOptions, extraOptions] = splitConfig(config);
 
 		const initCombinedHooks = {} as Required<Interceptors>;
 
@@ -144,7 +144,7 @@ export const createFetchClientWithOptions = <
 		} satisfies CallApiRequestOptions;
 
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
-			initURL: initURL as string,
+			initURL,
 			options: defaultExtraOptions,
 			request: defaultRequestOptions,
 		});
@@ -155,7 +155,7 @@ export const createFetchClientWithOptions = <
 			...resolvedOptions,
 			...resolvedHooks,
 			fullURL,
-			initURL: initURL as string,
+			initURL: initURL.toString(),
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof resolvedHooks;
 
 		const newFetchController = new AbortController();
@@ -277,7 +277,7 @@ export const createFetchClientWithOptions = <
 				const updatedOptions = {
 					...config,
 					"~retryCount": (options["~retryCount"] ?? 0) + 1,
-				} as typeof config;
+				} satisfies typeof config as typeof config;
 
 				return await callApi(updatedOptions);
 			}

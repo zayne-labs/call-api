@@ -67,7 +67,8 @@
 		"size-limit": "11.2.0",
 		"terser": "5.39.0",
 		"tsup": "8.3.6",
-		"typescript": "catalog:"
+		"typescript": "5.7.3",
+		"vitest": "^3.0.6"
 	},
 	"publishConfig": {
 		"access": "public",
@@ -77,11 +78,11 @@
 	"size-limit": [
 		{
 			"path": "./src/index.ts",
-			"limit": "3.65 kb"
+			"limit": "3.66 kb"
 		},
 		{
 			"path": "./src/options/index.ts",
-			"limit": "3.7 kb"
+			"limit": "4.1 kb"
 		},
 		{
 			"path": "./src/utils/index.ts",

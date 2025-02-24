@@ -116,6 +116,8 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 	}),
 ]);
 
+console.info(foo1, foo2, foo3, foo4);
+
 // const foo1 = void callApi("/products/:id", {
 // 	method: "GET",
 // 	params: [1],
@@ -134,4 +136,4 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 // 	params: [1320],
 // });
 
-console.info(foo1, foo2, foo3, foo4);
+// console.info(foo1, foo2, foo3, foo4);
