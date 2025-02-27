@@ -75,6 +75,7 @@ export const docsOptions: DocsLayoutProps = {
 					...option,
 					icon: (
 						<div
+							key={node.icon?.key}
 							className="from-fd-background/80 text-fd-primary rounded-md border bg-gradient-to-t
 								p-1 shadow-md [&_svg]:size-5"
 						>

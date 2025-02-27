@@ -7,13 +7,10 @@ const withMDX = createMDX();
  */
 const config = {
 	devIndicators: {
-		appIsrStatus: false,
+		position: "bottom-right",
 	},
 	eslint: {
 		ignoreDuringBuilds: true,
-	},
-	experimental: {
-		reactOwnerStack: true,
 	},
 	reactStrictMode: true,
 };
