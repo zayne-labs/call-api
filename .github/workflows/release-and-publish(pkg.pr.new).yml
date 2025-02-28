@@ -40,7 +40,7 @@ jobs:
               pnpm build
 
          - name: Deploy and test release via pkg.pr.new
-           run: pnpm test:release
+           run: pnpm release:test
 
    #  on--workflow-failure:
    #     runs-on: ubuntu-latest
