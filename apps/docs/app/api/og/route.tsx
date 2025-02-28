@@ -2,8 +2,8 @@ import { callApi } from "@zayne-labs/callapi";
 import { ImageResponse } from "next/og";
 import { z } from "zod";
 
-// // eslint-disable-next-line react-refresh/only-export-components -- It's fine
-// export const runtime = "edge";
+// eslint-disable-next-line react-refresh/only-export-components -- It's fine
+export const runtime = "edge";
 
 const ogSchema = z.object({
 	heading: z.string(),
@@ -13,23 +13,24 @@ const ogSchema = z.object({
 
 export async function GET(req: Request) {
 	try {
-		const geist = await callApi(new URL("../../../assets/Geist.ttf", import.meta.url).toString(), {
+		const geist = await callApi(new URL("../../../assets/Geist.ttf", import.meta.url), {
 			responseType: "arrayBuffer",
 			resultMode: "onlySuccessWithException",
 			throwOnError: true,
 		});
-		const geistMono = await callApi(
-			new URL("../../../assets/GeistMono.ttf", import.meta.url).toString(),
-			{
-				responseType: "arrayBuffer",
-				resultMode: "onlySuccessWithException",
-				throwOnError: true,
-			}
-		);
+		const geistMono = await callApi(new URL("../../../assets/GeistMono.ttf", import.meta.url), {
+			responseType: "arrayBuffer",
+			resultMode: "onlySuccessWithException",
+			throwOnError: true,
+		});
 		const url = new URL(req.url);
+
 		const urlParamsValues = Object.fromEntries(url.searchParams);
+
 		const validParams = ogSchema.parse(urlParamsValues);
+
 		const { heading, type } = validParams;
+
 		const trueHeading = heading.length > 140 ? `${heading.slice(0, 140)}...` : heading;
 
 		const paint = "#fff";
