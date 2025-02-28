@@ -94,8 +94,8 @@ importers:
         specifier: ^4.0.9
         version: 4.0.9
       '@zayne-labs/callapi':
-        specifier: workspace:*
-        version: link:../../packages/callapi
+        specifier: 1.6.8
+        version: 1.6.8(@standard-schema/spec@1.0.0)
       '@zayne-labs/toolkit':
         specifier: ^0.8.39
         version: 0.8.39(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(zustand@5.0.3(@types/react@19.0.10)(react@19.0.0))
@@ -1855,6 +1855,12 @@ packages:
 
   '@vitest/utils@3.0.7':
     resolution: {integrity: sha512-xePVpCRfooFX3rANQjwoditoXgWb1MaFbzmGuPP59MK6i13mrnDw/yEIyJudLeW6/38mCNcwCiJIGmpDPibAIg==}
+
+  '@zayne-labs/callapi@1.6.8':
+    resolution: {integrity: sha512-Zf6h/MJvz0B7rxll7IYSBsbaOshD78ixtudwRJv+zBMJnv7uBTAAaiSQoU7nOpRp+62GMoFnyqHkJhEoNcISGg==}
+    engines: {node: '>=v18.17.0'}
+    peerDependencies:
+      '@standard-schema/spec': ^1.0.0
 
   '@zayne-labs/eslint-config@0.6.0':
     resolution: {integrity: sha512-V2mrUvEhnSKwWVAm2Xr3xu7ebBztjoQDnJ42Mpt5jcGi1mn72hjFS67tosldh+XyxBTcXplGuO1dYeAai9ozaQ==}
@@ -6726,6 +6732,10 @@ snapshots:
       '@vitest/pretty-format': 3.0.7
       loupe: 3.1.3
       tinyrainbow: 2.0.0
+
+  '@zayne-labs/callapi@1.6.8(@standard-schema/spec@1.0.0)':
+    dependencies:
+      '@standard-schema/spec': 1.0.0
 
   '@zayne-labs/eslint-config@0.6.0(@eslint-react/eslint-plugin@1.28.0(eslint@9.21.0(jiti@2.4.2))(ts-api-utils@2.0.1(typescript@5.8.2))(typescript@5.8.2))(@next/eslint-plugin-next@15.2.0)(eslint-plugin-react-compiler@0.0.0-experimental-40c6c23-20250228(eslint@9.21.0(jiti@2.4.2)))(eslint-plugin-react-hooks@5.2.0(eslint@9.21.0(jiti@2.4.2)))(eslint-plugin-react-refresh@0.4.19(eslint@9.21.0(jiti@2.4.2)))(eslint@9.21.0(jiti@2.4.2))(typescript@5.8.2)':
     dependencies:
