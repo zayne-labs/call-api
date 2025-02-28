@@ -12,7 +12,7 @@
 	"dependencies": {
 		"@shikijs/twoslash": "3.1.0",
 		"@tailwindcss/postcss": "^4.0.9",
-		"@zayne-labs/callapi": "workspace:*",
+		"@zayne-labs/callapi": "1.6.8",
 		"@zayne-labs/toolkit": "^0.8.39",
 		"@zayne-labs/ui-react": "^0.2.2",
 		"clsx": "^2.1.1",
