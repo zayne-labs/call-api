@@ -90,3 +90,17 @@ export const createExtensibleSchemasAndValidators = (options: CombinedCallApiExt
 
 	return { schemas, validators };
 };
+
+export const handleValidation = async (
+	responseData: unknown,
+	schema: CallApiSchemas[keyof NonNullable<CallApiSchemas>],
+	validator?: CallApiValidators[keyof NonNullable<CallApiValidators>]
+) => {
+	const validResponseData = validator ? validator(responseData) : responseData;
+
+	const schemaValidResponseData = schema
+		? await standardSchemaParser(schema, validResponseData)
+		: validResponseData;
+
+	return schemaValidResponseData;
+};

@@ -9,7 +9,10 @@ import { fetchSpecificKeys } from "./constants";
 import { isArray, isFunction, isPlainObject, isQueryString, isString } from "./type-guards";
 import type { AnyFunction, Awaitable } from "./type-helpers";
 
-const omitKeys = <TObject extends Record<string, unknown>, const TOmitArray extends Array<keyof TObject>>(
+export const omitKeys = <
+	TObject extends Record<string, unknown>,
+	const TOmitArray extends Array<keyof TObject>,
+>(
 	initialObject: TObject,
 	keysToOmit: TOmitArray
 ) => {
@@ -26,7 +29,10 @@ const omitKeys = <TObject extends Record<string, unknown>, const TOmitArray exte
 	return updatedObject as Omit<TObject, TOmitArray[number]>;
 };
 
-const pickKeys = <TObject extends Record<string, unknown>, const TPickArray extends Array<keyof TObject>>(
+export const pickKeys = <
+	TObject extends Record<string, unknown>,
+	const TPickArray extends Array<keyof TObject>,
+>(
 	initialObject: TObject,
 	keysToPick: TPickArray
 ) => {

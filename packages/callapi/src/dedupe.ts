@@ -44,21 +44,24 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 
 	const prevRequestInfo = $RequestInfoCacheOrNull?.get(dedupeKey);
 
-	const handleRequestCancelDedupeStrategy = () => {
+	const handleRequestCancelStrategy = () => {
 		const shouldCancelRequest = prevRequestInfo && options.dedupeStrategy === "cancel";
 
-		if (shouldCancelRequest) {
-			const message = options.dedupeKey
-				? `Duplicate request detected - Aborting previous request with key '${options.dedupeKey}' as a new request was initiated`
-				: `Duplicate request detected - Aborting previous request to '${options.fullURL}' as a new request with identical options was initiated`;
+		if (!shouldCancelRequest) return;
 
-			const reason = new DOMException(message, "AbortError");
+		const message = options.dedupeKey
+			? `Duplicate request detected - Aborting previous request with key '${options.dedupeKey}' as a new request was initiated`
+			: `Duplicate request detected - Aborting previous request to '${options.fullURL}' as a new request with identical options was initiated`;
 
-			prevRequestInfo.controller.abort(reason);
-		}
+		const reason = new DOMException(message, "AbortError");
+
+		prevRequestInfo.controller.abort(reason);
+
+		// == Adding this just so that eslint forces me put await when calling the function (it looks better that way tbh)
+		return Promise.resolve();
 	};
 
-	const handleRequestDeferDedupeStrategy = () => {
+	const handleRequestDeferStrategy = () => {
 		const fetchApi = getFetchImpl(options.customFetchImpl);
 
 		const shouldUsePromiseFromCache = prevRequestInfo && options.dedupeStrategy === "defer";
@@ -75,8 +78,8 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 	const removeDedupeKeyFromCache = () => $RequestInfoCacheOrNull?.delete(dedupeKey);
 
 	return {
-		handleRequestCancelDedupeStrategy,
-		handleRequestDeferDedupeStrategy,
+		handleRequestCancelStrategy,
+		handleRequestDeferStrategy,
 		removeDedupeKeyFromCache,
 	};
 };

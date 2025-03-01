@@ -9,9 +9,11 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
+	ErrorContext,
 	GetCallApiResult,
 	Interceptors,
 	ResultModeUnion,
+	SuccessContext,
 } from "@/types/common";
 import type {
 	DefaultDataType,
@@ -35,6 +37,7 @@ import {
 	type CallApiSchemas,
 	type InferSchemaResult,
 	createExtensibleSchemasAndValidators,
+	handleValidation,
 } from "@/validation";
 import type { CallApiExtraOptionsWithRequiredURL } from "./types";
 
@@ -173,13 +176,10 @@ export const createFetchClientWithOptions = <
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
 
-		const {
-			handleRequestCancelDedupeStrategy,
-			handleRequestDeferDedupeStrategy,
-			removeDedupeKeyFromCache,
-		} = await createDedupeStrategy({ $RequestInfoCache, newFetchController, options, request });
+		const { handleRequestCancelStrategy, handleRequestDeferStrategy, removeDedupeKeyFromCache } =
+			await createDedupeStrategy({ $RequestInfoCache, newFetchController, options, request });
 
-		handleRequestCancelDedupeStrategy();
+		await handleRequestCancelStrategy();
 
 		try {
 			await executeHooks(options.onRequest({ options, request }));
@@ -192,7 +192,7 @@ export const createFetchClientWithOptions = <
 				headers: request.headers,
 			});
 
-			const response = await handleRequestDeferDedupeStrategy();
+			const response = await handleRequestDeferStrategy();
 
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
@@ -203,7 +203,11 @@ export const createFetchClientWithOptions = <
 				const errorData = await resolveResponseData<TErrorData>(
 					shouldCloneResponse ? response.clone() : response,
 					options.responseType,
-					options.responseParser,
+					options.responseParser
+				);
+
+				const validErrorData = await handleValidation(
+					errorData,
 					schemas?.errorData,
 					validators?.errorData
 				);
@@ -211,7 +215,7 @@ export const createFetchClientWithOptions = <
 				// == Push all error handling responsibilities to the catch block if not retrying
 				throw new HTTPError({
 					defaultErrorMessage: options.defaultErrorMessage,
-					errorData,
+					errorData: validErrorData,
 					response,
 				});
 			}
@@ -219,17 +223,17 @@ export const createFetchClientWithOptions = <
 			const successData = await resolveResponseData<TData>(
 				shouldCloneResponse ? response.clone() : response,
 				options.responseType,
-				options.responseParser,
-				schemas?.data,
-				validators?.data
+				options.responseParser
 			);
 
+			const validSuccessData = await handleValidation(successData, schemas?.data, validators?.data);
+
 			const successContext = {
-				data: successData as never,
+				data: validSuccessData,
 				options,
 				request,
 				response: options.cloneResponse ? response.clone() : response,
-			};
+			} satisfies SuccessContext<unknown>;
 
 			await executeHooks(
 				options.onSuccess(successContext),
@@ -245,7 +249,7 @@ export const createFetchClientWithOptions = <
 
 			// == Exhaustive Error handling
 		} catch (error) {
-			const { errorVariantDetails, getErrorResult } = resolveErrorResult({
+			const { apiDetails, getErrorResult } = resolveErrorResult({
 				cloneResponse: options.cloneResponse,
 				defaultErrorMessage: options.defaultErrorMessage,
 				error,
@@ -253,22 +257,18 @@ export const createFetchClientWithOptions = <
 			});
 
 			const errorContext = {
-				error: errorVariantDetails.error as never,
+				error: apiDetails.error as never,
 				options,
 				request,
-			};
+				response: apiDetails.response as never,
+			} satisfies ErrorContext<unknown>;
 
-			const errorContextWithResponse = {
-				...errorContext,
-				response: errorVariantDetails.response as NonNullable<typeof errorVariantDetails.response>,
-			};
-
-			const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContextWithResponse);
+			const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContext);
 
 			const shouldRetry = !combinedSignal.aborted && (await shouldAttemptRetry());
 
 			if (shouldRetry) {
-				await executeHooks(options.onRetry(errorContextWithResponse));
+				await executeHooks(options.onRetry(errorContext));
 
 				const delay = getDelay();
 
@@ -283,7 +283,7 @@ export const createFetchClientWithOptions = <
 			}
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
-				? options.throwOnError(errorContextWithResponse)
+				? options.throwOnError(errorContext)
 				: options.throwOnError;
 
 			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
@@ -291,16 +291,16 @@ export const createFetchClientWithOptions = <
 				if (!shouldThrowOnError) return;
 
 				// eslint-disable-next-line ts-eslint/only-throw-error -- It's fine to throw this
-				throw errorVariantDetails.error;
+				throw apiDetails.error;
 			};
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				await executeHooks(
-					options.onResponseError(errorContextWithResponse),
+					options.onResponseError(errorContext),
 
-					options.onError(errorContextWithResponse),
+					options.onError(errorContext),
 
-					options.onResponse({ ...errorContextWithResponse, data: null })
+					options.onResponse({ ...errorContext, data: null })
 				);
 
 				handleThrowOnError();
@@ -330,10 +330,10 @@ export const createFetchClientWithOptions = <
 
 			await executeHooks(
 				// == At this point only the request errors exist, so the request error interceptor is called
-				options.onRequestError(errorContext),
+				options.onRequestError(errorContext as never),
 
 				// == Also call the onError interceptor
-				options.onError(errorContextWithResponse)
+				options.onError(errorContext)
 			);
 
 			handleThrowOnError();
@@ -350,5 +350,4 @@ export const createFetchClientWithOptions = <
 
 	return callApi;
 };
-
 export const callApiWithOptions = createFetchClientWithOptions();

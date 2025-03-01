@@ -362,6 +362,7 @@ export type RequestErrorContext = UnmaskType<{
 	error: PossibleJavaScriptError;
 	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
+	response: null;
 }>;
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<{
@@ -415,6 +416,10 @@ export type ResultModeMap<
 	all: CallApiResultSuccessVariant<TComputedData> | CallApiResultErrorVariant<TComputedErrorData>;
 
 	allWithException: CallApiResultSuccessVariant<TComputedData>;
+
+	allWithoutResponse:
+		| CallApiResultSuccessVariant<TComputedData>["data" | "error"]
+		| CallApiResultErrorVariant<TComputedErrorData>["data" | "error"];
 
 	onlyError:
 		| CallApiResultSuccessVariant<TComputedData>["error"]

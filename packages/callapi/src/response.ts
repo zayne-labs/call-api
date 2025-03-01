@@ -1,6 +1,6 @@
 import type { CallApiExtraOptions, CallApiResultSuccessVariant, ResultModeMap } from "./types";
+import { omitKeys } from "./utils/common";
 import type { Awaitable } from "./utils/type-helpers";
-import { type CallApiSchemas, type CallApiValidators, standardSchemaParser } from "./validation";
 
 type Parser = (responseString: string) => Awaitable<Record<string, unknown>>;
 
@@ -41,9 +41,7 @@ export type GetResponseType<
 export const resolveResponseData = async <TResponse>(
 	response: Response,
 	responseType: keyof ResponseTypeMap<TResponse>,
-	parser: Parser | undefined,
-	schema?: NonNullable<CallApiSchemas>[keyof NonNullable<CallApiSchemas>],
-	validator?: NonNullable<CallApiValidators>[keyof NonNullable<CallApiValidators>]
+	parser: Parser | undefined
 ) => {
 	const RESPONSE_TYPE_LOOKUP = getResponseType<TResponse>(response, parser);
 
@@ -53,13 +51,7 @@ export const resolveResponseData = async <TResponse>(
 
 	const responseData = await RESPONSE_TYPE_LOOKUP[responseType]();
 
-	const validResponseData = validator ? validator(responseData) : responseData;
-
-	const schemaValidResponseData = schema
-		? await standardSchemaParser(schema, validResponseData)
-		: validResponseData;
-
-	return schemaValidResponseData;
+	return responseData;
 };
 
 type SuccessInfo = {
@@ -82,6 +74,7 @@ export const resolveSuccessResult = <TCallApiResult>(info: SuccessInfo): TCallAp
 	const resultModeMap = {
 		all: apiDetails,
 		allWithException: apiDetails,
+		allWithoutResponse: omitKeys(apiDetails, ["response"]),
 		onlyError: apiDetails.error,
 		onlyResponse: apiDetails.response,
 		onlyResponseWithException: apiDetails.response,
