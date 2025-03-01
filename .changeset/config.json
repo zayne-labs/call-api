@@ -1,6 +1,6 @@
 {
 	"$schema": "https://unpkg.com/@changesets/config@3.0.1/schema.json",
-	"changelog": "changelogithub",
+	"changelog": "@changesets/changelog-github",
 	"bumpVersionsWithWorkspaceProtocolOnly": true,
 	"commit": false,
 	"fixed": [],
