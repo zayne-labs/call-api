@@ -6,7 +6,7 @@
 	"scripts": {
 		"build": "pnpm --filter \"./packages/*\" build",
 		"build:dev": "pnpm --filter ./packages/* build:dev",
-		"build:test": "pnpm --filter ./packages/* build:test",
+		"build:test": "pnpm --filter \"./packages/*\" build:test",
 		"inspect:eslint-config": "pnpx @eslint/config-inspector@latest",
 		"lint:attw": "pnpm --filter ./packages/* lint:attw",
 		"lint:check-types": "pnpm --filter ./packages/* lint:check-types",
