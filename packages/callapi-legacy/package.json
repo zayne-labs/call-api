@@ -43,7 +43,7 @@
 		"build:dev": "cross-env NODE_ENV=development tsup",
 		"build:test": "concurrently --prefix-colors \"yellow.bold,#7da4f8.bold,magenta\" --names PUBLINT,TSUP 'pnpm:lint:publint' 'pnpm:build:dev'",
 		"lint:attw": "attw --pack . --profile node16 --ignore-rules=cjs-resolves-to-esm",
-		"lint:check-types": "tsc --pretty --incremental -p tsconfig.json",
+		"lint:check-types": "tsc --pretty  -p tsconfig.json",
 		"lint:publint": "publint --strict .",
 		"lint:size": "size-limit",
 		"release": "pnpm publish --no-git-checks",
