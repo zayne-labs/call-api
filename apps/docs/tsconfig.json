@@ -1,5 +1,5 @@
 {
-	"extends": "@zayne-labs/tsconfig/bundler/next",
+	"extends": ["../../tsconfig.base.json", "@zayne-labs/tsconfig/bundler/next"],
 
 	"compilerOptions": {
 		"baseUrl": ".",

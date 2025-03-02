@@ -23,7 +23,10 @@ export default defineConfig({
 					twoslashOptions: {
 						// == Adding default twoslash options from shiki cuz it contains the support for custom annotation tags like `@annotate`.
 						...defaultTwoslashOptions(),
-						compilerOptions: { noErrorTruncation: true },
+						compilerOptions: {
+							...defaultTwoslashOptions().compilerOptions,
+							noErrorTruncation: true,
+						},
 					},
 				}),
 			],

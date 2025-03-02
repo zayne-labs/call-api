@@ -1,3 +1,5 @@
 {
-	"exclude": ["node_modules/**"]
+	"compilerOptions": {
+		// "composite": true
+	}
 }

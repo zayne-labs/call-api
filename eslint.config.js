@@ -8,6 +8,7 @@ export default zayne({
 		nextjs: true,
 		overrides: {
 			"nextjs-next/no-html-link-for-pages": ["error", "apps/docs"],
+			"react/no-leaked-conditional-rendering": "off",
 		},
 	},
 	// tailwindcss: {

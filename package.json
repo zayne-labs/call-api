@@ -5,6 +5,7 @@
 	"packageManager": "pnpm@9.15.4",
 	"scripts": {
 		"build": "pnpm --filter \"./packages/*\" build",
+		"build:callapi": "pnpm --filter \"./packages/callapi\" build",
 		"build:dev": "pnpm --filter ./packages/* build:dev",
 		"build:test": "pnpm --filter \"./packages/*\" build:test",
 		"inspect:eslint-config": "pnpx @eslint/config-inspector@latest",
