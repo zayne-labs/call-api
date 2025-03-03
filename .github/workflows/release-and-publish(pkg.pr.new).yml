@@ -13,7 +13,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
    test-release:
-      runs-on: ubuntu-latest
+      runs-on: blacksmith-4vcpu-ubuntu-2204
       timeout-minutes: 15
       strategy:
          matrix:

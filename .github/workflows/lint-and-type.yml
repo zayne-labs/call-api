@@ -10,7 +10,7 @@ permissions:
 
 jobs:
    lint-and-type:
-      runs-on: ubuntu-latest
+      runs-on: blacksmith-4vcpu-ubuntu-2204
       strategy:
          matrix:
             node-version: [lts/*]
