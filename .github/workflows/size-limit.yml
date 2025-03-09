@@ -10,7 +10,7 @@ permissions:
 
 jobs:
    size-limit:
-      runs-on: blacksmith-4vcpu-ubuntu-2204
+      runs-on: ubuntu-latest
       strategy:
          matrix:
             node-version: [lts/*]
