@@ -47,7 +47,7 @@
 		"lint:publint": "publint --strict .",
 		"lint:size": "size-limit",
 		"release": "pnpm publish --no-git-checks",
-		"release:test": "pkg-pr-new publish"
+		"release:test": "pnpx pkg-pr-new publish"
 	},
 	"peerDependencies": {
 		"@standard-schema/spec": "^1.0.0"

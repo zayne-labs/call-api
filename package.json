@@ -20,7 +20,7 @@
 		"prepare": "husky",
 		"release": "changeset publish",
 		"release:rc": "pnpm build && changeset publish --tag rc",
-		"release:test": "pnpm --filter \"./packages/*\" test:release",
+		"release:test": "pnpx pkg-pr-new publish './packages/*'",
 		"version-package": "changeset version"
 	},
 	"devDependencies": {
@@ -35,7 +35,6 @@
 		"eslint-plugin-react-refresh": "^0.4.19",
 		"husky": "9.1.7",
 		"lint-staged": "15.4.3",
-		"pkg-pr-new": "0.0.40",
 		"prettier": "3.5.3",
 		"typescript": "^5.8.2"
 	}
