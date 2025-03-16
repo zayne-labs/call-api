@@ -6,7 +6,6 @@ const commonOptions = {
 	clean: true, // clean up dist folder,
 	dts: true,
 	entry: ["src/index.ts"],
-	minify: isDevMode ? false : "terser",
 	sourcemap: !isDevMode,
 	tsconfig: "tsconfig.json",
 } satisfies Options;

@@ -133,6 +133,7 @@
    } */
 
 	button {
+		cursor: pointer;
 		outline: transparent;
 	}
 

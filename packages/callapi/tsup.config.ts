@@ -6,7 +6,6 @@ const commonOptions = {
 	clean: true, // clean up dist folder,
 	dts: true,
 	entry: ["src/index.ts", "src/utils/index.ts", "src/options/index.ts"],
-	minify: isDevMode ? false : "terser",
 	sourcemap: !isDevMode,
 	tsconfig: "tsconfig.json",
 } satisfies Options;
@@ -14,7 +13,6 @@ const commonOptions = {
 export default defineConfig([
 	{
 		...commonOptions,
-
 		format: ["esm"],
 		outDir: "./dist/esm",
 		platform: "browser",
@@ -22,6 +20,7 @@ export default defineConfig([
 		target: "esnext",
 		treeshake: true,
 	},
+
 	{
 		...commonOptions,
 		format: ["cjs"],
