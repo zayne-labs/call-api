@@ -197,8 +197,8 @@ export const initializePlugins = async (context: PluginInitContext) => {
 	}
 
 	if (
-		!options.mergedHooksExecutionOrder ||
-		options.mergedHooksExecutionOrder === "mainHooksAfterPlugins"
+		!options.mergedHooksExecutionOrder
+		|| options.mergedHooksExecutionOrder === "mainHooksAfterPlugins"
 	) {
 		addMainHooks();
 	}

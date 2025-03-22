@@ -1,7 +1,7 @@
 import { baseConfig } from "@zayne-labs/prettier-config";
 
 const config = {
-	...baseConfig
-}
+	...baseConfig,
+};
 
-export default config
+export default config;

@@ -69,7 +69,7 @@ export const isJSONSerializable = (value: unknown) => {
 
 	return (
 		// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing -- Nullish coalescing makes no sense in this boolean context
-		(value?.constructor && value.constructor.name === "Object") ||
-		typeof (value as { toJSON: () => unknown } | null)?.toJSON === "function"
+		(value?.constructor && value.constructor.name === "Object")
+		|| typeof (value as { toJSON: () => unknown } | null)?.toJSON === "function"
 	);
 };

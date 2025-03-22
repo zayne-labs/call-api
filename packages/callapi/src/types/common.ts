@@ -24,10 +24,10 @@ import type {
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
 export type CallApiRequestOptions<TSchemas extends CallApiSchemas = DefaultMoreOptions> =
-	BodyOption<TSchemas> &
-		HeadersOption<TSchemas> &
-		MethodOption<TSchemas> &
-		Pick<RequestInit, FetchSpecificKeysUnion>;
+	BodyOption<TSchemas>
+		& HeadersOption<TSchemas>
+		& MethodOption<TSchemas>
+		& Pick<RequestInit, FetchSpecificKeysUnion>;
 
 export type CallApiRequestOptionsForHooks<TSchemas extends CallApiSchemas = DefaultMoreOptions> = Omit<
 	CallApiRequestOptions<TSchemas>,
@@ -219,12 +219,12 @@ export type ExtraOptions<
 	 */
 	validators?: CallApiValidators<TData, TErrorData>;
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
-} & InterceptorsOrInterceptorArray<TData, TErrorData> &
-	Partial<InferPluginOptions<TPluginArray>> &
-	MetaOption<TSchemas> &
-	RetryOptions<TErrorData> &
-	ResultModeOption<TErrorData, TResultMode> &
-	UrlOptions<TSchemas>;
+} & InterceptorsOrInterceptorArray<TData, TErrorData>
+	& Partial<InferPluginOptions<TPluginArray>>
+	& MetaOption<TSchemas>
+	& RetryOptions<TErrorData>
+	& ResultModeOption<TErrorData, TResultMode>
+	& UrlOptions<TSchemas>;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 
 export const optionsEnumToExtendFromBase = defineEnum(["plugins", "validators", "schemas"] satisfies Array<
@@ -239,8 +239,8 @@ export type CallApiExtraOptions<
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
-> = CallApiRequestOptions<TSchemas> &
-	ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TSchemas, TPluginArray> & {
+> = CallApiRequestOptions<TSchemas>
+	& ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TSchemas, TPluginArray> & {
 		/**
 		 * Options that should extend the base options.
 		 */
