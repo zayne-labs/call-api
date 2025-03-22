@@ -4,11 +4,10 @@ export default zayne({
 	ignores: ["dist/**", "apps/docs/.source/**"],
 	react: {
 		compiler: true,
-		files: ["apps/docs/**"],
+		files: ["apps/docs/**/*.{ts,tsx}"],
 		nextjs: true,
 		overrides: {
 			"nextjs-next/no-html-link-for-pages": ["error", "apps/docs"],
-			"react/no-leaked-conditional-rendering": "off",
 		},
 	},
 	// tailwindcss: {
