@@ -25,7 +25,7 @@ export const buttonVariants = tv({
 				"bg-fd-destructive text-fd-destructive-foreground shadow-sm hover:bg-fd-destructive/90",
 			ghost: "hover:bg-fd-accent hover:text-fd-accent-foreground",
 			link: "text-fd-primary underline-offset-4 hover:underline",
-			outline: `border-fd-input border bg-fd-background shadow-sm hover:bg-fd-accent
+			outline: `border border-fd-input bg-fd-background shadow-sm hover:bg-fd-accent
 			hover:text-fd-accent-foreground`,
 			primary: "bg-fd-primary text-fd-primary-foreground shadow hover:bg-fd-primary/90",
 			secondary: "bg-fd-secondary/75 text-fd-secondary-foreground shadow-sm",
