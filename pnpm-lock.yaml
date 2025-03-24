@@ -4,12 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-catalogs:
-  default:
-    '@zayne-labs/tsconfig':
-      specifier: 0.2.1
-      version: 0.2.1
-
 importers:
 
   .:
@@ -70,8 +64,8 @@ importers:
         specifier: ^22.13.11
         version: 22.13.11
       '@zayne-labs/tsconfig':
-        specifier: 'catalog:'
-        version: 0.2.1
+        specifier: 0.7.6
+        version: 0.7.6
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -2251,9 +2245,6 @@ packages:
         optional: true
       zustand:
         optional: true
-
-  '@zayne-labs/tsconfig@0.2.1':
-    resolution: {integrity: sha512-nm8ePOZae5wPaYkXJiH382jUroUfTjfrSwLfKBkvMaIBp1mOB5awAkPRpsXA+RHU3sBlJnASZknnfgmQiQBO2g==}
 
   '@zayne-labs/tsconfig@0.7.6':
     resolution: {integrity: sha512-y2+QxpjkIBcApwWshe3LRr6DitrkI14G9RHuNdD+bxqEupdJg3hzb+NuHVFrDcfU1ofokQmafSWSC6eQ4U03ww==}
@@ -7114,8 +7105,6 @@ snapshots:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
       zustand: 5.0.3(@types/react@19.0.12)(react@19.0.0)
-
-  '@zayne-labs/tsconfig@0.2.1': {}
 
   '@zayne-labs/tsconfig@0.7.6': {}
 
