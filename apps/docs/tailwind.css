@@ -2,10 +2,11 @@
 
 @import "fumadocs-ui/css/preset.css";
 @import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/animations.css";
 @import "fumadocs-twoslash/twoslash.css";
 @source './node_modules/fumadocs-ui/dist/**/*.js';
 
-:root {
+@theme {
 	--color-fd-background: hsl(0, 0%, 100%);
 	--color-fd-foreground: hsl(20, 14.3%, 4.1%);
 	--color-fd-card: hsl(0, 0%, 100%);
@@ -23,8 +24,8 @@
 	--color-fd-border: hsl(20, 5.9%, 90%);
 	--color-fd-input: hsl(20, 5.9%, 90%);
 	--color-fd-ring: hsl(24.6, 95%, 53.1%);
-	--fd-destructive: hsl(0, 84.2%, 60.2%);
-	--fd-destructive-foreground: hsl(60, 9.1%, 97.8%);
+	--color-fd-destructive: hsl(0, 84.2%, 60.2%);
+	--color-fd-destructive-foreground: hsl(60, 9.1%, 97.8%);
 }
 
 .dark {
@@ -46,13 +47,8 @@
 	--color-fd-border: hsl(213 30% 18%);
 	--color-fd-input: hsl(213 30% 18%);
 	--color-fd-ring: hsl(251 67.7% 93.9%);
-	--fd-destructive: hsl(0 100% 30%);
-	--fd-destructive-foreground: hsl(251 5% 90%);
-}
-
-@theme inline {
-	--color-fd-destructive: var(--fd-destructive);
-	--color-fd-destructive-foreground: var(--fd-destructive-foreground);
+	--color-fd-destructive: hsl(0 100% 30%);
+	--color-fd-destructive-foreground: hsl(251 5% 90%);
 }
 
 @theme {
@@ -60,9 +56,19 @@
 	--font-mono: var(--font-geist-mono);
 
 	--animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
-	--animate-accordion-down: accordion-down 0.2s ease-out;
-	--animate-accordion-up: accordion-up 0.2s ease-out;
+	/* --animate-accordion-down: accordion-down 0.2s ease-out;
+	--animate-accordion-up: accordion-up 0.2s ease-out; */
 
+	@keyframes ripple {
+		0%,
+		100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(0.9);
+		}
+	}
+	/*
 	@keyframes accordion-up {
 		from {
 			height: var(--radix-accordion-content-height);
@@ -79,17 +85,7 @@
 		to {
 			height: var(--radix-accordion-content-height);
 		}
-	}
-
-	@keyframes ripple {
-		0%,
-		100% {
-			transform: scale(1);
-		}
-		50% {
-			transform: scale(0.9);
-		}
-	}
+	} */
 }
 
 /* -------------1-----*/
