@@ -3,6 +3,7 @@ import { rehypeCodeDefaultOptions } from "fumadocs-core/mdx-plugins";
 import { remarkInstall } from "fumadocs-docgen";
 import { defineConfig, defineDocs } from "fumadocs-mdx/config";
 import { transformerTwoslash } from "fumadocs-twoslash";
+import { remarkAutoTypeTable } from "fumadocs-typescript";
 
 export const { docs, meta } = defineDocs({
 	dir: "content/docs",
@@ -32,6 +33,6 @@ export default defineConfig({
 			],
 		},
 
-		remarkPlugins: [[remarkInstall, { persist: { id: "persist-install" } }]],
+		remarkPlugins: [[remarkInstall, { persist: { id: "persist-install" } }], remarkAutoTypeTable],
 	},
 });

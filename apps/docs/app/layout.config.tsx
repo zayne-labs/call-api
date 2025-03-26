@@ -17,7 +17,7 @@ import Logo from "public/logo.png";
 const linkItems = [
 	{
 		text: "Documentation",
-		url: "/docs/v1",
+		url: "/docs/latest",
 		active: "nested-url",
 	},
 	{
@@ -61,8 +61,6 @@ export const docsOptions: DocsLayoutProps = {
 	},
 
 	sidebar: {
-		collapsible: false,
-
 		tabs: {
 			transform: (option, node) => {
 				const meta = source.getNodeMeta(node);

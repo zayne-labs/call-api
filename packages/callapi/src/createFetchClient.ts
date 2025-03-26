@@ -46,10 +46,8 @@ export const createFetchClient = <
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseComputedData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
-	TBaseComputedErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
+	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
 >(
 	baseConfig?: BaseCallApiExtraOptions<
 		TBaseData,
@@ -57,8 +55,8 @@ export const createFetchClient = <
 		TBaseResultMode,
 		TBaseThrowOnError,
 		TBaseResponseType,
-		TBaseSchemas,
-		TBasePluginArray
+		TBasePluginArray,
+		TBaseSchemas
 	>
 ) => {
 	const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
@@ -66,15 +64,13 @@ export const createFetchClient = <
 	const $RequestInfoCache: RequestInfoCache = new Map();
 
 	const callApi = async <
-		TData = TBaseComputedData,
-		TErrorData = TBaseComputedErrorData,
+		TData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
+		TErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 		TThrowOnError extends boolean = TBaseThrowOnError,
 		TResponseType extends ResponseTypeUnion = TBaseResponseType,
-		TSchemas extends CallApiSchemas = TBaseSchemas,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
-		TComputedData = InferSchemaResult<TSchemas["data"], TData>,
-		TComputedErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
+		TSchemas extends CallApiSchemas = TBaseSchemas,
 	>(
 		...parameters: CallApiParameters<
 			TData,
@@ -82,11 +78,17 @@ export const createFetchClient = <
 			TResultMode,
 			TThrowOnError,
 			TResponseType,
-			TSchemas,
-			TPluginArray
+			TPluginArray,
+			TSchemas
 		>
 	): Promise<
-		GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TThrowOnError, TResponseType>
+		GetCallApiResult<
+			InferSchemaResult<TSchemas["data"], TData>,
+			InferSchemaResult<TSchemas["errorData"], TErrorData>,
+			TResultMode,
+			TThrowOnError,
+			TResponseType
+		>
 	> => {
 		const [initURL, config = {} as never] = parameters;
 

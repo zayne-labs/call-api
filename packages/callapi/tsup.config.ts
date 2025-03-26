@@ -5,7 +5,7 @@ const isDevMode = process.env.NODE_ENV === "development";
 const commonOptions = {
 	clean: true, // clean up dist folder,
 	dts: true,
-	entry: ["src/index.ts", "src/utils/index.ts", "src/options/index.ts"],
+	entry: ["src/index.ts", "src/utils/index.ts"],
 	sourcemap: !isDevMode,
 	tsconfig: "tsconfig.json",
 } satisfies Options;

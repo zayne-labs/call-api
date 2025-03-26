@@ -4,7 +4,7 @@
 
 CallApi Fetch is an extra-lightweight wrapper over fetch that provides quality of life improvements beyond the bare fetch api, while keeping the API familiar.
 
-It takes in a url and a request options object, just like fetch, but with some additional options to make your life easier. Check out the [API Reference](https://zayne-labs-callapi.netlify.app/docs/v1/all-options) for a quick look at each option.
+It takes in a url and a request options object, just like fetch, but with some additional options to make your life easier. Check out the [API Reference](https://zayne-labs-callapi.netlify.app/docs/latest/all-options) for a quick look at each option.
 
 # Docs
 

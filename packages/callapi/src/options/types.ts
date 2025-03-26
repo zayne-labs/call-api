@@ -11,8 +11,8 @@ export type CallApiExtraOptionsWithRequiredURL<
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TThrowOnError extends boolean = boolean,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-	TSchemas extends CallApiSchemas = CallApiSchemas,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TSchemas extends CallApiSchemas = CallApiSchemas,
 > = Omit<
 	CallApiExtraOptions<
 		TData,
@@ -20,8 +20,8 @@ export type CallApiExtraOptionsWithRequiredURL<
 		TResultMode,
 		TThrowOnError,
 		TResponseType,
-		TSchemas,
-		TPluginArray
+		TPluginArray,
+		TSchemas
 	>,
 	"initURL"
 > & {
