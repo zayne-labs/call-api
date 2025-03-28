@@ -454,5 +454,9 @@ export type GetCallApiResult<
 			? ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]
 			: ResultModeMap<TData, TErrorData, TResponseType>["all"]
 		: TResultMode extends NonNullable<ResultModeUnion>
-			? ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
+			? TResultMode extends "onlySuccess"
+				? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
+				: TResultMode extends "onlyResponse"
+					? ResultModeMap<TData, TErrorData, TResponseType>["onlyResponseWithException"]
+					: ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
 			: never;
