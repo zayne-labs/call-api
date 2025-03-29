@@ -58,10 +58,12 @@ const mergeUrlWithQuery = (url: string, query: CallApiExtraOptions["query"]): st
 };
 
 export const mergeUrlWithParamsAndQuery = (
-	url: string,
+	url: string | undefined,
 	params: CallApiExtraOptions["params"],
 	query: CallApiExtraOptions["query"]
 ) => {
+	if (!url) return;
+
 	const urlWithMergedParams = mergeUrlWithParams(url, params);
 
 	return mergeUrlWithQuery(urlWithMergedParams, query);
@@ -74,13 +76,13 @@ export type Params = UnmaskType<
 
 export type Query = UnmaskType<Record<string, boolean | number | string>>;
 
-export type InitURL = UnmaskType<string>;
+export type InitURL = UnmaskType<string | URL>;
 
 export interface UrlOptions<TSchemas extends CallApiSchemas> {
 	/**
 	 * URL to be used in the request.
 	 */
-	readonly initURL?: InferSchemaResult<TSchemas["initURL"], InitURL>;
+	readonly initURL?: string;
 
 	/**
 	 * Parameters to be appended to the URL (i.e: /:id)

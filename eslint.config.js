@@ -1,7 +1,12 @@
 import { zayne } from "@zayne-labs/eslint-config";
 
 export default zayne({
-	ignores: ["dist/**", "apps/docs/.source/**"],
+	ignores: ["packages/**/dist/**", "apps/docs/.source/**"],
+	imports: {
+		overrides: {
+			"import/no-cycle": "off",
+		},
+	},
 	react: {
 		compiler: true,
 		files: ["apps/docs/**/*.{ts,tsx}"],
@@ -10,11 +15,6 @@ export default zayne({
 			"nextjs-next/no-html-link-for-pages": ["error", "apps/docs"],
 		},
 	},
-	// tailwindcss: {
-	// 	settings: {
-	// 		config: "apps/docs/tailwind.config.ts",
-	// 	},
-	// },
 	type: "lib",
 	typescript: {
 		tsconfigPath: ["**/tsconfig.json"],

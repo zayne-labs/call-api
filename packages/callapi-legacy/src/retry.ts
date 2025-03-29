@@ -11,7 +11,7 @@ export interface RetryOptions<TErrorData> {
 	 * Keeps track of the number of times the request has already been retried
 	 * @deprecated This property is used internally to track retries. Please abstain from modifying it.
 	 */
-	readonly "~retryCount"?: number;
+	readonly ["~retryCount"]?: number;
 
 	/**
 	 * Number of allowed retry attempts on HTTP errors

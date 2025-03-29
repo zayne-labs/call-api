@@ -1,0 +1,20 @@
+{
+	"$schema": "https://turborepo.org/schema.json",
+	"tasks": {
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**", "./next/**"]
+		},
+		"lint:format": {},
+		"lint:size": {},
+		"lint:publint": {},
+		"lint:eslint": {},
+		"lint:eslint:dev": {},
+		"knip": {},
+		"lint:type-check": {}
+	}
+}

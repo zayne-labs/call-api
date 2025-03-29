@@ -5,3 +5,4 @@ node_modules
 eslint-typegen.d.ts
 next-env.d.ts
 .DS_Store
+.turbo

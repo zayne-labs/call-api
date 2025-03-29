@@ -1,9 +1,18 @@
 /* eslint-disable react-refresh/only-export-components -- Not relevant in Next.js */
 import { baseURL, createMetadata } from "@/lib/metadata";
 import { RootProvider as FumaThemeProvider } from "fumadocs-ui/provider";
-import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
+import { Geist, Geist_Mono } from "next/font/google";
 import "../tailwind.css";
+
+const geistSans = Geist({
+	subsets: ["latin"],
+	variable: "--font-var-geist-sans",
+});
+
+const geistMono = Geist_Mono({
+	subsets: ["latin"],
+	variable: "--font-var-geist-mono",
+});
 
 export const metadata = createMetadata({
 	description: "A lightweight, type-safe Fetch API wrapper with dozens of convenience features.",
@@ -19,7 +28,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html
 			lang="en"
-			className={`${GeistSans.variable} ${GeistMono.variable}`}
+			className={`${geistSans.variable} ${geistMono.variable}`}
 			suppressHydrationWarning={true}
 		>
 			<head>

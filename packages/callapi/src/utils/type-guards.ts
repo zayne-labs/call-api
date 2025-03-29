@@ -1,5 +1,5 @@
 import { HTTPError } from "@/error";
-import type { PossibleHTTPError, PossibleJavaScriptError } from "@/types/common";
+import type { PossibleHTTPError, PossibleJavaScriptError } from "@/types";
 import type { AnyFunction } from "./type-helpers";
 
 type ErrorObjectUnion<TErrorData = unknown> = PossibleHTTPError<TErrorData> | PossibleJavaScriptError;

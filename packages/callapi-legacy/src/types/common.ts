@@ -1,12 +1,12 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { Auth } from "../auth";
-import type { CallApiPlugin, DefaultPlugins, InferPluginOptions, Plugins } from "../plugins";
+import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
 import type { GetResponseType, ResponseTypeUnion } from "../response";
 import type { RetryOptions } from "../retry";
-import type { UrlOptions } from "../url";
+import type { InitURL, UrlOptions } from "../url";
 import type { fetchSpecificKeys } from "../utils/constants";
 import { type Awaitable, type UnmaskType, defineEnum } from "../utils/type-helpers";
-import type { CallApiSchemas, CallApiValidators } from "../validation";
+import type { CallApiSchemas, CallApiValidators, InferSchemaResult } from "../validation";
 import type {
 	BodyOption,
 	HeadersOption,
@@ -14,6 +14,12 @@ import type {
 	MethodOption,
 	ResultModeOption,
 } from "./conditional-types";
+import type {
+	DefaultDataType,
+	DefaultMoreOptions,
+	DefaultPluginArray,
+	DefaultThrowOnError,
+} from "./default-types";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
@@ -29,10 +35,6 @@ export type CallApiRequestOptionsForHooks<TSchemas extends CallApiSchemas = Defa
 > & {
 	headers?: Record<string, string | undefined>;
 };
-
-export type DefaultDataType = unknown;
-
-export type DefaultMoreOptions = NonNullable<unknown>;
 
 export type WithMoreOptions<TMoreOptions = DefaultMoreOptions> = {
 	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
@@ -101,9 +103,10 @@ export type ExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 > = {
 	/**
 	 * Authorization header value.
@@ -204,7 +207,7 @@ export type ExtraOptions<
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
 	 */
-	throwOnError?: boolean | ((context: ErrorContext<TErrorData>) => boolean);
+	throwOnError?: TThrowOnError | ((context: ErrorContext<TErrorData>) => TThrowOnError);
 
 	/**
 	 * Request timeout in milliseconds
@@ -232,16 +235,25 @@ export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 > = CallApiRequestOptions<TSchemas>
-	& ExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType> & {
+	& ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray, TSchemas> & {
 		/**
 		 * Options that should extend the base options.
 		 */
 		extend?: Pick<
-			ExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType>,
+			ExtraOptions<
+				TData,
+				TErrorData,
+				TResultMode,
+				TThrowOnError,
+				TResponseType,
+				TPluginArray,
+				TSchemas
+			>,
 			(typeof optionsEnumToExtendFromBase)[number]
 		>;
 	};
@@ -254,43 +266,46 @@ export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TBasePluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
 > = Omit<
 	Partial<
 		CallApiExtraOptions<
 			TBaseData,
 			TBaseErrorData,
 			TBaseResultMode,
-			TBaseSchemas,
+			TBaseThrowOnError,
+			TBaseResponseType,
 			TBasePluginArray,
-			TBaseResponseType
+			TBaseSchemas
 		>
 	>,
 	(typeof optionsEnumToOmitFromBase)[number]
 >;
 
-export type CombinedCallApiExtraOptions<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
-	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-> = BaseCallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType>
-	& CallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType>;
+export type CombinedCallApiExtraOptions = BaseCallApiExtraOptions & CallApiExtraOptions;
 
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TPluginArray extends CallApiPlugin[] = DefaultPlugins,
+	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 > = [
-	initURL: UrlOptions<TSchemas>["initURL"],
-	config?: CallApiExtraOptions<TData, TErrorData, TResultMode, TSchemas, TPluginArray, TResponseType>,
+	initURL: InferSchemaResult<TSchemas["initURL"], InitURL>,
+	config?: CallApiExtraOptions<
+		TData,
+		TErrorData,
+		TResultMode,
+		TThrowOnError,
+		TResponseType,
+		TPluginArray,
+		TSchemas
+	>,
 ];
 
 export type RequestContext = UnmaskType<{
@@ -347,6 +362,7 @@ export type RequestErrorContext = UnmaskType<{
 	error: PossibleJavaScriptError;
 	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
+	response: null;
 }>;
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<{
@@ -399,6 +415,12 @@ export type ResultModeMap<
 	/* eslint-disable perfectionist/sort-union-types -- I need the first one to be first */
 	all: CallApiResultSuccessVariant<TComputedData> | CallApiResultErrorVariant<TComputedErrorData>;
 
+	allWithException: CallApiResultSuccessVariant<TComputedData>;
+
+	allWithoutResponse:
+		| CallApiResultSuccessVariant<TComputedData>["data" | "error"]
+		| CallApiResultErrorVariant<TComputedErrorData>["data" | "error"];
+
 	onlyError:
 		| CallApiResultSuccessVariant<TComputedData>["error"]
 		| CallApiResultErrorVariant<TComputedErrorData>["error"];
@@ -406,6 +428,8 @@ export type ResultModeMap<
 	onlyResponse:
 		| CallApiResultErrorVariant<TComputedErrorData>["response"]
 		| CallApiResultSuccessVariant<TComputedData>["response"];
+
+	onlyResponseWithException: CallApiResultSuccessVariant<TComputedErrorData>["response"];
 
 	onlySuccess:
 		| CallApiResultErrorVariant<TComputedErrorData>["data"]
@@ -421,16 +445,18 @@ export type GetCallApiResult<
 	TData,
 	TErrorData,
 	TResultMode extends ResultModeUnion,
+	TThrowOnError extends boolean,
 	TResponseType extends ResponseTypeUnion,
-	TComputedMap extends ResultModeMap<TData, TErrorData, TResponseType> = ResultModeMap<
-		TData,
-		TErrorData,
-		TResponseType
-	>,
-> = TErrorData extends false
-	? TComputedMap["onlySuccessWithException"]
-	: undefined extends TResultMode
-		? TComputedMap["all"]
+> = TErrorData extends false | undefined
+	? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
+	: ResultModeUnion | undefined extends TResultMode
+		? TThrowOnError extends true
+			? ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]
+			: ResultModeMap<TData, TErrorData, TResponseType>["all"]
 		: TResultMode extends NonNullable<ResultModeUnion>
-			? TComputedMap[TResultMode]
+			? TResultMode extends "onlySuccess"
+				? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
+				: TResultMode extends "onlyResponse"
+					? ResultModeMap<TData, TErrorData, TResponseType>["onlyResponseWithException"]
+					: ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
 			: never;

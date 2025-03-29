@@ -1,6 +1,6 @@
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
-import { type CallApiPlugin, type DefaultPlugins, hooksEnum, initializePlugins } from "./plugins";
+import { type CallApiPlugin, hooksEnum, initializePlugins } from "./plugins";
 import { type ResponseTypeUnion, resolveResponseData, resolveSuccessResult } from "./response";
 import { createRetryStrategy } from "./retry";
 import type {
@@ -9,12 +9,18 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
-	DefaultDataType,
-	DefaultMoreOptions,
+	ErrorContext,
 	GetCallApiResult,
 	Interceptors,
 	ResultModeUnion,
+	SuccessContext,
 } from "./types/common";
+import type {
+	DefaultDataType,
+	DefaultMoreOptions,
+	DefaultPluginArray,
+	DefaultThrowOnError,
+} from "./types/default-types";
 import { mergeUrlWithParamsAndQuery } from "./url";
 import {
 	combineHooks,
@@ -31,25 +37,26 @@ import {
 	type CallApiSchemas,
 	type InferSchemaResult,
 	createExtensibleSchemasAndValidators,
+	handleValidation,
 } from "./validation";
 
 export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
-	TBasePluginArray extends CallApiPlugin[] = DefaultPlugins,
-	TBaseComputedData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
-	TBaseComputedErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
 >(
 	baseConfig?: BaseCallApiExtraOptions<
 		TBaseData,
 		TBaseErrorData,
 		TBaseResultMode,
-		TBaseSchemas,
+		TBaseThrowOnError,
+		TBaseResponseType,
 		TBasePluginArray,
-		TBaseResponseType
+		TBaseSchemas
 	>
 ) => {
 	const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
@@ -57,24 +64,32 @@ export const createFetchClient = <
 	const $RequestInfoCache: RequestInfoCache = new Map();
 
 	const callApi = async <
-		TData = TBaseComputedData,
-		TErrorData = TBaseComputedErrorData,
+		TData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
+		TErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
+		TThrowOnError extends boolean = TBaseThrowOnError,
 		TResponseType extends ResponseTypeUnion = TBaseResponseType,
-		TSchemas extends CallApiSchemas = TBaseSchemas,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
-		TComputedData = InferSchemaResult<TSchemas["data"], TData>,
-		TComputedErrorData = InferSchemaResult<TSchemas["errorData"], TErrorData>,
+		TSchemas extends CallApiSchemas = TBaseSchemas,
 	>(
 		...parameters: CallApiParameters<
 			TData,
 			TErrorData,
 			TResultMode,
-			TSchemas,
+			TThrowOnError,
+			TResponseType,
 			TPluginArray,
+			TSchemas
+		>
+	): Promise<
+		GetCallApiResult<
+			InferSchemaResult<TSchemas["data"], TData>,
+			InferSchemaResult<TSchemas["errorData"], TErrorData>,
+			TResultMode,
+			TThrowOnError,
 			TResponseType
 		>
-	): Promise<GetCallApiResult<TComputedData, TComputedErrorData, TResultMode, TBaseResponseType>> => {
+	> => {
 		const [initURL, config = {} as never] = parameters;
 
 		const [fetchOptions, extraOptions] = splitConfig(config);
@@ -117,10 +132,10 @@ export const createFetchClient = <
 
 		// == Default Request Options
 		const defaultRequestOptions = {
-			body: isPlainObject(body) ? defaultExtraOptions.bodySerializer(body) : body,
-
 			...baseFetchOptions,
 			...fetchOptions,
+
+			body: isPlainObject(body) ? defaultExtraOptions.bodySerializer(body) : body,
 
 			headers: mergeAndResolveHeaders({
 				auth: defaultExtraOptions.auth,
@@ -133,7 +148,7 @@ export const createFetchClient = <
 		} satisfies CallApiRequestOptions;
 
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
-			initURL: initURL as string,
+			initURL,
 			options: defaultExtraOptions,
 			request: defaultRequestOptions,
 		});
@@ -144,7 +159,7 @@ export const createFetchClient = <
 			...resolvedOptions,
 			...resolvedHooks,
 			fullURL,
-			initURL: initURL as string,
+			initURL: initURL.toString(),
 		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof resolvedHooks;
 
 		const newFetchController = new AbortController();
@@ -162,13 +177,10 @@ export const createFetchClient = <
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
 
-		const {
-			handleRequestCancelDedupeStrategy,
-			handleRequestDeferDedupeStrategy,
-			removeDedupeKeyFromCache,
-		} = await createDedupeStrategy({ $RequestInfoCache, newFetchController, options, request });
+		const { handleRequestCancelStrategy, handleRequestDeferStrategy, removeDedupeKeyFromCache } =
+			await createDedupeStrategy({ $RequestInfoCache, newFetchController, options, request });
 
-		handleRequestCancelDedupeStrategy();
+		await handleRequestCancelStrategy();
 
 		try {
 			await executeHooks(options.onRequest({ options, request }));
@@ -181,7 +193,7 @@ export const createFetchClient = <
 				headers: request.headers,
 			});
 
-			const response = await handleRequestDeferDedupeStrategy();
+			const response = await handleRequestDeferStrategy();
 
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
@@ -192,7 +204,11 @@ export const createFetchClient = <
 				const errorData = await resolveResponseData<TErrorData>(
 					shouldCloneResponse ? response.clone() : response,
 					options.responseType,
-					options.responseParser,
+					options.responseParser
+				);
+
+				const validErrorData = await handleValidation(
+					errorData,
 					schemas?.errorData,
 					validators?.errorData
 				);
@@ -200,7 +216,7 @@ export const createFetchClient = <
 				// == Push all error handling responsibilities to the catch block if not retrying
 				throw new HTTPError({
 					defaultErrorMessage: options.defaultErrorMessage,
-					errorData,
+					errorData: validErrorData,
 					response,
 				});
 			}
@@ -208,17 +224,17 @@ export const createFetchClient = <
 			const successData = await resolveResponseData<TData>(
 				shouldCloneResponse ? response.clone() : response,
 				options.responseType,
-				options.responseParser,
-				schemas?.data,
-				validators?.data
+				options.responseParser
 			);
 
+			const validSuccessData = await handleValidation(successData, schemas?.data, validators?.data);
+
 			const successContext = {
-				data: successData as never,
+				data: validSuccessData,
 				options,
 				request,
 				response: options.cloneResponse ? response.clone() : response,
-			};
+			} satisfies SuccessContext<unknown>;
 
 			await executeHooks(
 				options.onSuccess(successContext),
@@ -234,7 +250,7 @@ export const createFetchClient = <
 
 			// == Exhaustive Error handling
 		} catch (error) {
-			const { errorVariantDetails, getErrorResult } = resolveErrorResult({
+			const { apiDetails, getErrorResult } = resolveErrorResult({
 				cloneResponse: options.cloneResponse,
 				defaultErrorMessage: options.defaultErrorMessage,
 				error,
@@ -242,22 +258,18 @@ export const createFetchClient = <
 			});
 
 			const errorContext = {
-				error: errorVariantDetails.error as never,
+				error: apiDetails.error as never,
 				options,
 				request,
-			};
+				response: apiDetails.response as never,
+			} satisfies ErrorContext<unknown>;
 
-			const errorContextWithResponse = {
-				...errorContext,
-				response: errorVariantDetails.response as NonNullable<typeof errorVariantDetails.response>,
-			};
-
-			const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContextWithResponse);
+			const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContext);
 
 			const shouldRetry = !combinedSignal.aborted && (await shouldAttemptRetry());
 
 			if (shouldRetry) {
-				await executeHooks(options.onRetry(errorContextWithResponse));
+				await executeHooks(options.onRetry(errorContext));
 
 				const delay = getDelay();
 
@@ -272,7 +284,7 @@ export const createFetchClient = <
 			}
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
-				? options.throwOnError(errorContextWithResponse)
+				? options.throwOnError(errorContext)
 				: options.throwOnError;
 
 			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
@@ -280,16 +292,16 @@ export const createFetchClient = <
 				if (!shouldThrowOnError) return;
 
 				// eslint-disable-next-line ts-eslint/only-throw-error -- It's fine to throw this
-				throw errorVariantDetails.error;
+				throw apiDetails.error;
 			};
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				await executeHooks(
-					options.onResponseError(errorContextWithResponse),
+					options.onResponseError(errorContext),
 
-					options.onError(errorContextWithResponse),
+					options.onError(errorContext),
 
-					options.onResponse({ ...errorContextWithResponse, data: null })
+					options.onResponse({ ...errorContext, data: null })
 				);
 
 				handleThrowOnError();
@@ -319,10 +331,10 @@ export const createFetchClient = <
 
 			await executeHooks(
 				// == At this point only the request errors exist, so the request error interceptor is called
-				options.onRequestError(errorContext),
+				options.onRequestError(errorContext as never),
 
 				// == Also call the onError interceptor
-				options.onError(errorContextWithResponse)
+				options.onError(errorContext)
 			);
 
 			handleThrowOnError();

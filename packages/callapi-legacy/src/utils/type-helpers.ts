@@ -4,7 +4,7 @@ export type AnyString = string & { z_placeholder?: never };
 export type AnyNumber = number & { z_placeholder?: never };
 
 // eslint-disable-next-line ts-eslint/no-explicit-any -- Any is fine here
-export type AnyObject = Record<string, any>;
+export type AnyObject = Record<keyof any, any>;
 
 // eslint-disable-next-line ts-eslint/no-explicit-any -- Any is required here so that one can pass custom function type without type errors
 export type AnyFunction<TResult = unknown> = (...args: any) => TResult;

@@ -52,8 +52,8 @@
 }
 
 @theme {
-	--font-sans: var(--font-geist-sans);
-	--font-mono: var(--font-geist-mono);
+	--font-sans: var(--font-var-geist-sans);
+	--font-mono: var(--font-var-geist-mono);
 
 	--animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
 	/* --animate-accordion-down: accordion-down 0.2s ease-out;
