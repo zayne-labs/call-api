@@ -2,11 +2,6 @@ import { zayne } from "@zayne-labs/eslint-config";
 
 export default zayne({
 	ignores: ["packages/**/dist/**", "apps/docs/.source/**"],
-	imports: {
-		overrides: {
-			"import/no-cycle": "off",
-		},
-	},
 	react: {
 		compiler: true,
 		files: ["apps/docs/**/*.{ts,tsx}"],
