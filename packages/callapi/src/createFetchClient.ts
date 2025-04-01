@@ -134,17 +134,6 @@ export const createFetchClient = <
 		const defaultRequestOptions = {
 			...baseFetchOptions,
 			...fetchOptions,
-
-			body: isPlainObject(body) ? defaultExtraOptions.bodySerializer(body) : body,
-
-			headers: mergeAndResolveHeaders({
-				auth: defaultExtraOptions.auth,
-				baseHeaders: baseFetchOptions.headers,
-				body,
-				headers: fetchOptions.headers,
-			}),
-
-			signal: fetchOptions.signal ?? baseFetchOptions.signal,
 		} satisfies CallApiRequestOptions;
 
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
@@ -174,6 +163,16 @@ export const createFetchClient = <
 
 		const request = {
 			...resolvedRequestOptions,
+
+			body: isPlainObject(body) ? options.bodySerializer(body) : body,
+
+			headers: mergeAndResolveHeaders({
+				auth: options.auth,
+				baseHeaders: baseFetchOptions.headers,
+				body,
+				headers: fetchOptions.headers,
+			}),
+
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
 
@@ -195,10 +194,10 @@ export const createFetchClient = <
 
 			const response = await handleRequestDeferStrategy();
 
+			const { schemas, validators } = createExtensibleSchemasAndValidators(options);
+
 			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
-
-			const { schemas, validators } = createExtensibleSchemasAndValidators(options);
 
 			if (!response.ok) {
 				const errorData = await resolveResponseData<TErrorData>(

@@ -125,15 +125,20 @@ export type Plugins<TPluginArray extends CallApiPlugin[]> =
 	| TPluginArray
 	| ((context: PluginInitContext) => TPluginArray);
 
-const getPluginArray = (plugins: Plugins<CallApiPlugin[]> | undefined, context: PluginInitContext) => {
+const getPluginArray = (
+	plugins: Plugins<CallApiPlugin[]> | undefined,
+	context: Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
+) => {
 	if (!plugins) {
 		return [];
 	}
 
-	return isFunction(plugins) ? plugins(context) : plugins;
+	return isFunction(plugins) ? plugins(context as PluginInitContext) : plugins;
 };
 
-export const initializePlugins = async (context: PluginInitContext) => {
+export const initializePlugins = async (
+	context: Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
+) => {
 	const { initURL, options, request } = context;
 
 	const hookRegistries = structuredClone(hooksEnum);
@@ -170,7 +175,11 @@ export const initializePlugins = async (context: PluginInitContext) => {
 	const executePluginInit = async (pluginInit: CallApiPlugin["init"]) => {
 		if (!pluginInit) return;
 
-		const initResult = await pluginInit({ initURL, options, request });
+		const initResult = await pluginInit({
+			initURL,
+			options,
+			request: request as CallApiRequestOptionsForHooks,
+		});
 
 		if (!isPlainObject(initResult)) return;
 
