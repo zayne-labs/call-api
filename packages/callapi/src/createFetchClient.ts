@@ -346,8 +346,6 @@ export const createFetchClient = <
 		}
 	};
 
-	callApi.create = createFetchClient;
-
 	return callApi;
 };
 
