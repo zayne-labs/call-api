@@ -22,7 +22,15 @@ type MakeSchemaOptionRequired<
 		? TObject
 		: Required<TObject>;
 
-export type Body = UnmaskType<Record<string, unknown> | RequestInit["body"]>;
+type JsonPrimitive = boolean | number | string | null | undefined;
+
+export type SerializableObject = Record<keyof object, unknown>;
+
+export type SerializableArray =
+	| Array<JsonPrimitive | SerializableArray | SerializableObject>
+	| ReadonlyArray<JsonPrimitive | SerializableArray | SerializableObject>;
+
+export type Body = UnmaskType<RequestInit["body"] | SerializableArray | SerializableObject>;
 
 export type BodyOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
 	TSchemas["body"],

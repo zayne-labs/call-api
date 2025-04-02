@@ -64,6 +64,27 @@ export const isPlainObject = <TPlainObject extends Record<string, unknown>>(
 	return true;
 };
 
+export const isJsonString = (value: unknown): value is string => {
+	if (!isString(value)) {
+		return false;
+	}
+
+	try {
+		JSON.parse(value);
+		return true;
+	} catch {
+		return false;
+	}
+};
+
+export const isSerializable = (value: unknown) => {
+	return (
+		isPlainObject(value)
+		|| isArray(value)
+		|| typeof (value as { toJSON: unknown } | undefined)?.toJSON === "function"
+	);
+};
+
 export const isFunction = <TFunction extends AnyFunction>(value: unknown): value is TFunction =>
 	typeof value === "function";
 

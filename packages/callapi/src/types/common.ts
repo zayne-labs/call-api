@@ -239,24 +239,15 @@ export type CallApiExtraOptions<
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-> = CallApiRequestOptions<TSchemas>
-	& ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray, TSchemas> & {
-		/**
-		 * Options that should extend the base options.
-		 */
-		extend?: Pick<
-			ExtraOptions<
-				TData,
-				TErrorData,
-				TResultMode,
-				TThrowOnError,
-				TResponseType,
-				TPluginArray,
-				TSchemas
-			>,
-			(typeof optionsEnumToExtendFromBase)[number]
-		>;
-	};
+> = ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray, TSchemas> & {
+	/**
+	 * Options that should extend the base options.
+	 */
+	extend?: Pick<
+		ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray, TSchemas>,
+		(typeof optionsEnumToExtendFromBase)[number]
+	>;
+};
 
 export const optionsEnumToOmitFromBase = defineEnum(["extend", "dedupeKey"] satisfies Array<
 	keyof CallApiExtraOptions
@@ -287,6 +278,40 @@ export type BaseCallApiExtraOptions<
 
 export type CombinedCallApiExtraOptions = BaseCallApiExtraOptions & CallApiExtraOptions;
 
+export type BaseCallApiConfig<
+	TBaseData = DefaultDataType,
+	TBaseErrorData = DefaultDataType,
+	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
+	TBaseThrowOnError extends boolean = DefaultThrowOnError,
+	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
+> =
+	| (CallApiRequestOptions<TBaseSchemas> // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
+			& BaseCallApiExtraOptions<
+				TBaseData,
+				TBaseErrorData,
+				TBaseResultMode,
+				TBaseThrowOnError,
+				TBaseResponseType,
+				TBasePluginArray,
+				TBaseSchemas
+			>)
+	| ((context: {
+			initURL: string;
+			options: CallApiExtraOptions;
+			request: CallApiRequestOptions;
+	  }) => CallApiRequestOptions<TBaseSchemas> // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
+			& BaseCallApiExtraOptions<
+				TBaseData,
+				TBaseErrorData,
+				TBaseResultMode,
+				TBaseThrowOnError,
+				TBaseResponseType,
+				TBasePluginArray,
+				TBaseSchemas
+			>);
+
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
@@ -297,15 +322,16 @@ export type CallApiParameters<
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 > = [
 	initURL: InferSchemaResult<TSchemas["initURL"], InitURL>,
-	config?: CallApiExtraOptions<
-		TData,
-		TErrorData,
-		TResultMode,
-		TThrowOnError,
-		TResponseType,
-		TPluginArray,
-		TSchemas
-	>,
+	config?: CallApiRequestOptions<TSchemas> // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs
+		& CallApiExtraOptions<
+			TData,
+			TErrorData,
+			TResultMode,
+			TThrowOnError,
+			TResponseType,
+			TPluginArray,
+			TSchemas
+		>,
 ];
 
 export type RequestContext = UnmaskType<{

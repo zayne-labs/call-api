@@ -73,7 +73,7 @@ const baseSchemas = {
 		foo: z.number(),
 	}),
 	initURL: z.literal("/products/:id"),
-	method: z.enum(["GET"]),
+	// method: z.enum(["GET"]),
 	// errorData: z.object({
 	// 	message: z.string(),
 	// }),
@@ -98,11 +98,10 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 	callApi<"", false | undefined>("/products/:id", {
 		method: "GET",
 		params: [1],
-		// resultMode: "onlySuccess",
-		throwOnError: true,
 	}),
 	callApi("/products/:id", {
-		method: "GET",
+		body: ["dev"],
+		method: "POST",
 		params: [1],
 	}),
 	callApi("/products/:id", {

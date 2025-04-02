@@ -1,10 +1,10 @@
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
-import { type CallApiPlugin, hooksEnum, initializePlugins } from "./plugins";
+import { type CallApiPlugin, type PluginInitContext, hooksEnum, initializePlugins } from "./plugins";
 import { type ResponseTypeUnion, resolveResponseData, resolveSuccessResult } from "./response";
 import { createRetryStrategy } from "./retry";
 import type {
-	BaseCallApiExtraOptions,
+	BaseCallApiConfig,
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
@@ -49,7 +49,7 @@ export const createFetchClient = <
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
 >(
-	baseConfig?: BaseCallApiExtraOptions<
+	baseConfig: BaseCallApiConfig<
 		TBaseData,
 		TBaseErrorData,
 		TBaseResultMode,
@@ -57,10 +57,8 @@ export const createFetchClient = <
 		TBaseResponseType,
 		TBasePluginArray,
 		TBaseSchemas
-	>
+	> = {} as never
 ) => {
-	const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(baseConfig ?? {});
-
 	const $RequestInfoCache: RequestInfoCache = new Map();
 
 	const callApi = async <
@@ -93,6 +91,12 @@ export const createFetchClient = <
 		const [initURL, config = {} as never] = parameters;
 
 		const [fetchOptions, extraOptions] = splitConfig(config);
+
+		const resolvedBaseConfig = isFunction(baseConfig)
+			? baseConfig({ initURL: initURL.toString(), options: extraOptions, request: fetchOptions })
+			: baseConfig;
+
+		const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(resolvedBaseConfig);
 
 		const initCombinedHooks = {} as Required<Interceptors>;
 
@@ -128,8 +132,6 @@ export const createFetchClient = <
 			...initCombinedHooks,
 		} satisfies CombinedCallApiExtraOptions;
 
-		const body = fetchOptions.body ?? baseFetchOptions.body;
-
 		// == Default Request Options
 		const defaultRequestOptions = {
 			...baseFetchOptions,
@@ -137,6 +139,8 @@ export const createFetchClient = <
 		} satisfies CallApiRequestOptions;
 
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
+			baseConfig: resolvedBaseConfig as PluginInitContext["config"],
+			config: config as PluginInitContext["config"],
 			initURL,
 			options: defaultExtraOptions,
 			request: defaultRequestOptions,
@@ -164,12 +168,14 @@ export const createFetchClient = <
 		const request = {
 			...resolvedRequestOptions,
 
-			body: isPlainObject(body) ? options.bodySerializer(body) : body,
+			body: isPlainObject(resolvedRequestOptions.body)
+				? options.bodySerializer(resolvedRequestOptions.body)
+				: resolvedRequestOptions.body,
 
 			headers: mergeAndResolveHeaders({
 				auth: options.auth,
 				baseHeaders: baseFetchOptions.headers,
-				body,
+				body: resolvedRequestOptions.body,
 				headers: fetchOptions.headers,
 			}),
 
@@ -188,7 +194,7 @@ export const createFetchClient = <
 			request.headers = mergeAndResolveHeaders({
 				auth: options.auth,
 				baseHeaders: baseFetchOptions.headers,
-				body,
+				body: request.body,
 				headers: request.headers,
 			});
 
@@ -277,9 +283,9 @@ export const createFetchClient = <
 				const updatedOptions = {
 					...config,
 					"~retryCount": (options["~retryCount"] ?? 0) + 1,
-				} satisfies typeof config as typeof config;
+				} satisfies typeof config;
 
-				return await callApi(initURL, updatedOptions);
+				return await callApi(initURL, updatedOptions as never);
 			}
 
 			const shouldThrowOnError = isFunction(options.throwOnError)

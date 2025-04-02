@@ -1,6 +1,8 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type {
+	BaseCallApiExtraOptions,
+	CallApiExtraOptions,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CombinedCallApiExtraOptions,
@@ -10,7 +12,7 @@ import type {
 } from "./types/common";
 import type { DefaultMoreOptions } from "./types/default-types";
 import type { InitURL } from "./url";
-import { isFunction, isPlainObject, isString } from "./utils/type-guards";
+import { isPlainObject, isString } from "./utils/type-guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 import type { InferSchemaResult } from "./validation";
 
@@ -29,6 +31,8 @@ export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIn
 >;
 
 export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = WithMoreOptions<TMoreOptions> & {
+	baseConfig: BaseCallApiExtraOptions & CallApiRequestOptions;
+	config: CallApiExtraOptions & CallApiRequestOptions;
 	initURL: InitURL | undefined;
 	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
@@ -121,25 +125,20 @@ export const hooksEnum = {
 	onSuccess: new Set(),
 } satisfies HookRegistries;
 
-export type Plugins<TPluginArray extends CallApiPlugin[]> =
-	| TPluginArray
-	| ((context: PluginInitContext) => TPluginArray);
+export type Plugins<TPluginArray extends CallApiPlugin[]> = TPluginArray;
 
-const getPluginArray = (
-	plugins: Plugins<CallApiPlugin[]> | undefined,
-	context: Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
-) => {
+const getPluginArray = (plugins: Plugins<CallApiPlugin[]> | undefined) => {
 	if (!plugins) {
 		return [];
 	}
 
-	return isFunction(plugins) ? plugins(context as PluginInitContext) : plugins;
+	return plugins;
 };
 
 export const initializePlugins = async (
 	context: Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
 ) => {
-	const { initURL, options, request } = context;
+	const { baseConfig, config, initURL, options, request } = context;
 
 	const hookRegistries = structuredClone(hooksEnum);
 
@@ -164,8 +163,8 @@ export const initializePlugins = async (
 	}
 
 	const resolvedPlugins = [
-		...getPluginArray(options.plugins, context),
-		...getPluginArray(options.extend?.plugins, context),
+		...getPluginArray(options.plugins),
+		...getPluginArray(options.extend?.plugins),
 	];
 
 	let resolvedUrl = initURL;
@@ -176,6 +175,8 @@ export const initializePlugins = async (
 		if (!pluginInit) return;
 
 		const initResult = await pluginInit({
+			baseConfig,
+			config,
 			initURL,
 			options,
 			request: request as CallApiRequestOptionsForHooks,

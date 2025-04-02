@@ -6,7 +6,14 @@ import {
 	optionsEnumToOmitFromBase,
 } from "../types/common";
 import { fetchSpecificKeys } from "./constants";
-import { isArray, isFunction, isPlainObject, isQueryString, isString } from "./type-guards";
+import {
+	isArray,
+	isFunction,
+	isJsonString,
+	isPlainObject,
+	isQueryString,
+	isSerializable,
+} from "./type-guards";
 import type { AnyFunction, Awaitable } from "./type-helpers";
 
 export const omitKeys = <
@@ -66,14 +73,6 @@ export const splitConfig = (config: Record<string, any>) =>
 		omitKeys(config, fetchSpecificKeys) as CallApiExtraOptions,
 	] as const;
 
-export const objectifyHeaders = (headers: CallApiRequestOptions["headers"]) => {
-	if (!headers || isPlainObject(headers)) {
-		return headers;
-	}
-
-	return Object.fromEntries(headers);
-};
-
 type ToQueryStringFn = {
 	(params: CallApiExtraOptions["query"]): string | null;
 	(params: Required<CallApiExtraOptions>["query"]): string;
@@ -89,13 +88,19 @@ export const toQueryString: ToQueryStringFn = (params) => {
 	return new URLSearchParams(params as Record<string, string>).toString();
 };
 
-// export mergeAndResolve
+export const objectifyHeaders = (headers: CallApiRequestOptions["headers"]) => {
+	if (!headers || isPlainObject(headers)) {
+		return headers;
+	}
+
+	return Object.fromEntries(headers);
+};
 
 export const mergeAndResolveHeaders = (options: {
 	auth: CallApiExtraOptions["auth"];
-	baseHeaders: CallApiExtraOptions["headers"];
-	body: CallApiExtraOptions["body"];
-	headers: CallApiExtraOptions["headers"];
+	baseHeaders: CallApiRequestOptions["headers"];
+	body: CallApiRequestOptions["body"];
+	headers: CallApiRequestOptions["headers"];
 }) => {
 	const { auth, baseHeaders, body, headers } = options;
 
@@ -120,7 +125,7 @@ export const mergeAndResolveHeaders = (options: {
 		return headersObject;
 	}
 
-	if (isPlainObject(body) || (isString(body) && body.startsWith("{"))) {
+	if (isSerializable(body) || isJsonString(body)) {
 		headersObject["Content-Type"] = "application/json";
 		headersObject.Accept = "application/json";
 	}
