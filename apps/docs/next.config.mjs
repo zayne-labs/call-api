@@ -13,6 +13,7 @@ const config = {
 		ignoreDuringBuilds: true,
 	},
 	reactStrictMode: true,
+	serverExternalPackages: ["twoslash", "typescript", "shiki"],
 };
 
 export default withMDX(config);

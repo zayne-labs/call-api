@@ -15,10 +15,10 @@
 		"zod": "^3.24.2"
 	},
 	"devDependencies": {
-		"@types/node": "^22.13.14",
+		"@types/node": "^22.14.0",
 		"@zayne-labs/tsconfig": "0.7.9",
 		"tsx": "^4.19.3",
 		"typescript": "5.8.2",
-		"vite": "^6.2.3"
+		"vite": "^6.2.5"
 	}
 }

@@ -3,18 +3,27 @@ import { rehypeCodeDefaultOptions } from "fumadocs-core/mdx-plugins";
 import { remarkInstall } from "fumadocs-docgen";
 import { defineConfig, defineDocs } from "fumadocs-mdx/config";
 import { transformerTwoslash } from "fumadocs-twoslash";
-import { remarkAutoTypeTable } from "fumadocs-typescript";
+import { createFileSystemTypesCache } from "fumadocs-twoslash/cache-fs";
+import { createGenerator, remarkAutoTypeTable } from "fumadocs-typescript";
 
 export const { docs, meta } = defineDocs({
 	dir: "content/docs",
 });
 
+const generator = createGenerator();
+
+const defaultTwoSlashOptionsObject = defaultTwoslashOptions();
+
 export default defineConfig({
 	mdxOptions: {
 		rehypeCodeOptions: {
+			experimentalJSEngine: true,
+			inline: "tailing-curly-colon",
+			langs: ["js", "bash"],
+			lazy: true,
 			themes: {
-				dark: "github-dark",
-				light: "github-light",
+				dark: "catppuccin-mocha",
+				light: "catppuccin-latte",
 			},
 
 			transformers: [
@@ -23,16 +32,20 @@ export default defineConfig({
 				transformerTwoslash({
 					twoslashOptions: {
 						// == Adding default twoslash options from shiki cuz it contains the support for custom annotation tags like `@annotate`.
-						...defaultTwoslashOptions(),
+						...defaultTwoSlashOptionsObject,
 						compilerOptions: {
-							...defaultTwoslashOptions().compilerOptions,
+							...defaultTwoSlashOptionsObject.compilerOptions,
 							noErrorTruncation: true,
 						},
 					},
+					typesCache: createFileSystemTypesCache(),
 				}),
 			],
 		},
 
-		remarkPlugins: [[remarkInstall, { persist: { id: "persist-install" } }], remarkAutoTypeTable],
+		remarkPlugins: [
+			[remarkInstall, { persist: { id: "persist-install" } }],
+			[remarkAutoTypeTable, { generator }],
+		],
 	},
 });

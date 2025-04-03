@@ -65,7 +65,7 @@
 		"@zayne-labs/tsconfig": "0.7.9",
 		"concurrently": "^9.1.2",
 		"cross-env": "^7.0.3",
-		"publint": "^0.3.9",
+		"publint": "^0.3.10",
 		"size-limit": "11.2.0",
 		"terser": "5.39.0",
 		"tsup": "8.4.0",
