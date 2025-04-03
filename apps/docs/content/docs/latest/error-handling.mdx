@@ -22,7 +22,6 @@ CallApi by default returns request and response errors as a value, wrapped in a 
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
 
-// ---cut---
 const { error } = await callApi("https://my-api.com/api/v1/session");
 // @annotate: Hover over the error object to see the type
 ```

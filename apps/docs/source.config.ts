@@ -22,8 +22,8 @@ export default defineConfig({
 			langs: ["js", "bash"],
 			lazy: true,
 			themes: {
-				dark: "catppuccin-mocha",
-				light: "catppuccin-latte",
+				dark: "material-theme-darker",
+				light: "material-theme-lighter",
 			},
 
 			transformers: [
