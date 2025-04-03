@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 1.6.16
+
+### Patch Changes
+
+- e5f13e3: feat: cleaned things up a bit
+
 ## 1.6.9
 
 ### Patch Changes
