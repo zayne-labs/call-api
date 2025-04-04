@@ -266,11 +266,18 @@ export const createFetchClient = <
 				response: apiDetails.response as never,
 			} satisfies ErrorContext<unknown>;
 
-			const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContext);
+			const shouldThrowOnError = isFunction(options.throwOnError)
+				? options.throwOnError(errorContext)
+				: options.throwOnError;
 
-			const shouldRetry = !combinedSignal.aborted && (await shouldAttemptRetry());
+			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
+			const handleRetry = async () => {
+				const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContext);
 
-			if (shouldRetry) {
+				const shouldRetry = !combinedSignal.aborted && (await shouldAttemptRetry());
+
+				if (!shouldRetry) return;
+
 				await executeHooks(options.onRetry(errorContext));
 
 				const delay = getDelay();
@@ -282,12 +289,8 @@ export const createFetchClient = <
 					"~retryCount": (options["~retryCount"] ?? 0) + 1,
 				} satisfies typeof config;
 
-				return await callApi(initURL, updatedOptions as never);
-			}
-
-			const shouldThrowOnError = isFunction(options.throwOnError)
-				? options.throwOnError(errorContext)
-				: options.throwOnError;
+				return callApi(initURL, updatedOptions as never);
+			};
 
 			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
 			const handleThrowOnError = () => {
@@ -306,6 +309,8 @@ export const createFetchClient = <
 					options.onResponse({ ...errorContext, data: null })
 				);
 
+				await handleRetry();
+
 				handleThrowOnError();
 
 				return getErrorResult();
@@ -316,6 +321,8 @@ export const createFetchClient = <
 
 				console.error(`${name}:`, message);
 
+				await handleRetry();
+
 				handleThrowOnError();
 
 				return getErrorResult();
@@ -325,6 +332,8 @@ export const createFetchClient = <
 				const message = `Request timed out after ${options.timeout}ms`;
 
 				console.error(`${error.name}:`, message);
+
+				await handleRetry();
 
 				handleThrowOnError();
 
@@ -338,6 +347,8 @@ export const createFetchClient = <
 				// == Also call the onError interceptor
 				options.onError(errorContext)
 			);
+
+			await handleRetry();
 
 			handleThrowOnError();
 
