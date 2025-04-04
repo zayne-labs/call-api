@@ -285,9 +285,10 @@ export const createFetchClient = <
 				await waitUntil(delay);
 
 				const updatedOptions = {
-					...config,
+					...request,
+					...options,
 					"~retryCount": (options["~retryCount"] ?? 0) + 1,
-				} satisfies typeof config;
+				} as unknown as typeof config;
 
 				return callApi(initURL, updatedOptions as never);
 			};
