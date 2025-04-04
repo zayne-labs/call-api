@@ -212,7 +212,7 @@ export const createFetchClient = <
 				const validErrorData = await handleValidation(
 					errorData,
 					schemas?.errorData,
-					validators?.errorData as never
+					validators?.errorData
 				);
 
 				// == Push all error handling responsibilities to the catch block if not retrying
@@ -229,11 +229,7 @@ export const createFetchClient = <
 				options.responseParser
 			);
 
-			const validSuccessData = await handleValidation(
-				successData,
-				schemas?.data,
-				validators?.data as never
-			);
+			const validSuccessData = await handleValidation(successData, schemas?.data, validators?.data);
 
 			const successContext = {
 				data: validSuccessData,
