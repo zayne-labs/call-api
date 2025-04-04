@@ -312,6 +312,25 @@ export type BaseCallApiConfig<
 				TBaseSchemas
 			>);
 
+export type CallApiConfig<
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TThrowOnError extends boolean = DefaultThrowOnError,
+	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TSchemas extends CallApiSchemas = DefaultMoreOptions,
+> = CallApiRequestOptions<TSchemas> // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs
+	& CallApiExtraOptions<
+		TData,
+		TErrorData,
+		TResultMode,
+		TThrowOnError,
+		TResponseType,
+		TPluginArray,
+		TSchemas
+	>;
+
 export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
@@ -322,16 +341,15 @@ export type CallApiParameters<
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 > = [
 	initURL: InferSchemaResult<TSchemas["initURL"], InitURL>,
-	config?: CallApiRequestOptions<TSchemas> // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs
-		& CallApiExtraOptions<
-			TData,
-			TErrorData,
-			TResultMode,
-			TThrowOnError,
-			TResponseType,
-			TPluginArray,
-			TSchemas
-		>,
+	config?: CallApiConfig<
+		TData,
+		TErrorData,
+		TResultMode,
+		TThrowOnError,
+		TResponseType,
+		TPluginArray,
+		TSchemas
+	>,
 ];
 
 export type RequestContext = UnmaskType<{
@@ -486,3 +504,11 @@ export type GetCallApiResult<
 					? ResultModeMap<TData, TErrorData, TResponseType>["onlyResponseWithException"]
 					: ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
 			: never;
+
+export type CallApiResult<
+	TData,
+	TErrorData,
+	TResultMode extends ResultModeUnion,
+	TThrowOnError extends boolean,
+	TResponseType extends ResponseTypeUnion,
+> = Promise<GetCallApiResult<TData, TErrorData, TResultMode, TThrowOnError, TResponseType>>;

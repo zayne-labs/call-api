@@ -8,9 +8,9 @@ import type {
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
+	CallApiResult,
 	CombinedCallApiExtraOptions,
 	ErrorContext,
-	GetCallApiResult,
 	Interceptors,
 	ResultModeUnion,
 	SuccessContext,
@@ -79,14 +79,12 @@ export const createFetchClient = <
 			TPluginArray,
 			TSchemas
 		>
-	): Promise<
-		GetCallApiResult<
-			InferSchemaResult<TSchemas["data"], TData>,
-			InferSchemaResult<TSchemas["errorData"], TErrorData>,
-			TResultMode,
-			TThrowOnError,
-			TResponseType
-		>
+	): CallApiResult<
+		InferSchemaResult<TSchemas["data"], TData>,
+		InferSchemaResult<TSchemas["errorData"], TErrorData>,
+		TResultMode,
+		TThrowOnError,
+		TResponseType
 	> => {
 		const [initURL, config = {} as never] = parameters;
 
@@ -214,7 +212,7 @@ export const createFetchClient = <
 				const validErrorData = await handleValidation(
 					errorData,
 					schemas?.errorData,
-					validators?.errorData
+					validators?.errorData as never
 				);
 
 				// == Push all error handling responsibilities to the catch block if not retrying
@@ -231,7 +229,11 @@ export const createFetchClient = <
 				options.responseParser
 			);
 
-			const validSuccessData = await handleValidation(successData, schemas?.data, validators?.data);
+			const validSuccessData = await handleValidation(
+				successData,
+				schemas?.data,
+				validators?.data as never
+			);
 
 			const successContext = {
 				data: validSuccessData,

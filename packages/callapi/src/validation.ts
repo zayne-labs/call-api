@@ -65,7 +65,7 @@ export interface CallApiSchemas {
 	query?: StandardSchemaV1<Query>;
 }
 
-export interface CallApiValidators<TData = unknown, TErrorData = unknown> {
+export interface CallApiValidators<TData = never, TErrorData = never> {
 	/**
 	 * Custom function to validate the response data.
 	 */

@@ -85,7 +85,7 @@ const baseSchemas = {
 	// }),
 } satisfies CallApiSchemas;
 
-const callApi = createFetchClient({
+const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
 	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => console.info({ progress }),
@@ -95,20 +95,20 @@ const callApi = createFetchClient({
 });
 
 const [foo1, foo2, foo3, foo4] = await Promise.all([
-	callApi<"", false | undefined>("/products/:id", {
+	callMainApi<"", false | undefined>("/products/:id", {
 		method: "GET",
 		params: [1],
 	}),
-	callApi("/products/:id", {
+	callMainApi("/products/:id", {
 		body: ["dev"],
 		method: "POST",
 		params: [1],
 	}),
-	callApi("/products/:id", {
+	callMainApi("/products/:id", {
 		method: "GET",
 		params: [1],
 	}),
-	callApi("/products/:id", {
+	callMainApi("/products/:id", {
 		method: "GET",
 		onRequest: () => console.info("OnRequest"),
 		params: [1320],
