@@ -193,7 +193,6 @@ export const createFetchClient = <
 			// == Apply determined headers again after onRequest incase they were modified
 			request.headers = mergeAndResolveHeaders({
 				auth: options.auth,
-				baseHeaders: baseFetchOptions.headers,
 				body: request.body,
 				headers: request.headers,
 			});

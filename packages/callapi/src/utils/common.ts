@@ -96,12 +96,14 @@ export const objectifyHeaders = (headers: CallApiRequestOptions["headers"]) => {
 	return Object.fromEntries(headers);
 };
 
-export const mergeAndResolveHeaders = (options: {
+type MergeAndResolveHeadersOptions = {
 	auth: CallApiExtraOptions["auth"];
-	baseHeaders: CallApiRequestOptions["headers"];
+	baseHeaders?: CallApiRequestOptions["headers"];
 	body: CallApiRequestOptions["body"];
 	headers: CallApiRequestOptions["headers"];
-}) => {
+};
+
+export const mergeAndResolveHeaders = (options: MergeAndResolveHeadersOptions) => {
 	const { auth, baseHeaders, body, headers } = options;
 
 	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing -- Nullish coalescing makes no sense in this boolean context
