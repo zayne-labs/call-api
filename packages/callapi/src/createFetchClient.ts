@@ -135,6 +135,7 @@ export const createFetchClient = <
 
 		const fullURL = `${resolvedOptions.baseURL}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;
 
+		// FIXME -  Consider adding an option for refetching a callApi request
 		const options = {
 			...resolvedOptions,
 			...resolvedHooks,
