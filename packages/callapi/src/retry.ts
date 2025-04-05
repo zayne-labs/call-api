@@ -1,9 +1,10 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { Method } from "./types";
 import type { ErrorContext } from "./types/common";
-import type { AnyNumber } from "./utils/type-helpers";
+import { isFunction } from "./utils/type-guards";
+import type { AnyNumber, Awaitable } from "./utils/type-helpers";
 
-type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => boolean | Promise<boolean>;
+type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;
 
 export interface RetryOptions<TErrorData> {
 	/**
@@ -39,13 +40,17 @@ export interface RetryOptions<TErrorData> {
 	 * HTTP methods that are allowed to retry
 	 * @default ["GET", "POST"]
 	 */
-	retryMethods?: Method[];
+	retryMethods?: Method[] | ((context: ErrorContext<TErrorData>) => Method[]);
 
 	/**
 	 * HTTP status codes that trigger a retry
 	 * @default [409, 425, 429, 500, 502, 503, 504]
 	 */
-	retryStatusCodes?: Array<409 | 425 | 429 | 500 | 502 | 503 | 504 | AnyNumber>;
+	retryStatusCodes?:
+		| Array<409 | 425 | 429 | 500 | 502 | 503 | 504 | AnyNumber>
+		| ((
+				context: ErrorContext<TErrorData>
+		  ) => Array<409 | 425 | 429 | 500 | 502 | 503 | 504 | AnyNumber>);
 
 	/**
 	 * Strategy to use when retrying
@@ -89,13 +94,21 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 			return baseRetryCondition;
 		}
 
+		const resolvedRetryMethods = isFunction(ctx.options.retryMethods)
+			? ctx.options.retryMethods(ctx)
+			: ctx.options.retryMethods;
+
+		const resolvedRetryStatusCodes = isFunction(ctx.options.retryStatusCodes)
+			? ctx.options.retryStatusCodes(ctx)
+			: ctx.options.retryStatusCodes;
+
 		const includesMethod =
 			// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
-			!!ctx.request.method && ctx.options.retryMethods?.includes(ctx.request.method);
+			!!ctx.request.method && resolvedRetryMethods?.includes(ctx.request.method);
 
 		const includesCodes =
 			// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
-			!!ctx.response?.status && ctx.options.retryStatusCodes?.includes(ctx.response.status);
+			!!ctx.response?.status && resolvedRetryStatusCodes?.includes(ctx.response.status);
 
 		return includesCodes && includesMethod && baseRetryCondition;
 	};

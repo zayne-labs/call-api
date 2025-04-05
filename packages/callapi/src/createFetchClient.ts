@@ -30,7 +30,7 @@ import {
 	splitConfig,
 	waitUntil,
 } from "./utils/common";
-import { defaultRetryMethods, defaultRetryStatusCodes } from "./utils/constants";
+import { defaultExtraOptions } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
 import { isFunction, isHTTPErrorInstance, isPlainObject } from "./utils/type-guards";
 import {
@@ -90,8 +90,15 @@ export const createFetchClient = <
 
 		const [fetchOptions, extraOptions] = splitConfig(config);
 
+		// == Default Extra Options
+
 		const resolvedBaseConfig = isFunction(baseConfig)
-			? baseConfig({ initURL: initURL.toString(), options: extraOptions, request: fetchOptions })
+			? baseConfig({
+					defaultOptions: defaultExtraOptions,
+					initURL: initURL.toString(),
+					options: extraOptions,
+					request: fetchOptions,
+				})
 			: baseConfig;
 
 		const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(resolvedBaseConfig);
@@ -107,31 +114,15 @@ export const createFetchClient = <
 			initCombinedHooks[key as keyof Interceptors] = combinedHook as never;
 		}
 
-		// == Default Extra Options
-		const defaultExtraOptions = {
-			baseURL: "",
-			bodySerializer: JSON.stringify,
-			dedupeStrategy: "cancel",
-			defaultErrorMessage: "Failed to fetch data from server!",
-			mergedHooksExecutionMode: "parallel",
-			mergedHooksExecutionOrder: "mainHooksAfterPlugins",
-			responseType: "json",
-			resultMode: "all",
-			retryAttempts: 0,
-			retryDelay: 1000,
-			retryMaxDelay: 10000,
-			retryMethods: defaultRetryMethods,
-			retryStatusCodes: defaultRetryStatusCodes,
-			retryStrategy: "linear",
-
+		// == Merged Extra Options
+		const mergedExtraOptions = {
+			...defaultExtraOptions,
 			...baseExtraOptions,
 			...extraOptions,
+		};
 
-			...initCombinedHooks,
-		} satisfies CombinedCallApiExtraOptions;
-
-		// == Default Request Options
-		const defaultRequestOptions = {
+		// == Merged Request Options
+		const mergedRequestOptions = {
 			...baseFetchOptions,
 			...fetchOptions,
 		} satisfies CallApiRequestOptions;
@@ -139,9 +130,10 @@ export const createFetchClient = <
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
 			baseConfig: resolvedBaseConfig as PluginInitContext["config"],
 			config: config as PluginInitContext["config"],
+			defaultOptions: defaultExtraOptions,
 			initURL,
-			options: defaultExtraOptions,
-			request: defaultRequestOptions,
+			options: mergedExtraOptions,
+			request: mergedRequestOptions,
 		});
 
 		const fullURL = `${resolvedOptions.baseURL}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;
@@ -151,7 +143,7 @@ export const createFetchClient = <
 			...resolvedHooks,
 			fullURL,
 			initURL: initURL.toString(),
-		} satisfies CombinedCallApiExtraOptions as typeof defaultExtraOptions & typeof resolvedHooks;
+		} satisfies CombinedCallApiExtraOptions as typeof mergedExtraOptions & typeof resolvedHooks;
 
 		const newFetchController = new AbortController();
 

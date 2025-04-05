@@ -298,6 +298,7 @@ export type BaseCallApiConfig<
 				TBaseSchemas
 			>)
 	| ((context: {
+			defaultOptions: CallApiExtraOptions;
 			initURL: string;
 			options: CallApiExtraOptions;
 			request: CallApiRequestOptions;

@@ -1,4 +1,4 @@
-import type { BaseCallApiExtraOptions } from "../types/common";
+import type { BaseCallApiExtraOptions, CombinedCallApiExtraOptions } from "../types/common";
 import { defineEnum } from "./type-helpers";
 
 export const fetchSpecificKeys = defineEnum([
@@ -33,3 +33,20 @@ export const defaultRetryMethods = ["GET", "POST"] satisfies BaseCallApiExtraOpt
 
 // prettier-ignore
 export const defaultRetryStatusCodes = Object.keys(retryStatusCodesLookup).map(Number) as Required<BaseCallApiExtraOptions>["retryStatusCodes"];
+
+export const defaultExtraOptions = {
+	baseURL: "",
+	bodySerializer: JSON.stringify,
+	dedupeStrategy: "cancel",
+	defaultErrorMessage: "Failed to fetch data from server!",
+	mergedHooksExecutionMode: "parallel",
+	mergedHooksExecutionOrder: "mainHooksAfterPlugins",
+	responseType: "json",
+	resultMode: "all",
+	retryAttempts: 0,
+	retryDelay: 1000,
+	retryMaxDelay: 10000,
+	retryMethods: defaultRetryMethods,
+	retryStatusCodes: defaultRetryStatusCodes,
+	retryStrategy: "linear",
+} satisfies CombinedCallApiExtraOptions;
