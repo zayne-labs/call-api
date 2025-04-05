@@ -90,11 +90,8 @@ export const createFetchClient = <
 
 		const [fetchOptions, extraOptions] = splitConfig(config);
 
-		// == Default Extra Options
-
 		const resolvedBaseConfig = isFunction(baseConfig)
 			? baseConfig({
-					defaultOptions: defaultExtraOptions,
 					initURL: initURL.toString(),
 					options: extraOptions,
 					request: fetchOptions,
@@ -130,7 +127,6 @@ export const createFetchClient = <
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
 			baseConfig: resolvedBaseConfig as PluginInitContext["config"],
 			config: config as PluginInitContext["config"],
-			defaultOptions: defaultExtraOptions,
 			initURL,
 			options: mergedExtraOptions,
 			request: mergedRequestOptions,

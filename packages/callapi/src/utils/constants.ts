@@ -50,3 +50,5 @@ export const defaultExtraOptions = {
 	retryStatusCodes: defaultRetryStatusCodes,
 	retryStrategy: "linear",
 } satisfies CombinedCallApiExtraOptions;
+
+export const getDefaultOptions = () => defaultExtraOptions;

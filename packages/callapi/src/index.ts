@@ -6,6 +6,8 @@ export { defineParameters } from "./defineParameters";
 
 export type { InferSchemaResult, CallApiSchemas } from "./validation";
 
+export { getDefaultOptions } from "./utils/constants";
+
 export type { RetryOptions } from "./retry";
 
 export { HTTPError } from "./error";

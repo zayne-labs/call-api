@@ -33,7 +33,6 @@ export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIn
 export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = WithMoreOptions<TMoreOptions> & {
 	baseConfig: BaseCallApiExtraOptions & CallApiRequestOptions;
 	config: CallApiExtraOptions & CallApiRequestOptions;
-	defaultOptions: CallApiExtraOptions;
 	initURL: InitURL | undefined;
 	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptionsForHooks;
@@ -139,7 +138,7 @@ const getPluginArray = (plugins: Plugins<CallApiPlugin[]> | undefined) => {
 export const initializePlugins = async (
 	context: Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
 ) => {
-	const { baseConfig, config, defaultOptions, initURL, options, request } = context;
+	const { baseConfig, config, initURL, options, request } = context;
 
 	const hookRegistries = structuredClone(hooksEnum);
 
@@ -178,7 +177,6 @@ export const initializePlugins = async (
 		const initResult = await pluginInit({
 			baseConfig,
 			config,
-			defaultOptions,
 			initURL,
 			options,
 			request: request as CallApiRequestOptionsForHooks,
