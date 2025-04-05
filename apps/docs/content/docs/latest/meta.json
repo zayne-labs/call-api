@@ -2,7 +2,7 @@
 	"root": true,
 	"title": "Latest",
 	"icon": "tag",
-	"description": "v1.6.16",
+	"description": "v1.6.18",
 	"pages": [
 		"---Guide---",
 		"index",
