@@ -272,7 +272,7 @@ export const createFetchClient = <
 
 			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
 			const handleRetry = async () => {
-				const { getDelay, shouldAttemptRetry } = createRetryStrategy(options, errorContext);
+				const { getDelay, shouldAttemptRetry } = createRetryStrategy(errorContext);
 
 				const shouldRetry = !combinedSignal.aborted && (await shouldAttemptRetry());
 
@@ -285,10 +285,9 @@ export const createFetchClient = <
 				await waitUntil(delay);
 
 				const updatedOptions = {
-					...request,
-					...options,
+					...config,
 					"~retryCount": (options["~retryCount"] ?? 0) + 1,
-				} as unknown as typeof config;
+				} satisfies typeof config;
 
 				return callApi(initURL, updatedOptions as never);
 			};
