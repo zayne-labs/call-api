@@ -30,7 +30,7 @@ import {
 	splitConfig,
 	waitUntil,
 } from "./utils/common";
-import { defaultExtraOptions } from "./utils/constants";
+import { defaultExtraOptions, defaultRequestOptions } from "./utils/constants";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
 import { isFunction, isHTTPErrorInstance, isPlainObject } from "./utils/type-guards";
 import {
@@ -120,6 +120,7 @@ export const createFetchClient = <
 
 		// == Merged Request Options
 		const mergedRequestOptions = {
+			...defaultRequestOptions,
 			...baseFetchOptions,
 			...fetchOptions,
 		} satisfies CallApiRequestOptions;

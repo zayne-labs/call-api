@@ -1,4 +1,8 @@
-import type { BaseCallApiExtraOptions, CombinedCallApiExtraOptions } from "../types/common";
+import type {
+	BaseCallApiExtraOptions,
+	CallApiRequestOptions,
+	CombinedCallApiExtraOptions,
+} from "../types/common";
 import { defineEnum } from "./type-helpers";
 
 export const fetchSpecificKeys = defineEnum([
@@ -51,4 +55,10 @@ export const defaultExtraOptions = {
 	retryStrategy: "linear",
 } satisfies CombinedCallApiExtraOptions;
 
+export const defaultRequestOptions = {
+	method: "GET",
+} satisfies CallApiRequestOptions;
+
 export const getDefaultOptions = () => defaultExtraOptions;
+
+export const getDefaultRequest = () => defaultRequestOptions;
