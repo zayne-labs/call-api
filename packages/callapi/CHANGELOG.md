@@ -1,5 +1,12 @@
 # @zayne-labs/callapi
 
+## 1.6.24
+
+### Patch Changes
+
+- a93d849: fix(callapi): 🐛 refactor error handling logic in createFetchClient
+  refactor(callapi): ♻️ clean up nested error handling code
+
 ## 1.6.16
 
 ### Patch Changes
