@@ -1,6 +1,9 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import { resolveErrorResult } from "./error";
 import type { Method } from "./types";
 import type { ErrorContext } from "./types/common";
+import { executeHooks } from "./utils/common";
+import { isFunction } from "./utils/type-guards";
 import type { AnyNumber, Awaitable } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;
@@ -100,7 +103,29 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 		return includesCodes && includesMethod && baseRetryCondition;
 	};
 
+	const executeRetryHook = async (shouldThrowOnError: boolean | undefined) => {
+		try {
+			if (!isFunction(ctx.options.onRetry)) return;
+
+			await executeHooks(ctx.options.onRetry(ctx));
+		} catch (error) {
+			const { getErrorResult } = resolveErrorResult({
+				cloneResponse: ctx.options.cloneResponse,
+				defaultErrorMessage: ctx.options.defaultErrorMessage as string,
+				error,
+				resultMode: ctx.options.resultMode,
+			});
+
+			if (shouldThrowOnError) {
+				throw error;
+			}
+
+			return getErrorResult();
+		}
+	};
+
 	return {
+		executeRetryHook,
 		getDelay,
 		shouldAttemptRetry,
 	};

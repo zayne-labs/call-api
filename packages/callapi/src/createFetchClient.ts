@@ -261,35 +261,13 @@ export const createFetchClient = <
 				: options.throwOnError;
 
 			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
-			const handleThrowOnError = (errorObject: unknown) => {
-				if (!shouldThrowOnError) return;
-
-				throw errorObject;
-			};
-
-			// FIXME: Handle this nested mess later
-			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
-			const handleRetryAndGetResult = async (customInfo: { message?: string } = {}): Promise<never> => {
-				const { getDelay, shouldAttemptRetry } = createRetryStrategy(errorContext);
+			const handleRetryOrGetResult = async (customInfo?: { message?: string }) => {
+				const { executeRetryHook, getDelay, shouldAttemptRetry } = createRetryStrategy(errorContext);
 
 				const shouldRetry = !combinedSignal.aborted && (await shouldAttemptRetry());
 
 				if (shouldRetry) {
-					try {
-						await executeHooks(options.onRetry(errorContext));
-					} catch (innerError) {
-						const { apiDetails: innerApiDetails, getErrorResult: getInnerErrorResult } =
-							resolveErrorResult({
-								cloneResponse: options.cloneResponse,
-								defaultErrorMessage: options.defaultErrorMessage,
-								error: innerError,
-								resultMode: options.resultMode,
-							});
-
-						handleThrowOnError(innerApiDetails.error);
-
-						return getInnerErrorResult();
-					}
+					await executeRetryHook(shouldThrowOnError);
 
 					const delay = getDelay();
 
@@ -303,9 +281,12 @@ export const createFetchClient = <
 					return callApi(initURL, updatedOptions as never) as never;
 				}
 
-				handleThrowOnError(apiDetails.error);
+				if (shouldThrowOnError) {
+					// eslint-disable-next-line ts-eslint/only-throw-error -- It's fine to throw this
+					throw apiDetails.error;
+				}
 
-				return customInfo.message ? getErrorResult(customInfo) : getErrorResult();
+				return customInfo ? getErrorResult(customInfo) : getErrorResult();
 			};
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
@@ -317,7 +298,7 @@ export const createFetchClient = <
 					options.onResponse({ ...errorContext, data: null })
 				);
 
-				return await handleRetryAndGetResult();
+				return await handleRetryOrGetResult();
 			}
 
 			if (error instanceof DOMException && error.name === "AbortError") {
@@ -325,7 +306,7 @@ export const createFetchClient = <
 
 				console.error(`${name}:`, message);
 
-				return await handleRetryAndGetResult();
+				return await handleRetryOrGetResult();
 			}
 
 			if (error instanceof DOMException && error.name === "TimeoutError") {
@@ -333,7 +314,7 @@ export const createFetchClient = <
 
 				console.error(`${error.name}:`, message);
 
-				return await handleRetryAndGetResult({ message });
+				return await handleRetryOrGetResult({ message });
 			}
 
 			await executeHooks(
@@ -344,7 +325,7 @@ export const createFetchClient = <
 				options.onError(errorContext)
 			);
 
-			return await handleRetryAndGetResult();
+			return await handleRetryOrGetResult();
 
 			// == Removing the now unneeded AbortController from store
 		} finally {

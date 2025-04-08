@@ -5,7 +5,7 @@ import type {
 	ResultModeMap,
 } from "./types/common";
 import { omitKeys } from "./utils/common";
-import { isHTTPErrorInstance, isObject } from "./utils/type-guards";
+import { isHTTPErrorInstance } from "./utils/type-guards";
 
 type ErrorInfo = {
 	cloneResponse: CallApiExtraOptions["cloneResponse"];
@@ -53,10 +53,18 @@ export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 		onlySuccessWithException: apiDetails.data,
 	} satisfies ResultModeMap;
 
-	const getErrorResult = (customInfo?: Pick<ErrorInfo, "message">) => {
-		const errorResult = resultModeMap[resultMode ?? "all"] as TCallApiResult;
+	const getErrorResult = (customErrorInfo?: Pick<ErrorInfo, "message">) => {
+		const errorVariantResult = resultModeMap[resultMode ?? "all"] as TCallApiResult;
 
-		return isObject(customInfo) ? { ...errorResult, ...customInfo } : errorResult;
+		return customErrorInfo
+			? {
+					...errorVariantResult,
+					error: {
+						...(errorVariantResult as CallApiResultErrorVariant<unknown>).error,
+						...customErrorInfo,
+					},
+				}
+			: errorVariantResult;
 	};
 
 	return { apiDetails, getErrorResult };
