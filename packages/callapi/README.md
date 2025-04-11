@@ -1,7 +1,7 @@
 <h1 align="center">CallApi - Advanced Fetch Client</h1>
 
 <p align="center">
-   <img src="https://github.com/zayne-labs/call-api/blob/main/packages/callapi/assets/logo.png" alt="CallApi Logo" width="50%">
+   <img src="https://github.com/zayne-labs/call-api/blob/main/packages/callapi/assets/logo.png" alt="CallApi Logo" width="30%">
 </p>
 
 <p align="center">
@@ -47,11 +47,11 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 
 ```html
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi";
+ import { callApi } from "https://esm.run/@zayne-labs/callapi";
 </script>
 
 <!-- Locked to a specific version -->
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi@0.3.2";
+ import { callApi } from "https://esm.run/@zayne-labs/callapi@0.3.2";
 </script>
 ```
