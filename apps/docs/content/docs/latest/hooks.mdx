@@ -32,6 +32,12 @@ const callApi = createFetchClient({
 	onRetry: (ctx) => {
 		// Do something with context object
 	},
+	onRequestStream: (ctx) => {
+		// Do something with context object
+	},
+	onResponseStream: (ctx) => {
+		// Do something with context object
+	},
 });
 
 callApi("/api/data", {
@@ -42,6 +48,8 @@ callApi("/api/data", {
 	onError: (context) => {},
 	onSuccess: (context) => {},
 	onRetry: (context) => {},
+	onRequestStream: (context) => {},
+	onResponseStream: (context) => {},
 });
 ```
 
@@ -287,7 +295,7 @@ Both stream hooks receive a context object with an `event` property of type `Str
 - `totalBytes`: Total size of data in bytes
 - `transferredBytes`: Amount of data transferred so far
 
-## Extra Details
+## Details to note
 
 Here are some important details about how hooks work:
 
@@ -369,7 +377,7 @@ const client = createFetchClient({
 ```
 
 <Callout type="info">
-	Plugin initialization (`init` functions) always runs sequentially in the order plugins are added,
+	Plugin initialization (`init`) functions always run sequentially in the order plugins are added,
 	regardless of these settings.
 </Callout>
 
