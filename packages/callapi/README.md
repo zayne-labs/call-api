@@ -1,7 +1,7 @@
 <h1 align="center">CallApi - Advanced Fetch Client</h1>
 
 <p align="center">
-   <img src="packages/callapi/assets/logo.png" alt="CallApi Logo" width="50%">
+   <img src="https://github.com/zayne-labs/call-api/blob/main/packages/callapi/assets/logo.png" alt="CallApi Logo" width="50%">
 </p>
 
 <p align="center">
