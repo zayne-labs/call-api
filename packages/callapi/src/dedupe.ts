@@ -1,5 +1,11 @@
-import type { CallApiExtraOptions, CallApiRequestOptions } from "./types/common";
+import { toStreamableRequest, toStreamableResponse } from "./stream";
+import type {
+	CallApiRequestOptions,
+	CallApiRequestOptionsForHooks,
+	CombinedCallApiExtraOptions,
+} from "./types/common";
 import { getFetchImpl, waitUntil } from "./utils/common";
+import { isReadableStream } from "./utils/guards";
 
 type RequestInfo = {
 	controller: AbortController;
@@ -11,7 +17,7 @@ export type RequestInfoCache = Map<string | null, RequestInfo>;
 type DedupeContext = {
 	$RequestInfoCache: RequestInfoCache;
 	newFetchController: AbortController;
-	options: CallApiExtraOptions;
+	options: CombinedCallApiExtraOptions;
 	request: CallApiRequestOptions;
 };
 
@@ -61,18 +67,40 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 		return Promise.resolve();
 	};
 
-	const handleRequestDeferStrategy = () => {
+	const handleRequestDeferStrategy = async () => {
 		const fetchApi = getFetchImpl(options.customFetchImpl);
 
 		const shouldUsePromiseFromCache = prevRequestInfo && options.dedupeStrategy === "defer";
 
+		const requestInstance = new Request(
+			options.fullURL as NonNullable<typeof options.fullURL>,
+			(isReadableStream(request.body) && !request.duplex
+				? { ...request, duplex: "half" }
+				: request) as RequestInit
+		);
+
+		void toStreamableRequest({
+			options,
+			request: request as CallApiRequestOptionsForHooks,
+			requestInstance: requestInstance.clone(),
+		});
+
 		const responsePromise = shouldUsePromiseFromCache
 			? prevRequestInfo.responsePromise
-			: fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, request as RequestInit);
+			: // eslint-disable-next-line unicorn/no-nested-ternary -- Allow
+				isReadableStream(request.body)
+				? fetchApi(requestInstance.clone())
+				: fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, request as RequestInit);
 
 		$RequestInfoCacheOrNull?.set(dedupeKey, { controller: newFetchController, responsePromise });
 
-		return responsePromise;
+		const streamableResponse = toStreamableResponse({
+			options,
+			request: request as CallApiRequestOptionsForHooks,
+			response: await responsePromise,
+		});
+
+		return streamableResponse;
 	};
 
 	const removeDedupeKeyFromCache = () => $RequestInfoCacheOrNull?.delete(dedupeKey);

@@ -1,5 +1,5 @@
 import { source } from "@/lib/source";
-import { assertDefined } from "@zayne-labs/toolkit/type-helpers";
+import { assertDefined } from "@zayne-labs/toolkit-type-helpers";
 import type { DocsLayoutProps, LinkItemType } from "fumadocs-ui/layouts/docs";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";

@@ -31,8 +31,8 @@ import {
 	waitUntil,
 } from "./utils/common";
 import { defaultExtraOptions, defaultRequestOptions } from "./utils/constants";
+import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/guards";
 import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
-import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/type-guards";
 import {
 	type CallApiSchemas,
 	type InferSchemaResult,
@@ -129,7 +129,7 @@ export const createFetchClient = <
 			baseConfig: resolvedBaseConfig as PluginInitContext["config"],
 			config: config as PluginInitContext["config"],
 			initURL,
-			options: mergedExtraOptions,
+			options: mergedExtraOptions as CombinedCallApiExtraOptions,
 			request: mergedRequestOptions,
 		});
 
@@ -176,7 +176,7 @@ export const createFetchClient = <
 		await handleRequestCancelStrategy();
 
 		try {
-			await executeHooks(options.onRequest({ options, request }));
+			await executeHooks(options.onRequest?.({ options, request }));
 
 			// == Apply determined headers again after onRequest incase they were modified
 			request.headers = mergeAndResolveHeaders({
@@ -188,8 +188,7 @@ export const createFetchClient = <
 			const response = await handleRequestDeferStrategy();
 
 			const { schemas, validators } = createExtensibleSchemasAndValidators(options);
-
-			// == Also clone response when dedupeStrategy is set to "defer", to avoid error thrown from reading response.(whatever) more than once
+			// == Also clone response when dedupeStrategy is set to "defer" or when onRequestStream is set, to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
 
 			if (!response.ok) {
@@ -225,13 +224,13 @@ export const createFetchClient = <
 				data: validSuccessData,
 				options,
 				request,
-				response: options.cloneResponse ? response.clone() : response,
+				response,
 			} satisfies SuccessContext<unknown>;
 
 			await executeHooks(
-				options.onSuccess(successContext),
+				options.onSuccess?.(successContext),
 
-				options.onResponse({ ...successContext, error: null })
+				options.onResponse?.({ ...successContext, error: null })
 			);
 
 			return await resolveSuccessResult({
@@ -260,7 +259,6 @@ export const createFetchClient = <
 				? options.throwOnError(errorContext)
 				: options.throwOnError;
 
-			// eslint-disable-next-line unicorn/consistent-function-scoping -- False alarm: this function is depends on this scope
 			const handleRetryOrGetResult = async (customInfo?: { message?: string }) => {
 				const { executeRetryHook, getDelay, shouldAttemptRetry } = createRetryStrategy(errorContext);
 
@@ -282,8 +280,7 @@ export const createFetchClient = <
 				}
 
 				if (shouldThrowOnError) {
-					// eslint-disable-next-line ts-eslint/only-throw-error -- It's fine to throw this
-					throw apiDetails.error;
+					throw error;
 				}
 
 				return customInfo ? getErrorResult(customInfo) : getErrorResult();
@@ -291,11 +288,11 @@ export const createFetchClient = <
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				await executeHooks(
-					options.onResponseError(errorContext),
+					options.onResponseError?.(errorContext),
 
-					options.onError(errorContext),
+					options.onError?.(errorContext),
 
-					options.onResponse({ ...errorContext, data: null })
+					options.onResponse?.({ ...errorContext, data: null })
 				);
 
 				return await handleRetryOrGetResult();
@@ -304,7 +301,7 @@ export const createFetchClient = <
 			if (error instanceof DOMException && error.name === "AbortError") {
 				const { message, name } = error;
 
-				console.error(`${name}:`, message);
+				!shouldThrowOnError && console.error(`${name}:`, message);
 
 				return await handleRetryOrGetResult();
 			}
@@ -312,17 +309,17 @@ export const createFetchClient = <
 			if (error instanceof DOMException && error.name === "TimeoutError") {
 				const message = `Request timed out after ${options.timeout}ms`;
 
-				console.error(`${error.name}:`, message);
+				!shouldThrowOnError && console.error(`${error.name}:`, message);
 
 				return await handleRetryOrGetResult({ message });
 			}
 
 			await executeHooks(
 				// == At this point only the request errors exist, so the request error interceptor is called
-				options.onRequestError(errorContext as never),
+				options.onRequestError?.(errorContext as never),
 
 				// == Also call the onError interceptor
-				options.onError(errorContext)
+				options.onError?.(errorContext)
 			);
 
 			return await handleRetryOrGetResult();

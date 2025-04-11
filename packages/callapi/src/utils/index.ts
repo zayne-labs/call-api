@@ -1,2 +1,2 @@
 export { toQueryString } from "./common";
-export { isHTTPError, isHTTPErrorInstance } from "./type-guards";
+export { isHTTPError, isHTTPErrorInstance } from "./guards";

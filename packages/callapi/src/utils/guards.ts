@@ -119,3 +119,7 @@ export const isJSONSerializable = (value: unknown) => {
 		|| typeof (value as { toJSON: () => unknown } | null)?.toJSON === "function"
 	);
 };
+
+export const isReadableStream = (value: unknown): value is ReadableStream<unknown> => {
+	return value instanceof ReadableStream;
+};

@@ -2,7 +2,7 @@
 
 import type { CallApiExtraOptions } from "./types/common";
 import { toQueryString } from "./utils";
-import { isArray } from "./utils/type-guards";
+import { isArray } from "./utils/guards";
 import type { UnmaskType } from "./utils/type-helpers";
 import type { CallApiSchemas, InferSchemaResult } from "./validation";
 

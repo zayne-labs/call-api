@@ -2,13 +2,13 @@
 	"name": "@zayne-labs/callapi-legacy",
 	"type": "module",
 	"version": "1.6.15",
-	"description": "A lightweigh7 wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
+	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"author": "Ryan Zayne",
 	"license": "MIT",
 	"homepage": "https://github.com/zayne-labs/call-api#readme",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/zayne-labs/call-api.git"
+		"url": "git+https://github.com/zayne-labs/call-api.git"
 	},
 	"bugs": {
 		"url": "https://github.com/zayne-labs/call-api/issues"
@@ -62,10 +62,10 @@
 		"@size-limit/preset-small-lib": "11.2.0",
 		"@standard-schema/spec": "^1.0.0",
 		"@total-typescript/ts-reset": "0.6.1",
-		"@zayne-labs/tsconfig": "0.7.9",
+		"@zayne-labs/tsconfig": "0.8.0",
 		"concurrently": "^9.1.2",
 		"cross-env": "^7.0.3",
-		"publint": "^0.3.10",
+		"publint": "^0.3.11",
 		"size-limit": "11.2.0",
 		"terser": "5.39.0",
 		"tsup": "8.4.0",

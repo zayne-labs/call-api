@@ -12,7 +12,7 @@ import type {
 } from "./types/common";
 import type { DefaultMoreOptions } from "./types/default-types";
 import type { InitURL } from "./url";
-import { isPlainObject, isString } from "./utils/type-guards";
+import { isPlainObject, isString } from "./utils/guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";
 import type { InferSchemaResult } from "./validation";
 
@@ -92,7 +92,9 @@ const createMergedHook = (
 	hooks: Array<AnyFunction | undefined>,
 	mergedHooksExecutionMode: CombinedCallApiExtraOptions["mergedHooksExecutionMode"]
 ) => {
-	return async (ctx: Record<string, unknown>) => {
+	if (hooks.length === 0) return;
+
+	const mergedHook = async (ctx: Record<string, unknown>) => {
 		if (mergedHooksExecutionMode === "sequential") {
 			for (const hook of hooks) {
 				// eslint-disable-next-line no-await-in-loop -- This is necessary in this case
@@ -108,6 +110,8 @@ const createMergedHook = (
 			await Promise.all(hookArray.map((uniqueHook) => uniqueHook?.(ctx)));
 		}
 	};
+
+	return mergedHook;
 };
 
 // prettier-ignore
@@ -119,8 +123,10 @@ export const hooksEnum = {
 	onError: new Set(),
 	onRequest: new Set(),
 	onRequestError: new Set(),
+	onRequestStream: new Set(),
 	onResponse: new Set(),
 	onResponseError: new Set(),
+	onResponseStream: new Set(),
 	onRetry: new Set(),
 	onSuccess: new Set(),
 } satisfies HookRegistries;
@@ -213,10 +219,10 @@ export const initializePlugins = async (
 		addMainHooks();
 	}
 
-	const resolvedHooks = {} as Required<Interceptors>;
+	const resolvedHooks: Interceptors = {};
 
 	for (const [key, hookRegistry] of Object.entries(hookRegistries)) {
-		const flattenedHookArray = [...hookRegistry].flat();
+		const flattenedHookArray = [...hookRegistry].flat().filter(Boolean);
 
 		const mergedHook = createMergedHook(flattenedHookArray, options.mergedHooksExecutionMode);
 

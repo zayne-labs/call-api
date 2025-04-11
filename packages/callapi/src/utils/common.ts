@@ -6,14 +6,7 @@ import {
 	optionsEnumToOmitFromBase,
 } from "../types/common";
 import { fetchSpecificKeys } from "./constants";
-import {
-	isArray,
-	isFunction,
-	isJsonString,
-	isPlainObject,
-	isQueryString,
-	isSerializable,
-} from "./type-guards";
+import { isArray, isFunction, isJsonString, isPlainObject, isQueryString, isSerializable } from "./guards";
 import type { AnyFunction, Awaitable } from "./type-helpers";
 
 export const omitKeys = <

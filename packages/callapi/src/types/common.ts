@@ -1,10 +1,11 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import type { RequestStreamContext, ResponseStreamContext } from "@/stream";
 import type { Auth } from "../auth";
 import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
 import type { GetResponseType, ResponseTypeUnion } from "../response";
 import type { RetryOptions } from "../retry";
 import type { InitURL, UrlOptions } from "../url";
-import type { fetchSpecificKeys } from "../utils/constants";
+import type { ModifiedRequestInit, fetchSpecificKeys } from "../utils/constants";
 import { type Awaitable, type UnmaskType, defineEnum } from "../utils/type-helpers";
 import type { CallApiSchemas, CallApiValidators, InferSchemaResult } from "../validation";
 import type {
@@ -27,7 +28,7 @@ export type CallApiRequestOptions<TSchemas extends CallApiSchemas = DefaultMoreO
 	BodyOption<TSchemas>
 		& HeadersOption<TSchemas>
 		& MethodOption<TSchemas>
-		& Pick<RequestInit, FetchSpecificKeysUnion>;
+		& Pick<ModifiedRequestInit, FetchSpecificKeysUnion>;
 
 export type CallApiRequestOptionsForHooks<TSchemas extends CallApiSchemas = DefaultMoreOptions> = Omit<
 	CallApiRequestOptions<TSchemas>,
@@ -62,6 +63,11 @@ export interface Interceptors<
 	onRequestError?: (context: RequestErrorContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 
 	/**
+	 * Interceptor that will be called when upload stream progress is tracked
+	 */
+	onRequestStream?: (context: RequestStreamContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
+
+	/**
 	 * Interceptor that will be called when any response is received from the api, whether successful or not
 	 */
 	onResponse?: (
@@ -76,9 +82,17 @@ export interface Interceptors<
 	) => Awaitable<unknown>;
 
 	/**
+	 * Interceptor that will be called when download stream progress is tracked
+	 */
+	onResponseStream?: (
+		context: ResponseStreamContext & WithMoreOptions<TMoreOptions>
+	) => Awaitable<unknown>;
+
+	/**
 	 * Interceptor that will be called when a request is retried.
 	 */
 	onRetry?: (response: ErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
+
 	/**
 	 * Interceptor that will be called when a successful response is received from the api.
 	 */
@@ -154,6 +168,12 @@ export type ExtraOptions<
 	 * @default "Failed to fetch data from server!"
 	 */
 	defaultErrorMessage?: string;
+
+	/**
+	 * If true, forces the calculation of the total byte size from the request or response body, in case the content-length header is not present or is incorrect.
+	 * @default false
+	 */
+	forceStreamSizeCalc?: boolean | { request?: boolean; response?: boolean };
 
 	/**
 	 * Resolved request URL
@@ -276,7 +296,8 @@ export type BaseCallApiExtraOptions<
 	(typeof optionsEnumToOmitFromBase)[number]
 >;
 
-export type CombinedCallApiExtraOptions = BaseCallApiExtraOptions & CallApiExtraOptions;
+export type CombinedCallApiExtraOptions = Interceptors
+	& Omit<BaseCallApiExtraOptions & CallApiExtraOptions, keyof Interceptors>;
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
@@ -473,7 +494,7 @@ export type ResultModeMap<
 		| CallApiResultErrorVariant<TComputedErrorData>["response"]
 		| CallApiResultSuccessVariant<TComputedData>["response"];
 
-	onlyResponseWithException: CallApiResultSuccessVariant<TComputedErrorData>["response"];
+	onlyResponseWithException: CallApiResultSuccessVariant<TComputedData>["response"];
 
 	onlySuccess:
 		| CallApiResultErrorVariant<TComputedErrorData>["data"]

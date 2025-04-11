@@ -5,7 +5,7 @@ import type {
 	ResultModeMap,
 } from "./types/common";
 import { omitKeys } from "./utils/common";
-import { isHTTPErrorInstance } from "./utils/type-guards";
+import { isHTTPErrorInstance } from "./utils/guards";
 
 type ErrorInfo = {
 	cloneResponse: CallApiExtraOptions["cloneResponse"];

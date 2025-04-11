@@ -216,6 +216,77 @@ const client = createFetchClient({
 });
 ```
 
+## Stream Progress Hooks
+
+### onRequestStream
+
+This hook is called during request body streaming, useful for tracking upload progress.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onRequestStream: ({ event }) => {
+		// Access stream progress information
+		console.log(`Upload progress: ${event.progress}%`);
+		console.log(`Bytes transferred: ${event.transferredBytes}`);
+		console.log(`Total bytes: ${event.totalBytes}`);
+
+		// Access the current chunk being streamed
+		// event.chunk is a Uint8Array
+	},
+});
+
+// Example: Uploading a large file
+const fileInput = document.querySelector('input[type="file"]');
+const file = fileInput?.files?.[0];
+
+if (file) {
+	await client("/api/upload", {
+		method: "POST",
+		body: file,
+		onRequestStream: ({ event }) => {
+			updateUploadProgress(event.progress);
+		},
+	});
+}
+```
+
+### onResponseStream
+
+This hook is called during response body streaming, perfect for tracking download progress.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onResponseStream: ({ event }) => {
+		// Access stream progress information
+		console.log(`Download progress: ${event.progress}%`);
+		console.log(`Bytes received: ${event.transferredBytes}`);
+		console.log(`Total bytes: ${event.totalBytes}`);
+
+		// Process the current chunk
+		// event.chunk is a Uint8Array
+	},
+});
+
+// Example: Downloading a large file
+const { data } = await client("/api/download-video", {
+	responseType: "stream",
+	onResponseStream: ({ event }) => {
+		updateDownloadProgress(event.progress);
+	},
+});
+```
+
+Both stream hooks receive a context object with an `event` property of type `StreamProgressEvent` that contains:
+
+- `chunk`: Current chunk of data being streamed (Uint8Array)
+- `progress`: Progress percentage (0-100)
+- `totalBytes`: Total size of data in bytes
+- `transferredBytes`: Amount of data transferred so far
+
 ## Details
 
 Here are some important details about how hooks work:

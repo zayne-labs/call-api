@@ -3,7 +3,6 @@ import { resolveErrorResult } from "./error";
 import type { Method } from "./types";
 import type { ErrorContext } from "./types/common";
 import { executeHooks } from "./utils/common";
-import { isFunction } from "./utils/type-guards";
 import type { AnyNumber, Awaitable } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;
@@ -71,20 +70,22 @@ const getExponentialDelay = <TErrorData>(
 };
 
 export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) => {
-	const currentRetryCount = ctx.options["~retryCount"] ?? 0;
+	const { options } = ctx;
+
+	const currentRetryCount = options["~retryCount"] ?? 0;
 
 	const getDelay = () => {
-		if (ctx.options.retryStrategy === "exponential") {
-			return getExponentialDelay(currentRetryCount, ctx.options);
+		if (options.retryStrategy === "exponential") {
+			return getExponentialDelay(currentRetryCount, options);
 		}
 
-		return getLinearDelay(ctx.options);
+		return getLinearDelay(options);
 	};
 
 	const shouldAttemptRetry = async () => {
-		const customRetryCondition = (await ctx.options.retryCondition?.(ctx)) ?? true;
+		const customRetryCondition = (await options.retryCondition?.(ctx)) ?? true;
 
-		const maxRetryAttempts = ctx.options.retryAttempts ?? 0;
+		const maxRetryAttempts = options.retryAttempts ?? 0;
 
 		const baseRetryCondition = maxRetryAttempts > currentRetryCount && customRetryCondition;
 
@@ -94,33 +95,31 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 
 		const includesMethod =
 			// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
-			!!ctx.request.method && ctx.options.retryMethods?.includes(ctx.request.method);
+			!!ctx.request.method && options.retryMethods?.includes(ctx.request.method);
 
 		const includesCodes =
 			// eslint-disable-next-line no-implicit-coercion -- Boolean doesn't narrow
-			!!ctx.response?.status && ctx.options.retryStatusCodes?.includes(ctx.response.status);
+			!!ctx.response?.status && options.retryStatusCodes?.includes(ctx.response.status);
 
 		return includesCodes && includesMethod && baseRetryCondition;
 	};
 
 	const executeRetryHook = async (shouldThrowOnError: boolean | undefined) => {
 		try {
-			if (!isFunction(ctx.options.onRetry)) return;
-
-			await executeHooks(ctx.options.onRetry(ctx));
+			return await executeHooks(options.onRetry?.(ctx));
 		} catch (error) {
-			const { getErrorResult } = resolveErrorResult({
-				cloneResponse: ctx.options.cloneResponse,
-				defaultErrorMessage: ctx.options.defaultErrorMessage as string,
+			const { apiDetails } = resolveErrorResult({
+				cloneResponse: options.cloneResponse,
+				defaultErrorMessage: options.defaultErrorMessage as string,
 				error,
-				resultMode: ctx.options.resultMode,
+				resultMode: options.resultMode,
 			});
 
 			if (shouldThrowOnError) {
 				throw error;
 			}
 
-			return getErrorResult();
+			return apiDetails;
 		}
 	};
 
