@@ -222,7 +222,7 @@ const client = createFetchClient({
 
 This hook is called during request body streaming, useful for tracking upload progress.
 
-```ts twoslash title="example.ts"
+```ts title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const client = createFetchClient({
@@ -256,7 +256,7 @@ if (file) {
 
 This hook is called during response body streaming, perfect for tracking download progress.
 
-```ts twoslash title="example.ts"
+```ts title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const client = createFetchClient({
@@ -287,7 +287,7 @@ Both stream hooks receive a context object with an `event` property of type `Str
 - `totalBytes`: Total size of data in bytes
 - `transferredBytes`: Amount of data transferred so far
 
-## Details
+## Extra Details
 
 Here are some important details about how hooks work:
 
