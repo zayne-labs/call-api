@@ -1,4 +1,4 @@
-import { getAuthHeader } from "@/auth";
+import { getAuthHeader } from "../auth";
 import {
 	type BaseCallApiExtraOptions,
 	type CallApiExtraOptions,

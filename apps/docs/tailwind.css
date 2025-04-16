@@ -50,10 +50,12 @@
 	--color-fd-destructive-foreground: hsl(251 5% 90%);
 }
 
-@theme {
-	--font-sans: var(--font-var-geist-sans);
-	--font-mono: var(--font-var-geist-mono);
+@theme inline {
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
+}
 
+@theme {
 	--animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
 	/* --animate-accordion-down: accordion-down 0.2s ease-out;
 	--animate-accordion-up: accordion-up 0.2s ease-out; */

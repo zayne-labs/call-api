@@ -28,20 +28,20 @@
 		"release:test": "pnpx pkg-pr-new publish './packages/*'"
 	},
 	"devDependencies": {
-		"@changesets/cli": "2.28.1",
-		"@eslint-react/eslint-plugin": "^1.45.1",
+		"@changesets/cli": "2.29.1",
+		"@eslint-react/eslint-plugin": "^1.48.1",
 		"@next/eslint-plugin-next": "^15.3.0",
-		"@types/node": "^22.14.0",
-		"@zayne-labs/eslint-config": "0.8.0",
-		"@zayne-labs/prettier-config": "0.8.0",
+		"@types/node": "^22.14.1",
+		"@zayne-labs/eslint-config": "0.8.1",
+		"@zayne-labs/prettier-config": "0.8.1",
 		"eslint": "9.24.0",
-		"eslint-plugin-react-compiler": "19.0.0-beta-e993439-20250405",
+		"eslint-plugin-react-compiler": "19.0.0-beta-ebf51a3-20250411",
 		"eslint-plugin-react-hooks": "^5.2.0",
 		"eslint-plugin-react-refresh": "^0.4.19",
 		"husky": "9.1.7",
-		"lint-staged": "15.5.0",
+		"lint-staged": "15.5.1",
 		"prettier": "3.5.3",
 		"turbo": "^2.4.4",
-		"typescript": "^5.8.2"
+		"typescript": "^5.8.3"
 	}
 }

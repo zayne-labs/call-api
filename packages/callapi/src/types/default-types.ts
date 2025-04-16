@@ -1,4 +1,4 @@
-import type { CallApiPlugin } from "@/plugins";
+import type { CallApiPlugin } from "../plugins";
 
 export type DefaultDataType = unknown;
 

@@ -5,8 +5,8 @@ import type {
 	CommonContentTypes,
 	CommonRequestHeaders,
 	UnmaskType,
-} from "@/utils/type-helpers";
-import type { CallApiSchemas, InferSchemaResult } from "@/validation";
+} from "../utils/type-helpers";
+import type { CallApiSchemas, InferSchemaResult } from "../validation";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { ResultModeUnion } from "./common";
 

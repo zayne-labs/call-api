@@ -3,15 +3,16 @@ import { baseURL, createMetadata } from "@/lib/metadata";
 import { RootProvider as FumaThemeProvider } from "fumadocs-ui/provider";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../tailwind.css";
+import { cnJoin } from "@/lib/utils/cn";
 
 const geistSans = Geist({
 	subsets: ["latin"],
-	variable: "--font-var-geist-sans",
+	variable: "--font-geist-sans",
 });
 
 const geistMono = Geist_Mono({
 	subsets: ["latin"],
-	variable: "--font-var-geist-mono",
+	variable: "--font-geist-mono",
 });
 
 export const metadata = createMetadata({
@@ -28,7 +29,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html
 			lang="en"
-			className={`${geistSans.variable} ${geistMono.variable}`}
+			className={cnJoin(geistSans.variable, geistMono.variable)}
 			suppressHydrationWarning={true}
 		>
 			<head>

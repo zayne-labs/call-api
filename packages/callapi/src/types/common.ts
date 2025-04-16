@@ -1,9 +1,9 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { RequestStreamContext, ResponseStreamContext } from "@/stream";
-import type { Auth } from "../auth";
-import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
-import type { GetResponseType, ResponseTypeUnion } from "../response";
-import type { RetryOptions } from "../retry";
+import type { Auth } from "@/auth";
+import type { CallApiPlugin, InferPluginOptions, Plugins } from "@/plugins";
+import type { GetResponseType, ResponseTypeUnion } from "@/response";
+import type { RetryOptions } from "@/retry";
+import type { RequestStreamContext, ResponseStreamContext } from "../stream";
 import type { InitURL, UrlOptions } from "../url";
 import type { ModifiedRequestInit, fetchSpecificKeys } from "../utils/constants";
 import { type Awaitable, type UnmaskType, defineEnum } from "../utils/type-helpers";
@@ -294,7 +294,17 @@ export type BaseCallApiExtraOptions<
 		>
 	>,
 	(typeof optionsEnumToOmitFromBase)[number]
->;
+> & {
+	/**
+	 * If true, the base options will not be merged with the main options by default.
+	 *
+	 * It's recommended to set this to true when you want to handle the options merge manually from the createFetchClient config function signature.
+	 *
+	 * This helps prevent main options from overriding base options by default.
+	 * @default false
+	 */
+	mergeMainOptionsManuallyFromBase?: boolean;
+};
 
 export type CombinedCallApiExtraOptions = Interceptors
 	& Omit<BaseCallApiExtraOptions & CallApiExtraOptions, keyof Interceptors>;

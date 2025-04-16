@@ -115,7 +115,7 @@ export const createFetchClient = <
 		const mergedExtraOptions = {
 			...defaultExtraOptions,
 			...baseExtraOptions,
-			...extraOptions,
+			...(!baseExtraOptions.mergeMainOptionsManuallyFromBase && extraOptions),
 		};
 
 		// == Merged Request Options
