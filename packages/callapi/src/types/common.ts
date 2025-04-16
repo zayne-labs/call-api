@@ -190,7 +190,7 @@ export type ExtraOptions<
 
 	/**
 	 * - Controls what order in which the merged hooks execute
-	 * @default "mainHooksLast"
+	 * @default "mainHooksAfterPlugins"
 	 */
 	mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
 
