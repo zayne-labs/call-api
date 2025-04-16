@@ -1,5 +1,14 @@
 # @zayne-labs/callapi
 
+## 1.7.1
+
+### Patch Changes
+
+- 52a1573: feat(core): 🚀 Add option for skipping default options merge
+
+   feat(types): 🏷️ Update common types and conditional type utilities
+   chore(deps): 📦 Update package dependencies across monorepo
+
 ## 1.7.0
 
 ### Minor Changes
