@@ -54,9 +54,6 @@
 		"release": "pnpm publish --no-git-checks",
 		"release:test": "pnpx pkg-pr-new publish"
 	},
-	"peerDependencies": {
-		"@standard-schema/spec": "^1.0.0"
-	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "0.17.4",
 		"@size-limit/esbuild-why": "11.2.0",

@@ -19,6 +19,8 @@ export const isHTTPErrorInstance = <TErrorResponse>(
 	);
 };
 
+// FIXME: Outsource to type-helpers later as a peer dependency
+
 export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Array.isArray(value);
 
 export const isObject = (value: unknown) => typeof value === "object" && value !== null;
