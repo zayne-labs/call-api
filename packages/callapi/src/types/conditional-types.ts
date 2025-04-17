@@ -7,8 +7,8 @@ import type {
 	UnmaskType,
 } from "../utils/type-helpers";
 import type { CallApiSchemas, InferSchemaResult } from "../validation";
-import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { ResultModeUnion } from "./common";
+import type { StandardSchemaV1 } from "./standard-schema";
 
 /**
  * @description Makes a type required if TSchema type is undefined or if the output type of TSchema contains undefined, otherwise keeps it as is

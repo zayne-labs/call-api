@@ -1,12 +1,12 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { Auth } from "@/auth";
-import type { CallApiPlugin, InferPluginOptions, Plugins } from "@/plugins";
-import type { GetResponseType, ResponseTypeUnion } from "@/response";
-import type { RetryOptions } from "@/retry";
+import type { Auth } from "../auth";
+import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
+import type { GetResponseType, ResponseTypeUnion } from "../response";
+import type { RetryOptions } from "../retry";
 import type { RequestStreamContext, ResponseStreamContext } from "../stream";
 import type { InitURL, UrlOptions } from "../url";
 import type { ModifiedRequestInit, fetchSpecificKeys } from "../utils/constants";
-import { type Awaitable, type UnmaskType, defineEnum } from "../utils/type-helpers";
+import { type Awaitable, type Prettify, type UnmaskType, defineEnum } from "../utils/type-helpers";
 import type { CallApiSchemas, CallApiValidators, InferSchemaResult } from "../validation";
 import type {
 	BodyOption,
@@ -24,11 +24,12 @@ import type {
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
-export type CallApiRequestOptions<TSchemas extends CallApiSchemas = DefaultMoreOptions> =
+export type CallApiRequestOptions<TSchemas extends CallApiSchemas = DefaultMoreOptions> = Prettify<
 	BodyOption<TSchemas>
 		& HeadersOption<TSchemas>
 		& MethodOption<TSchemas>
-		& Pick<ModifiedRequestInit, FetchSpecificKeysUnion>;
+		& Pick<ModifiedRequestInit, FetchSpecificKeysUnion>
+>;
 
 export type CallApiRequestOptionsForHooks<TSchemas extends CallApiSchemas = DefaultMoreOptions> = Omit<
 	CallApiRequestOptions<TSchemas>,

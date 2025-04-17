@@ -1,5 +1,4 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type {
 	BaseCallApiExtraOptions,
 	CallApiExtraOptions,
@@ -11,6 +10,7 @@ import type {
 	WithMoreOptions,
 } from "./types/common";
 import type { DefaultMoreOptions } from "./types/default-types";
+import type { StandardSchemaV1 } from "./types/standard-schema";
 import type { InitURL } from "./url";
 import { isPlainObject, isString } from "./utils/guards";
 import type { AnyFunction, Awaitable } from "./utils/type-helpers";

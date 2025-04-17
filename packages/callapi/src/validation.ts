@@ -1,7 +1,7 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { Body, GlobalMeta, Headers, Method } from "./types";
 import type { CombinedCallApiExtraOptions } from "./types/common";
+import type { StandardSchemaV1 } from "./types/standard-schema";
 import type { InitURL, Params, Query } from "./url";
 
 export const standardSchemaParser = async <TSchema extends StandardSchemaV1>(

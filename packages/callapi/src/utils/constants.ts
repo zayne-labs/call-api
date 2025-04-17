@@ -5,7 +5,7 @@ import type {
 } from "../types/common";
 import { defineEnum } from "./type-helpers";
 
-export type ModifiedRequestInit = RequestInit & { duplex?: "full" | "half" | "none" };
+export type ModifiedRequestInit = RequestInit & { duplex?: "half" };
 
 export const fetchSpecificKeys = defineEnum([
 	"body",
@@ -23,7 +23,7 @@ export const fetchSpecificKeys = defineEnum([
 	"priority",
 	"mode",
 	"referrerPolicy",
-] satisfies Array<keyof ModifiedRequestInit>);
+] satisfies Array<keyof ModifiedRequestInit> as Array<keyof ModifiedRequestInit>);
 
 const retryStatusCodesLookup = defineEnum({
 	408: "Request Timeout",
