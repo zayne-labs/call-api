@@ -1,5 +1,6 @@
 import { source } from "@/lib/source";
-import { assertDefined } from "@zayne-labs/toolkit-type-helpers";
+import { callApi } from "@zayne-labs/callapi";
+import { assertDefined, isString } from "@zayne-labs/toolkit-type-helpers";
 import type { DocsLayoutProps, LinkItemType } from "fumadocs-ui/layouts/docs";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
@@ -62,24 +63,36 @@ export const docsOptions: DocsLayoutProps = {
 
 	sidebar: {
 		tabs: {
-			transform: (option, node) => {
+			transform: (options, node) => {
 				const meta = source.getNodeMeta(node);
 
 				if (!meta) {
-					return option;
+					return options;
 				}
 
-				return {
-					...option,
+				const modifiedIcon = node.icon && {
 					icon: (
 						<div
-							key={node.icon?.key}
+							key={node.icon.key}
 							className="rounded-md border bg-gradient-to-t from-fd-background/80 p-1
 								text-fd-primary shadow-md [&_svg]:size-5"
 						>
 							{node.icon}
 						</div>
 					),
+				};
+
+				const modifiedDescription = isString(node.description)
+					&& node.description.startsWith("v") && {
+						description: callApi<{ version: string }>(
+							`https://registry.npmjs.org/@zayne-labs/callapi/latest`
+						).then((res) => res.data?.version),
+					};
+
+				return {
+					...options,
+					...modifiedIcon,
+					...modifiedDescription,
 				};
 			},
 		},

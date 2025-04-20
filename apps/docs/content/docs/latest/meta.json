@@ -1,7 +1,7 @@
 {
 	"root": true,
 	"title": "Latest",
-	"icon": "tag",
+	"icon": "Tag",
 	"description": "v1.7.0",
 	"pages": [
 		"---Guide---",

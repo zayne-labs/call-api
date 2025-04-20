@@ -5,7 +5,7 @@ description: Learn how to use CallApi with React Query
 
 ## Basic Usage
 
-By default, CallApi returns a result object containing both success and error data. However, React Query works differently - it expects either a resolved promise with data or a rejected promise with an error. To bridge this gap, we need to configure CallApi properly:
+By default, CallApi returns errors as values in the result object instead of throwing them. However, React Query works differently - it expects either a resolved promise with data or a rejected promise with an error. To bridge this gap, we need to configure CallApi properly:
 
 ```ts title="todo.tsx"
 import { callApi } from "@zayne-labs/callapi";
@@ -33,11 +33,11 @@ The two key options we're using here are:
 - [throwOnError](../extra-options.mdx): true - This setting makes CallApi throw errors instead of returning them in the result object
 - [resultMode](../extra-options.mdx): "onlySuccessWithException" - This setting makes CallApi return just the data property with its exact type (i.e. `Todo[]` instead of `Todo[] | null`), since that's mostly all we care about in this scenario.
 
-However, due to current TypeScript limitations with partial generic inference (see [TypeScript#26242](https://github.com/microsoft/TypeScript/issues/26242)), we also had to manually specify `"onlySuccessWithException"` as the third generic argument to prevent type errors.
+However, due to current TypeScript limitations with partial generic inference (see [TypeScript#26242](https://github.com/microsoft/TypeScript/issues/26242)), we also had to manually specify `"onlySuccessWithException"` as the third `type argument` in order to get the expected return type.
 
 To avoid this, you can either:
 
-1. Use validation libraries like zod to [validate the response data and infer the type](/docs/v1/getting-started#response-validation)
+1. Use validation libraries like zod to [validate the response data and infer the type](/docs/latest/getting-started#response-validation)
 
 ```ts title="todo.tsx"
 import { callApi } from "@zayne-labs/callapi";
