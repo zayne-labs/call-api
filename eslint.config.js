@@ -3,7 +3,7 @@ import { zayne } from "@zayne-labs/eslint-config";
 export default zayne({
 	ignores: ["packages/**/dist/**", "apps/docs/.source/**"],
 	react: {
-		compiler: true,
+		// compiler: true,
 		files: ["apps/docs/**/*.{ts,tsx}"],
 		nextjs: true,
 		overrides: {

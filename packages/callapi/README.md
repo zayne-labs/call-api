@@ -1,7 +1,7 @@
 <h1 align="center">CallApi - Advanced Fetch Client</h1>
 
 <p align="center">
-   <img src="./assets/logo.png" alt="CallApi Logo" width="30%">
+   <img src="https://res.cloudinary.com/djvestif4/image/upload/v1745621399/call-api/logo_unyvnx.jpg" alt="CallApi Logo" width="30%">
 </p>
 
 <p align="center">
