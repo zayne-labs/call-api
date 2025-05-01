@@ -17,8 +17,6 @@ const newOptionSchema1 = z.object({
 	),
 });
 
-type Plugin1Options = z.infer<typeof newOptionSchema1>;
-
 const newOptionSchema2 = z.object({
 	onUploadSuccess: z.function().args(
 		z.object({
@@ -46,7 +44,7 @@ const plugin2 = definePlugin(() => ({
 	createExtraOptions: () => newOptionSchema2,
 
 	hooks: {
-		onRequest: (ctx) => console.info("PLUGIN2-OnRequest"),
+		onRequest: () => console.info("PLUGIN2-OnRequest"),
 		onSuccess: (_ctx: SuccessContext<{ foo: string }>) => console.info("PLUGIN2-OnSuccess"),
 	} satisfies PluginHooksWithMoreOptions<Plugin2Options>,
 

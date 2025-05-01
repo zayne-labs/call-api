@@ -56,7 +56,7 @@ import { z } from "zod";
 
 const errorSchema = z.object({
 	message: z.string(),
-	errors: z.array(z.union([z.string(), z.array(z.string())])),
+	errors: z.array(z.string().or(z.array(z.string()))),
 });
 
 // Using schemas
