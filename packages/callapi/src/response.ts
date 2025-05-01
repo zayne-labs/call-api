@@ -38,7 +38,7 @@ export type GetResponseType<
 		? TComputedResponseTypeMap[TResponseType]
 		: never;
 
-export const resolveResponseData = async <TResponse>(
+export const resolveResponseData = <TResponse>(
 	response: Response,
 	responseType: ResponseTypeUnion,
 	parser: Parser | undefined
@@ -53,9 +53,7 @@ export const resolveResponseData = async <TResponse>(
 		throw new Error(`Invalid response type: ${responseType}`);
 	}
 
-	const responseData = await RESPONSE_TYPE_LOOKUP[responseType]();
-
-	return responseData;
+	return RESPONSE_TYPE_LOOKUP[responseType]();
 };
 
 type SuccessInfo = {
