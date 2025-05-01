@@ -1,8 +1,7 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import { resolveErrorResult } from "./error";
+import { type ErrorContext, executeHooks } from "./hooks";
 import type { Method } from "./types";
-import type { ErrorContext } from "./types/common";
-import { executeHooks } from "./utils/common";
 import type { AnyNumber, Awaitable } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;

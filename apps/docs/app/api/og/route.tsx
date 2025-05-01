@@ -13,16 +13,19 @@ const ogSchema = z.object({
 
 export async function GET(req: Request) {
 	try {
-		const geist = await callApi(new URL("../../../assets/Geist.ttf", import.meta.url), {
-			responseType: "arrayBuffer",
-			resultMode: "onlySuccessWithException",
-			throwOnError: true,
-		});
-		const geistMono = await callApi(new URL("../../../assets/GeistMono.ttf", import.meta.url), {
-			responseType: "arrayBuffer",
-			resultMode: "onlySuccessWithException",
-			throwOnError: true,
-		});
+		const [geist, geistMono] = await Promise.all([
+			callApi(new URL("../../../assets/Geist.ttf", import.meta.url), {
+				responseType: "arrayBuffer",
+				resultMode: "onlySuccessWithException",
+				throwOnError: true,
+			}),
+			callApi(new URL("../../../assets/GeistMono.ttf", import.meta.url), {
+				responseType: "arrayBuffer",
+				resultMode: "onlySuccessWithException",
+				throwOnError: true,
+			}),
+		]);
+
 		const url = new URL(req.url);
 
 		const urlParamsValues = Object.fromEntries(url.searchParams);

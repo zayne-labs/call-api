@@ -1,6 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { Body, GlobalMeta, Headers, Method } from "./types";
-import type { CombinedCallApiExtraOptions } from "./types/common";
 import type { StandardSchemaV1 } from "./types/standard-schema";
 import type { InitURL, Params, Query } from "./url";
 
@@ -81,15 +80,6 @@ export interface CallApiValidators<TData = unknown, TErrorData = unknown> {
 export type InferSchemaResult<TSchema, TData> = TSchema extends StandardSchemaV1
 	? StandardSchemaV1.InferOutput<TSchema>
 	: TData;
-
-export const createExtensibleSchemasAndValidators = (options: CombinedCallApiExtraOptions) => {
-	const schemas =
-		options.schemas && ({ ...options.schemas, ...options.extend?.schemas } as CallApiSchemas);
-
-	const validators = options.validators && { ...options.validators, ...options.extend?.validators };
-
-	return { schemas, validators };
-};
 
 export const handleValidation = async (
 	responseData: unknown,

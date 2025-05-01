@@ -1,9 +1,9 @@
 /* eslint-disable react-refresh/only-export-components -- Not relevant in Next.js */
 import { baseURL, createMetadata } from "@/lib/metadata";
-import { RootProvider as FumaThemeProvider } from "fumadocs-ui/provider";
-import { Geist, Geist_Mono } from "next/font/google";
-import "../tailwind.css";
 import { cnJoin } from "@/lib/utils/cn";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Providers } from "./Providers";
+import "../tailwind.css";
 
 const geistSans = Geist({
 	subsets: ["latin"],
@@ -37,7 +37,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
 				<meta name="google-site-verification" content="LH-8qDRpnWdy6YKOKmi18ZQ4gW9EgoeDkarkyQc8Tl8" />
 			</head>
 			<body>
-				<FumaThemeProvider>{children}</FumaThemeProvider>
+				<Providers>{children}</Providers>
 			</body>
 		</html>
 	);

@@ -4,34 +4,37 @@ export { definePlugin, type CallApiPlugin, type PluginInitContext } from "./plug
 
 export { defineParameters } from "./defineParameters";
 
-export type { InferSchemaResult, CallApiSchemas } from "./validation";
+export type { CallApiSchemas, InferSchemaResult } from "./validation";
 
 export { getDefaultOptions } from "./utils/constants";
 
 export type { RetryOptions } from "./retry";
 
-export { HTTPError } from "./error";
+export { HTTPError, type PossibleHTTPError, type PossibleJavaScriptError } from "./error";
+
+export type {
+	ErrorContext,
+	Hooks,
+	hooksOrHooksArray,
+	SharedHookContext,
+	RequestContext,
+	RequestErrorContext,
+	RequestStreamContext,
+	ResponseContext,
+	ResponseErrorContext,
+	ResponseStreamContext,
+	SuccessContext,
+} from "./hooks";
 
 export type {
 	BaseCallApiExtraOptions,
 	CallApiExtraOptions,
-	PossibleJavaScriptError,
-	PossibleHTTPError,
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CallApiResultErrorVariant,
-	ResultModeUnion,
 	CallApiResultSuccessVariant,
 	CombinedCallApiExtraOptions,
-	ErrorContext,
-	Interceptors,
-	InterceptorsOrInterceptorArray,
-	PossibleJavascriptErrorNames,
 	Register,
-	RequestContext,
-	RequestErrorContext,
-	ResponseContext,
-	ResponseErrorContext,
-	SuccessContext,
+	ResultModeUnion,
 } from "./types";

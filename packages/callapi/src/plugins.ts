@@ -1,19 +1,23 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import {
+	type Hooks,
+	type SharedHookContext,
+	type WithMoreOptions,
+	composeTwoHooks,
+	hookRegistries,
+	type hooksOrHooksArray,
+} from "./hooks";
 import type {
 	BaseCallApiExtraOptions,
 	CallApiExtraOptions,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
-	CombinedCallApiExtraOptions,
-	Interceptors,
-	InterceptorsOrInterceptorArray,
-	WithMoreOptions,
 } from "./types/common";
 import type { DefaultMoreOptions } from "./types/default-types";
 import type { StandardSchemaV1 } from "./types/standard-schema";
 import type { InitURL } from "./url";
-import { isPlainObject, isString } from "./utils/guards";
-import type { AnyFunction, Awaitable } from "./utils/type-helpers";
+import { isFunction, isPlainObject, isString } from "./utils/guards";
+import type { AnyFunction, Awaitable, Prettify } from "./utils/type-helpers";
 import type { InferSchemaResult } from "./validation";
 
 type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => void : never) extends (
@@ -30,13 +34,9 @@ export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIn
 	InferSchema<ReturnType<NonNullable<TPluginArray[number]["createExtraOptions"]>>>
 >;
 
-export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = WithMoreOptions<TMoreOptions> & {
-	baseConfig: BaseCallApiExtraOptions & CallApiRequestOptions;
-	config: CallApiExtraOptions & CallApiRequestOptions;
-	initURL: InitURL | undefined;
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-};
+export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = Prettify<
+	SharedHookContext & WithMoreOptions<TMoreOptions> & { initURL: InitURL | undefined }
+>;
 
 export type PluginInitResult = Partial<
 	Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
@@ -56,7 +56,7 @@ export interface CallApiPlugin<TData = never, TErrorData = never> {
 	/**
 	 * Hooks / Interceptors for the plugin
 	 */
-	hooks?: InterceptorsOrInterceptorArray<TData, TErrorData>;
+	hooks?: hooksOrHooksArray<TData, TErrorData>;
 
 	/**
 	 *  A unique id for the plugin
@@ -88,54 +88,18 @@ export const definePlugin = <
 	return plugin;
 };
 
-const createMergedHook = (
-	hooks: Array<AnyFunction | undefined>,
-	mergedHooksExecutionMode: CombinedCallApiExtraOptions["mergedHooksExecutionMode"]
-) => {
-	if (hooks.length === 0) return;
-
-	const mergedHook = async (ctx: Record<string, unknown>) => {
-		if (mergedHooksExecutionMode === "sequential") {
-			for (const hook of hooks) {
-				// eslint-disable-next-line no-await-in-loop -- This is necessary in this case
-				await hook?.(ctx);
-			}
-
-			return;
-		}
-
-		if (mergedHooksExecutionMode === "parallel") {
-			const hookArray = [...hooks];
-
-			await Promise.all(hookArray.map((uniqueHook) => uniqueHook?.(ctx)));
-		}
-	};
-
-	return mergedHook;
-};
-
-// prettier-ignore
-type HookRegistries = {
-	[Key in keyof Interceptors]: Set<Interceptors[Key]>;
-};
-
-export const hooksEnum = {
-	onError: new Set(),
-	onRequest: new Set(),
-	onRequestError: new Set(),
-	onRequestStream: new Set(),
-	onResponse: new Set(),
-	onResponseError: new Set(),
-	onResponseStream: new Set(),
-	onRetry: new Set(),
-	onSuccess: new Set(),
-} satisfies HookRegistries;
-
 export type Plugins<TPluginArray extends CallApiPlugin[]> = TPluginArray;
 
-const getPluginArray = (plugins: Plugins<CallApiPlugin[]> | undefined) => {
+const resolvePluginArray = (
+	plugins: CallApiExtraOptions["plugins"] | undefined,
+	basePlugins: BaseCallApiExtraOptions["plugins"] | undefined
+) => {
 	if (!plugins) {
 		return [];
+	}
+
+	if (isFunction(plugins)) {
+		return plugins({ basePlugins: basePlugins ?? [] });
 	}
 
 	return plugins;
@@ -146,21 +110,21 @@ export const initializePlugins = async (
 ) => {
 	const { baseConfig, config, initURL, options, request } = context;
 
-	const hookRegistries = structuredClone(hooksEnum);
+	const clonedHookRegistries = structuredClone(hookRegistries);
 
 	const addMainHooks = () => {
-		for (const key of Object.keys(hooksEnum)) {
-			const mainHook = options[key as keyof Interceptors] as never;
+		for (const key of Object.keys(clonedHookRegistries)) {
+			const mainHook = options[key as keyof Hooks] as never;
 
-			hookRegistries[key as keyof Interceptors].add(mainHook);
+			clonedHookRegistries[key as keyof Hooks].add(mainHook);
 		}
 	};
 
 	const addPluginHooks = (pluginHooks: Required<CallApiPlugin>["hooks"]) => {
-		for (const key of Object.keys(hooksEnum)) {
-			const pluginHook = pluginHooks[key as keyof Interceptors] as never;
+		for (const key of Object.keys(clonedHookRegistries)) {
+			const pluginHook = pluginHooks[key as keyof Hooks] as never;
 
-			hookRegistries[key as keyof Interceptors].add(pluginHook);
+			clonedHookRegistries[key as keyof Hooks].add(pluginHook);
 		}
 	};
 
@@ -168,10 +132,7 @@ export const initializePlugins = async (
 		addMainHooks();
 	}
 
-	const resolvedPlugins = [
-		...getPluginArray(options.plugins),
-		...getPluginArray(options.extend?.plugins),
-	];
+	const resolvedPlugins = resolvePluginArray(options.plugins, baseConfig.plugins);
 
 	let resolvedUrl = initURL;
 	let resolvedOptions = options;
@@ -219,14 +180,14 @@ export const initializePlugins = async (
 		addMainHooks();
 	}
 
-	const resolvedHooks: Interceptors = {};
+	const resolvedHooks: Hooks = {};
 
-	for (const [key, hookRegistry] of Object.entries(hookRegistries)) {
+	for (const [key, hookRegistry] of Object.entries(clonedHookRegistries)) {
 		const flattenedHookArray = [...hookRegistry].flat().filter(Boolean);
 
-		const mergedHook = createMergedHook(flattenedHookArray, options.mergedHooksExecutionMode);
+		const composedHook = composeTwoHooks(flattenedHookArray, options.mergedHooksExecutionMode);
 
-		resolvedHooks[key as keyof Interceptors] = mergedHook;
+		resolvedHooks[key as keyof Hooks] = composedHook;
 	}
 
 	return {

@@ -1,9 +1,6 @@
+import type { SharedHookContext } from "./hooks";
 import { toStreamableRequest, toStreamableResponse } from "./stream";
-import type {
-	CallApiRequestOptions,
-	CallApiRequestOptionsForHooks,
-	CombinedCallApiExtraOptions,
-} from "./types/common";
+import type { CallApiRequestOptions, CombinedCallApiExtraOptions } from "./types/common";
 import { getFetchImpl, waitUntil } from "./utils/common";
 import { isReadableStream } from "./utils/guards";
 
@@ -14,28 +11,25 @@ type RequestInfo = {
 
 export type RequestInfoCache = Map<string | null, RequestInfo>;
 
-type DedupeContext = {
+type DedupeContext = SharedHookContext & {
 	$RequestInfoCache: RequestInfoCache;
 	newFetchController: AbortController;
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptions;
+};
+
+const generateDedupeKey = (options: CombinedCallApiExtraOptions, request: CallApiRequestOptions) => {
+	const shouldHaveDedupeKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
+
+	if (!shouldHaveDedupeKey) {
+		return null;
+	}
+
+	return `${options.fullURL}-${JSON.stringify({ options, request })}`;
 };
 
 export const createDedupeStrategy = async (context: DedupeContext) => {
-	const { $RequestInfoCache, newFetchController, options, request } = context;
+	const { $RequestInfoCache, baseConfig, config, newFetchController, options, request } = context;
 
-	const generateDedupeKey = () => {
-		const shouldHaveDedupeKey =
-			options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
-
-		if (!shouldHaveDedupeKey) {
-			return null;
-		}
-
-		return `${options.fullURL}-${JSON.stringify({ options, request })}`;
-	};
-
-	const dedupeKey = options.dedupeKey ?? generateDedupeKey();
+	const dedupeKey = options.dedupeKey ?? generateDedupeKey(options, request);
 
 	// == This is to ensure cache operations only occur when key is available
 	const $RequestInfoCacheOrNull = dedupeKey !== null ? $RequestInfoCache : null;
@@ -79,31 +73,42 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 				: request) as RequestInit
 		);
 
-		void toStreamableRequest({
+		await toStreamableRequest({
+			baseConfig,
+			config,
 			options,
-			request: request as CallApiRequestOptionsForHooks,
+			request,
 			requestInstance: requestInstance.clone(),
 		});
 
+		const getFetchApiPromise = () => {
+			if (isReadableStream(request.body)) {
+				return fetchApi(requestInstance.clone());
+			}
+
+			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, request as RequestInit);
+		};
+
 		const responsePromise = shouldUsePromiseFromCache
 			? prevRequestInfo.responsePromise
-			: // eslint-disable-next-line unicorn/no-nested-ternary -- Allow
-				isReadableStream(request.body)
-				? fetchApi(requestInstance.clone())
-				: fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, request as RequestInit);
+			: getFetchApiPromise();
 
 		$RequestInfoCacheOrNull?.set(dedupeKey, { controller: newFetchController, responsePromise });
 
 		const streamableResponse = toStreamableResponse({
+			baseConfig,
+			config,
 			options,
-			request: request as CallApiRequestOptionsForHooks,
+			request,
 			response: await responsePromise,
 		});
 
 		return streamableResponse;
 	};
 
-	const removeDedupeKeyFromCache = () => $RequestInfoCacheOrNull?.delete(dedupeKey);
+	const removeDedupeKeyFromCache = () => {
+		$RequestInfoCacheOrNull?.delete(dedupeKey);
+	};
 
 	return {
 		handleRequestCancelStrategy,

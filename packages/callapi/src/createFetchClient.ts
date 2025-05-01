@@ -1,19 +1,19 @@
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
-import { type CallApiPlugin, type PluginInitContext, hooksEnum, initializePlugins } from "./plugins";
+import { type ErrorContext, type SuccessContext, executeHooks } from "./hooks";
+import { type CallApiPlugin, initializePlugins } from "./plugins";
 import { type ResponseTypeUnion, resolveResponseData, resolveSuccessResult } from "./response";
 import { createRetryStrategy } from "./retry";
 import type {
 	BaseCallApiConfig,
+	BaseCallApiExtraOptions,
+	CallApiExtraOptions,
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CallApiResult,
 	CombinedCallApiExtraOptions,
-	ErrorContext,
-	Interceptors,
 	ResultModeUnion,
-	SuccessContext,
 } from "./types/common";
 import type {
 	DefaultDataType,
@@ -23,8 +23,8 @@ import type {
 } from "./types/default-types";
 import { mergeUrlWithParamsAndQuery } from "./url";
 import {
-	combineHooks,
-	executeHooks,
+	createCombinedSignal,
+	createTimeoutSignal,
 	mergeAndResolveHeaders,
 	splitBaseConfig,
 	splitConfig,
@@ -32,13 +32,7 @@ import {
 } from "./utils/common";
 import { defaultExtraOptions, defaultRequestOptions } from "./utils/constants";
 import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/guards";
-import { createCombinedSignal, createTimeoutSignal } from "./utils/polyfills";
-import {
-	type CallApiSchemas,
-	type InferSchemaResult,
-	createExtensibleSchemasAndValidators,
-	handleValidation,
-} from "./validation";
+import { type CallApiSchemas, type InferSchemaResult, handleValidation } from "./validation";
 
 export const createFetchClient = <
 	TBaseData = DefaultDataType,
@@ -49,7 +43,7 @@ export const createFetchClient = <
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
 >(
-	baseConfig: BaseCallApiConfig<
+	initBaseConfig: BaseCallApiConfig<
 		TBaseData,
 		TBaseErrorData,
 		TBaseResultMode,
@@ -86,48 +80,40 @@ export const createFetchClient = <
 		TThrowOnError,
 		TResponseType
 	> => {
-		const [initURL, config = {} as never] = parameters;
+		const [initURL, initConfig = {}] = parameters;
 
-		const [fetchOptions, extraOptions] = splitConfig(config);
+		const [fetchOptions, extraOptions] = splitConfig(initConfig);
 
-		const resolvedBaseConfig = isFunction(baseConfig)
-			? baseConfig({
-					initURL: initURL.toString(),
-					options: extraOptions,
-					request: fetchOptions,
-				})
-			: baseConfig;
+		const resolvedBaseConfig = isFunction(initBaseConfig)
+			? initBaseConfig({ initURL: initURL.toString(), options: extraOptions, request: fetchOptions })
+			: initBaseConfig;
 
 		const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(resolvedBaseConfig);
-
-		const initCombinedHooks = {} as Required<Interceptors>;
-
-		for (const key of Object.keys(hooksEnum)) {
-			const combinedHook = combineHooks(
-				baseExtraOptions[key as keyof Interceptors],
-				extraOptions[key as keyof Interceptors]
-			);
-
-			initCombinedHooks[key as keyof Interceptors] = combinedHook as never;
-		}
 
 		// == Merged Extra Options
 		const mergedExtraOptions = {
 			...defaultExtraOptions,
 			...baseExtraOptions,
-			...(!baseExtraOptions.mergeMainOptionsManuallyFromBase && extraOptions),
+			...(baseExtraOptions.skipAutoMergeFor !== "all"
+				&& baseExtraOptions.skipAutoMergeFor !== "options"
+				&& extraOptions),
 		};
 
 		// == Merged Request Options
 		const mergedRequestOptions = {
 			...defaultRequestOptions,
 			...baseFetchOptions,
-			...fetchOptions,
+			...(baseExtraOptions.skipAutoMergeFor !== "all"
+				&& baseExtraOptions.skipAutoMergeFor !== "request"
+				&& fetchOptions),
 		} satisfies CallApiRequestOptions;
 
+		const baseConfig = resolvedBaseConfig as BaseCallApiExtraOptions & CallApiRequestOptions;
+		const config = initConfig as CallApiExtraOptions & CallApiRequestOptions;
+
 		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
-			baseConfig: resolvedBaseConfig as PluginInitContext["config"],
-			config: config as PluginInitContext["config"],
+			baseConfig,
+			config,
 			initURL,
 			options: mergedExtraOptions as CombinedCallApiExtraOptions,
 			request: mergedRequestOptions,
@@ -171,12 +157,19 @@ export const createFetchClient = <
 		} satisfies CallApiRequestOptionsForHooks;
 
 		const { handleRequestCancelStrategy, handleRequestDeferStrategy, removeDedupeKeyFromCache } =
-			await createDedupeStrategy({ $RequestInfoCache, newFetchController, options, request });
+			await createDedupeStrategy({
+				$RequestInfoCache,
+				baseConfig,
+				config,
+				newFetchController,
+				options,
+				request,
+			});
 
 		await handleRequestCancelStrategy();
 
 		try {
-			await executeHooks(options.onRequest?.({ options, request }));
+			await executeHooks(options.onRequest?.({ baseConfig, config, options, request }));
 
 			// == Apply determined headers again after onRequest incase they were modified
 			request.headers = mergeAndResolveHeaders({
@@ -187,9 +180,18 @@ export const createFetchClient = <
 
 			const response = await handleRequestDeferStrategy();
 
-			const { schemas, validators } = createExtensibleSchemasAndValidators(options);
 			// == Also clone response when dedupeStrategy is set to "defer" or when onRequestStream is set, to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
+
+			const schemas = (
+				isFunction(options.schemas)
+					? options.schemas({ baseSchemas: baseExtraOptions.schemas ?? {} })
+					: options.schemas
+			) as CallApiSchemas | undefined;
+
+			const validators = isFunction(options.validators)
+				? options.validators({ baseValidators: baseExtraOptions.validators ?? {} })
+				: options.validators;
 
 			if (!response.ok) {
 				const errorData = await resolveResponseData<TErrorData>(
@@ -205,6 +207,7 @@ export const createFetchClient = <
 				);
 
 				// == Push all error handling responsibilities to the catch block if not retrying
+				// eslint-disable-next-line ts-eslint/only-throw-error -- This is intended
 				throw new HTTPError({
 					defaultErrorMessage: options.defaultErrorMessage,
 					errorData: validErrorData,
@@ -221,6 +224,8 @@ export const createFetchClient = <
 			const validSuccessData = await handleValidation(successData, schemas?.data, validators?.data);
 
 			const successContext = {
+				baseConfig,
+				config,
 				data: validSuccessData,
 				options,
 				request,
@@ -249,6 +254,8 @@ export const createFetchClient = <
 			});
 
 			const errorContext = {
+				baseConfig,
+				config,
 				error: apiDetails.error as never,
 				options,
 				request,
@@ -315,10 +322,10 @@ export const createFetchClient = <
 			}
 
 			await executeHooks(
-				// == At this point only the request errors exist, so the request error interceptor is called
+				// == At this point only the request errors exist, so the request error hook is called
 				options.onRequestError?.(errorContext as never),
 
-				// == Also call the onError interceptor
+				// == Also call the onError hook
 				options.onError?.(errorContext)
 			);
 

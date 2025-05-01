@@ -114,14 +114,15 @@ const callMainApi = createFetchClient({
 // 	},
 // }).pipeThrough(new TextEncoderStream());
 
-const [foo1, foo2, foo3, foo4] = await Promise.all([
+const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 	callMainApi<"", false | undefined>("/products/:id", {
-		method: "GET",
 		params: [1],
 	}),
-	callMainApi<"", false | undefined>("/products/:id", {
-		method: "GET",
+	callMainApi("/products/:id", {
 		params: [1],
+	}),
+	callMainApi("/products/:id", {
+		params: [1302],
 	}),
 	callMainApi("/products/:id", {
 		body: ["dev"],
@@ -130,20 +131,13 @@ const [foo1, foo2, foo3, foo4] = await Promise.all([
 	}),
 	callMainApi("https://api.github.com/repos/javascript-tutorial/en.javascript.info/commits?per_page=50", {
 		baseURL: "",
-		// body: stream,
-		// headers: {
-		// 	"content-length": new Blob(["3", "4", "5", "7", "8", "9", "10"]).size.toString(),
-		// },
-		forceContentLengthCalc: true,
-		method: "GET",
 		onRequestStream: (ctx) => console.info("OnRequestStream", { event: ctx.event }),
 		onResponseStream: (ctx) => console.info("OnResponseStream", { event: ctx.event }),
-		params: [1],
 		throwOnError: true,
 	}),
 ]);
 
-console.info(foo1, foo2, foo3, foo4);
+console.info(foo1, foo2, foo3, foo4, foo5);
 
 // const foo1 = void callApi("/products/:id", {
 // 	method: "GET",

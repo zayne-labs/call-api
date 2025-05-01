@@ -1,9 +1,9 @@
 ---
-title: Hooks / Interceptors
-description: Learn how to use request and response interceptors
+title: Hooks
+description: Learn how to use hooks in CallApi
 ---
 
-Hooks / Interceptors are callback functions that are called at different stages of the request lifecycle. Each hook receives a specific context object and can be async.
+Hooks are callback functions that are called at different stages of the request lifecycle. Each hook receives a specific context object and can be async. They are sometimes referred to as interceptors in other libraries.
 
 ```ts twoslash title="example.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
@@ -41,15 +41,15 @@ const callApi = createFetchClient({
 });
 
 callApi("/api/data", {
-	onRequest: (context) => {},
-	onRequestError: (context) => {},
-	onResponse: (context) => {},
-	onResponseError: (context) => {},
-	onError: (context) => {},
-	onSuccess: (context) => {},
-	onRetry: (context) => {},
-	onRequestStream: (context) => {},
-	onResponseStream: (context) => {},
+	onRequest: (ctx) => {},
+	onRequestError: (ctx) => {},
+	onResponse: (ctx) => {},
+	onResponseError: (ctx) => {},
+	onError: (ctx) => {},
+	onSuccess: (ctx) => {},
+	onRetry: (ctx) => {},
+	onRequestStream: (ctx) => {},
+	onResponseStream: (ctx) => {},
 });
 ```
 
@@ -76,6 +76,40 @@ const client = createFetchClient({
 		}
 	},
 });
+```
+
+### onRequestStream
+
+This hook is called during request body streaming, useful for tracking upload progress.
+
+```ts title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onRequestStream: ({ event }) => {
+		// Access stream progress information
+		console.log(`Upload progress: ${event.progress}%`);
+		console.log(`Bytes transferred: ${event.transferredBytes}`);
+		console.log(`Total bytes: ${event.totalBytes}`);
+
+		// Access the current chunk being streamed
+		// event.chunk is a Uint8Array
+	},
+});
+
+// Example: Uploading a large file
+const fileInput = document.querySelector('input[type="file"]');
+const file = fileInput?.files?.[0];
+
+if (file) {
+	await client("/api/upload", {
+		method: "POST",
+		body: file,
+		onRequestStream: ({ event }) => {
+			updateUploadProgress(event.progress);
+		},
+	});
+}
 ```
 
 ### onRequestError
@@ -115,6 +149,34 @@ const client = createFetchClient({
 		if (response.status === 207) {
 			console.warn("Partial success:", data);
 		}
+	},
+});
+```
+
+### onResponseStream
+
+This hook is called during response body streaming, perfect for tracking download progress.
+
+```ts title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onResponseStream: ({ event }) => {
+		// Access stream progress information
+		console.log(`Download progress: ${event.progress}%`);
+		console.log(`Bytes received: ${event.transferredBytes}`);
+		console.log(`Total bytes: ${event.totalBytes}`);
+
+		// Process the current chunk
+		// event.chunk is a Uint8Array
+	},
+});
+
+// Example: Downloading a large file
+const { data } = await client("/api/download-video", {
+	responseType: "stream",
+	onResponseStream: ({ event }) => {
+		updateDownloadProgress(event.progress);
 	},
 });
 ```
@@ -224,77 +286,6 @@ const client = createFetchClient({
 });
 ```
 
-## Stream Progress Hooks
-
-### onRequestStream
-
-This hook is called during request body streaming, useful for tracking upload progress.
-
-```ts title="example.ts"
-import { createFetchClient } from "@zayne-labs/callapi";
-
-const client = createFetchClient({
-	onRequestStream: ({ event }) => {
-		// Access stream progress information
-		console.log(`Upload progress: ${event.progress}%`);
-		console.log(`Bytes transferred: ${event.transferredBytes}`);
-		console.log(`Total bytes: ${event.totalBytes}`);
-
-		// Access the current chunk being streamed
-		// event.chunk is a Uint8Array
-	},
-});
-
-// Example: Uploading a large file
-const fileInput = document.querySelector('input[type="file"]');
-const file = fileInput?.files?.[0];
-
-if (file) {
-	await client("/api/upload", {
-		method: "POST",
-		body: file,
-		onRequestStream: ({ event }) => {
-			updateUploadProgress(event.progress);
-		},
-	});
-}
-```
-
-### onResponseStream
-
-This hook is called during response body streaming, perfect for tracking download progress.
-
-```ts title="example.ts"
-import { createFetchClient } from "@zayne-labs/callapi";
-
-const client = createFetchClient({
-	onResponseStream: ({ event }) => {
-		// Access stream progress information
-		console.log(`Download progress: ${event.progress}%`);
-		console.log(`Bytes received: ${event.transferredBytes}`);
-		console.log(`Total bytes: ${event.totalBytes}`);
-
-		// Process the current chunk
-		// event.chunk is a Uint8Array
-	},
-});
-
-// Example: Downloading a large file
-const { data } = await client("/api/download-video", {
-	responseType: "stream",
-	onResponseStream: ({ event }) => {
-		updateDownloadProgress(event.progress);
-	},
-});
-```
-
-Both stream hooks receive a context object with an `event` property of type `StreamProgressEvent` that contains:
-
-- `chunk`: Current chunk of data being streamed (Uint8Array)
-- `progress`: Progress percentage (0-100)
-- `totalBytes`: Total size of data in bytes
-- `transferredBytes`: Amount of data transferred so far
-
 ## Details to note
 
 Here are some important details about how hooks work:
@@ -312,6 +303,15 @@ const { error } = await callApi("/api/data", {
 	],
 });
 ```
+
+### Streaming
+
+Both stream hooks (`onRequestStream` and `onResponseStream`) receive a context object with an `event` property of type `StreamProgressEvent` that contains:
+
+- `chunk`: Current chunk of data being streamed (Uint8Array)
+- `progress`: Progress percentage (0-100)
+- `totalBytes`: Total size of data in bytes
+- `transferredBytes`: Amount of data transferred so far
 
 ### Hook Priority Levels
 
@@ -468,4 +468,4 @@ const { error } = await client("/api/data", {
 
 ## Types
 
-<auto-type-table path="../../../lib/callapi-options.ts" name="InterceptorsOrInterceptorArray" />
+<auto-type-table path="../../../lib/callapi-options.ts" name="Hooks" />

@@ -1,9 +1,9 @@
-/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { Auth } from "../auth";
+import type { PossibleHTTPError, PossibleJavaScriptError } from "../error";
+import type { ErrorContext, Hooks, hooksOrHooksArray } from "../hooks";
 import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
 import type { GetResponseType, ResponseTypeUnion } from "../response";
 import type { RetryOptions } from "../retry";
-import type { RequestStreamContext, ResponseStreamContext } from "../stream";
 import type { InitURL, UrlOptions } from "../url";
 import type { ModifiedRequestInit, fetchSpecificKeys } from "../utils/constants";
 import { type Awaitable, type Prettify, type UnmaskType, defineEnum } from "../utils/type-helpers";
@@ -37,80 +37,6 @@ export type CallApiRequestOptionsForHooks<TSchemas extends CallApiSchemas = Defa
 > & {
 	headers?: Record<string, string | undefined>;
 };
-
-export type WithMoreOptions<TMoreOptions = DefaultMoreOptions> = {
-	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
-};
-
-export interface Interceptors<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
-	TMoreOptions = DefaultMoreOptions,
-> {
-	/**
-	 * Interceptor that will be called when any error occurs within the request/response lifecycle, regardless of whether the error is from the api or not.
-	 * It is basically a combination of `onRequestError` and `onResponseError` interceptors
-	 */
-	onError?: (context: ErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
-
-	/**
-	 * Interceptor that will be called just before the request is made, allowing for modifications or additional operations.
-	 */
-	onRequest?: (context: RequestContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
-
-	/**
-	 *  Interceptor that will be called when an error occurs during the fetch request.
-	 */
-	onRequestError?: (context: RequestErrorContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
-
-	/**
-	 * Interceptor that will be called when upload stream progress is tracked
-	 */
-	onRequestStream?: (context: RequestStreamContext & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
-
-	/**
-	 * Interceptor that will be called when any response is received from the api, whether successful or not
-	 */
-	onResponse?: (
-		context: ResponseContext<TData, TErrorData> & WithMoreOptions<TMoreOptions>
-	) => Awaitable<unknown>;
-
-	/**
-	 *  Interceptor that will be called when an error response is received from the api.
-	 */
-	onResponseError?: (
-		context: ResponseErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>
-	) => Awaitable<unknown>;
-
-	/**
-	 * Interceptor that will be called when download stream progress is tracked
-	 */
-	onResponseStream?: (
-		context: ResponseStreamContext & WithMoreOptions<TMoreOptions>
-	) => Awaitable<unknown>;
-
-	/**
-	 * Interceptor that will be called when a request is retried.
-	 */
-	onRetry?: (response: ErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
-
-	/**
-	 * Interceptor that will be called when a successful response is received from the api.
-	 */
-	onSuccess?: (context: SuccessContext<TData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
-}
-
-/* eslint-disable perfectionist/sort-union-types -- I need arrays to be last */
-export type InterceptorsOrInterceptorArray<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
-	TMoreOptions = DefaultMoreOptions,
-> = {
-	[Key in keyof Interceptors<TData, TErrorData, TMoreOptions>]:
-		| Interceptors<TData, TErrorData, TMoreOptions>[Key]
-		| Array<Interceptors<TData, TErrorData, TMoreOptions>[Key]>;
-};
-/* eslint-enable perfectionist/sort-union-types -- I need arrays to be last */
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
@@ -174,7 +100,7 @@ export type ExtraOptions<
 	 * If true, forces the calculation of the total byte size from the request or response body, in case the content-length header is not present or is incorrect.
 	 * @default false
 	 */
-	forceStreamSizeCalc?: boolean | { request?: boolean; response?: boolean };
+	forceCalculateStreamSize?: boolean | { request?: boolean; response?: boolean };
 
 	/**
 	 * Resolved request URL
@@ -182,7 +108,7 @@ export type ExtraOptions<
 	readonly fullURL?: string;
 
 	/**
-	 * Defines the mode in which the merged hooks are executed, can be set to "parallel" | "sequential".
+	 * Defines the mode in which the composed hooks are executed".
 	 * - If set to "parallel", main and plugin hooks will be executed in parallel.
 	 * - If set to "sequential", the plugin hooks will be executed first, followed by the main hook.
 	 * @default "parallel"
@@ -190,7 +116,7 @@ export type ExtraOptions<
 	mergedHooksExecutionMode?: "parallel" | "sequential";
 
 	/**
-	 * - Controls what order in which the merged hooks execute
+	 * - Controls what order in which the composed hooks execute
 	 * @default "mainHooksAfterPlugins"
 	 */
 	mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
@@ -201,7 +127,7 @@ export type ExtraOptions<
 	plugins?: Plugins<TPluginArray>;
 
 	/**
-	 * Custom function to parse the response string into a object.
+	 * Custom function to parse the response string
 	 */
 	responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
 
@@ -240,17 +166,13 @@ export type ExtraOptions<
 	 */
 	validators?: CallApiValidators<TData, TErrorData>;
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
-} & InterceptorsOrInterceptorArray<TData, TErrorData>
+} & hooksOrHooksArray<TData, TErrorData>
 	& Partial<InferPluginOptions<TPluginArray>>
 	& MetaOption<TSchemas>
 	& RetryOptions<TErrorData>
 	& ResultModeOption<TErrorData, TResultMode>
 	& UrlOptions<TSchemas>;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
-
-export const optionsEnumToExtendFromBase = defineEnum(["plugins", "validators", "schemas"] satisfies Array<
-	keyof ExtraOptions
->);
 
 export type CallApiExtraOptions<
 	TData = DefaultDataType,
@@ -261,16 +183,20 @@ export type CallApiExtraOptions<
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 > = ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray, TSchemas> & {
-	/**
-	 * Options that should extend the base options.
-	 */
-	extend?: Pick<
-		ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray, TSchemas>,
-		(typeof optionsEnumToExtendFromBase)[number]
-	>;
+	plugins?:
+		| Plugins<TPluginArray>
+		| ((context: { basePlugins: Plugins<TPluginArray> }) => Plugins<TPluginArray>);
+
+	schemas?: TSchemas | ((context: { baseSchemas: TSchemas }) => TSchemas);
+
+	validators?:
+		| CallApiValidators<TData, TErrorData>
+		| ((context: {
+				baseValidators: CallApiValidators<TData, TErrorData>;
+		  }) => CallApiValidators<TData, TErrorData>);
 };
 
-export const optionsEnumToOmitFromBase = defineEnum(["extend", "dedupeKey"] satisfies Array<
+export const optionsEnumToOmitFromBase = defineEnum(["dedupeKey"] satisfies Array<
 	keyof CallApiExtraOptions
 >);
 
@@ -297,18 +223,32 @@ export type BaseCallApiExtraOptions<
 	(typeof optionsEnumToOmitFromBase)[number]
 > & {
 	/**
-	 * If true, the base options will not be merged with the main options by default.
+	 * Specifies which configuration parts should skip automatic merging between base and main configs.
+	 * Use this when you need manual control over how configs are combined.
 	 *
-	 * It's recommended to set this to true when you want to handle the options merge manually from the createFetchClient config function signature.
+	 * @values
+	 * - "all" - Disables automatic merging for both request and options
+	 * - "options" - Disables automatic merging of options only
+	 * - "request" - Disables automatic merging of request only
 	 *
-	 * This helps prevent main options from overriding base options by default.
-	 * @default false
+	 * @example
+	 * ```ts
+	 * const client = createFetchClient((ctx) => ({
+	 *   skipAutoMergeFor: "options",
+	 *
+	 *   // Now you can manually merge options in your config function
+	 *   ...ctx.options,
+	 * }));
+	 * ```
 	 */
-	mergeMainOptionsManuallyFromBase?: boolean;
+	skipAutoMergeFor?: "all" | "options" | "request";
 };
 
-export type CombinedCallApiExtraOptions = Interceptors
-	& Omit<BaseCallApiExtraOptions & CallApiExtraOptions, keyof Interceptors>;
+type CombinedExtraOptionsWithoutHooks = Omit<BaseCallApiExtraOptions & CallApiExtraOptions, keyof Hooks>;
+
+type ResolvedHooks = Hooks;
+
+export type CombinedCallApiExtraOptions = CombinedExtraOptionsWithoutHooks & ResolvedHooks;
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
@@ -383,85 +323,6 @@ export type CallApiParameters<
 		TSchemas
 	>,
 ];
-
-export type RequestContext = UnmaskType<{
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-}>;
-
-export type ResponseContext<TData, TErrorData> = UnmaskType<
-	| {
-			data: TData;
-			error: null;
-			options: CombinedCallApiExtraOptions;
-			request: CallApiRequestOptionsForHooks;
-			response: Response;
-	  }
-	// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
-	| {
-			data: null;
-			error: PossibleHTTPError<TErrorData>;
-			options: CombinedCallApiExtraOptions;
-			request: CallApiRequestOptionsForHooks;
-			response: Response;
-	  }
->;
-
-export type SuccessContext<TData> = UnmaskType<{
-	data: TData;
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-	response: Response;
-}>;
-
-export type PossibleJavascriptErrorNames =
-	| "AbortError"
-	| "Error"
-	| "SyntaxError"
-	| "TimeoutError"
-	| "TypeError"
-	| (`${string}Error` & DefaultMoreOptions);
-
-export type PossibleJavaScriptError = UnmaskType<{
-	errorData: DOMException | Error | SyntaxError | TypeError;
-	message: string;
-	name: PossibleJavascriptErrorNames;
-}>;
-
-export type PossibleHTTPError<TErrorData> = UnmaskType<{
-	errorData: TErrorData;
-	message: string;
-	name: "HTTPError";
-}>;
-
-export type RequestErrorContext = UnmaskType<{
-	error: PossibleJavaScriptError;
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-	response: null;
-}>;
-
-export type ResponseErrorContext<TErrorData> = UnmaskType<{
-	error: PossibleHTTPError<TErrorData>;
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-	response: Response;
-}>;
-
-export type ErrorContext<TErrorData> = UnmaskType<
-	| {
-			error: PossibleHTTPError<TErrorData>;
-			options: CombinedCallApiExtraOptions;
-			request: CallApiRequestOptionsForHooks;
-			response: Response;
-	  }
-	| {
-			error: PossibleJavaScriptError;
-			options: CombinedCallApiExtraOptions;
-			request: CallApiRequestOptionsForHooks;
-			response: null;
-	  }
->;
 
 export type CallApiResultSuccessVariant<TData> = {
 	data: TData;

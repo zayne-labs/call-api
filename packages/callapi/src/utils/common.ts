@@ -6,8 +6,7 @@ import {
 	optionsEnumToOmitFromBase,
 } from "../types/common";
 import { fetchSpecificKeys } from "./constants";
-import { isArray, isFunction, isJsonString, isPlainObject, isQueryString, isSerializable } from "./guards";
-import type { AnyFunction, Awaitable } from "./type-helpers";
+import { isFunction, isJsonString, isPlainObject, isQueryString, isSerializable } from "./guards";
 
 export const omitKeys = <
 	TObject extends Record<string, unknown>,
@@ -128,17 +127,6 @@ export const mergeAndResolveHeaders = (options: MergeAndResolveHeadersOptions) =
 	return headersObject;
 };
 
-export const combineHooks = <TInterceptor extends AnyFunction | Array<AnyFunction | undefined>>(
-	baseInterceptor: TInterceptor | undefined,
-	interceptor: TInterceptor | undefined
-) => {
-	if (isArray(baseInterceptor)) {
-		return [baseInterceptor, interceptor].flat() as TInterceptor;
-	}
-
-	return interceptor ?? baseInterceptor;
-};
-
 export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchImpl"]) => {
 	if (customFetchImpl) {
 		return customFetchImpl;
@@ -150,9 +138,6 @@ export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchIm
 
 	throw new Error("No fetch implementation found");
 };
-
-export const executeHooks = <TInterceptor extends Awaitable<unknown>>(...interceptors: TInterceptor[]) =>
-	Promise.all(interceptors);
 
 const PromiseWithResolvers = () => {
 	let reject!: (reason?: unknown) => void;
@@ -175,3 +160,8 @@ export const waitUntil = (delay: number) => {
 
 	return promise;
 };
+
+export const createCombinedSignal = (...signals: Array<AbortSignal | null | undefined>) =>
+	AbortSignal.any(signals.filter(Boolean));
+
+export const createTimeoutSignal = (milliseconds: number) => AbortSignal.timeout(milliseconds);

@@ -1,11 +1,7 @@
-import type {
-	CallApiExtraOptions,
-	CallApiResultErrorVariant,
-	PossibleJavascriptErrorNames,
-	ResultModeMap,
-} from "./types/common";
+import type { CallApiExtraOptions, CallApiResultErrorVariant, ResultModeMap } from "./types/common";
 import { omitKeys } from "./utils/common";
 import { isHTTPErrorInstance } from "./utils/guards";
+import type { UnmaskType } from "./utils/type-helpers";
 
 type ErrorInfo = {
 	cloneResponse: CallApiExtraOptions["cloneResponse"];
@@ -23,7 +19,7 @@ export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 		error: {
 			errorData: error as Error,
 			message: customErrorMessage ?? (error as Error).message,
-			name: (error as Error).name as PossibleJavascriptErrorNames,
+			name: (error as Error).name as PossibleJavaScriptError["name"],
 		},
 		response: null,
 	};
@@ -80,23 +76,38 @@ type ErrorOptions = {
 	cause?: unknown;
 };
 
-export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
+export class HTTPError<TErrorResponse = Record<string, unknown>> {
+	cause: ErrorOptions["cause"];
+
 	errorData: ErrorDetails<TErrorResponse>["errorData"];
 
 	isHTTPError = true;
 
-	override name = "HTTPError" as const;
+	message: string;
+
+	name = "HTTPError" as const;
 
 	response: ErrorDetails<TErrorResponse>["response"];
 
 	constructor(errorDetails: ErrorDetails<TErrorResponse>, errorOptions?: ErrorOptions) {
 		const { defaultErrorMessage, errorData, response } = errorDetails;
 
-		super((errorData as { message?: string } | undefined)?.message ?? defaultErrorMessage, errorOptions);
-
+		this.message = (errorData as { message?: string } | undefined)?.message ?? defaultErrorMessage;
+		errorOptions?.cause && (this.cause = errorOptions.cause);
 		this.errorData = errorData;
 		this.response = response;
-
 		Error.captureStackTrace(this, this.constructor);
 	}
 }
+
+export type PossibleJavaScriptError = UnmaskType<{
+	errorData: DOMException | Error | SyntaxError | TypeError;
+	message: string;
+	name: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | (`${string}Error` & {});
+}>;
+
+export type PossibleHTTPError<TErrorData> = UnmaskType<{
+	errorData: TErrorData;
+	message: string;
+	name: "HTTPError";
+}>;

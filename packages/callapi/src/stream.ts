@@ -1,5 +1,4 @@
-import type { CallApiRequestOptionsForHooks, CombinedCallApiExtraOptions } from "./types";
-import { executeHooks } from "./utils/common";
+import { type SharedHookContext, executeHooks } from "./hooks";
 import { isObject } from "./utils/guards";
 
 export type StreamProgressEvent = {
@@ -19,20 +18,6 @@ export type StreamProgressEvent = {
 	 * Amount of data transferred so far
 	 */
 	transferredBytes: number;
-};
-
-export type RequestStreamContext = {
-	event: StreamProgressEvent;
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-	requestInstance: Request;
-};
-
-export type ResponseStreamContext = {
-	event: StreamProgressEvent;
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-	response: Response;
 };
 
 declare global {
@@ -74,14 +59,10 @@ const calculateTotalBytesFromBody = async (
 	return totalBytes;
 };
 
-type StreamableRequestContext = {
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-	requestInstance: Request;
-};
+type ToStreamableRequestContext = SharedHookContext & { requestInstance: Request };
 
-export const toStreamableRequest = async (context: StreamableRequestContext) => {
-	const { options, request, requestInstance } = context;
+export const toStreamableRequest = async (context: ToStreamableRequestContext) => {
+	const { baseConfig, config, options, request, requestInstance } = context;
 
 	if (!options.onRequestStream || !requestInstance.body) return;
 
@@ -92,9 +73,9 @@ export const toStreamableRequest = async (context: StreamableRequestContext) => 
 
 	let totalBytes = Number(contentLength ?? 0);
 
-	const shouldForceContentLengthCalc = isObject(options.forceStreamSizeCalc)
-		? options.forceStreamSizeCalc.request
-		: options.forceStreamSizeCalc;
+	const shouldForceContentLengthCalc = isObject(options.forceCalculateStreamSize)
+		? options.forceCalculateStreamSize.request
+		: options.forceCalculateStreamSize;
 
 	// If no content length is present, we read the total bytes from the body
 	if (!contentLength && shouldForceContentLengthCalc) {
@@ -105,6 +86,8 @@ export const toStreamableRequest = async (context: StreamableRequestContext) => 
 
 	await executeHooks(
 		options.onRequestStream({
+			baseConfig,
+			config,
 			event: createProgressEvent({ chunk: new Uint8Array(), totalBytes, transferredBytes }),
 			options,
 			request,
@@ -125,6 +108,8 @@ export const toStreamableRequest = async (context: StreamableRequestContext) => 
 
 				await executeHooks(
 					options.onRequestStream?.({
+						baseConfig,
+						config,
 						event: createProgressEvent({ chunk, totalBytes, transferredBytes }),
 						options,
 						request,
@@ -138,13 +123,9 @@ export const toStreamableRequest = async (context: StreamableRequestContext) => 
 	});
 };
 
-type StreamableResponseContext = {
-	options: CombinedCallApiExtraOptions;
-	request: CallApiRequestOptionsForHooks;
-	response: Response;
-};
+type StreamableResponseContext = SharedHookContext & { response: Response };
 export const toStreamableResponse = async (context: StreamableResponseContext): Promise<Response> => {
-	const { options, request, response } = context;
+	const { baseConfig, config, options, request, response } = context;
 
 	if (!options.onResponseStream || !response.body) {
 		return response;
@@ -154,9 +135,9 @@ export const toStreamableResponse = async (context: StreamableResponseContext): 
 
 	let totalBytes = Number(contentLength ?? 0);
 
-	const shouldForceContentLengthCalc = isObject(options.forceStreamSizeCalc)
-		? options.forceStreamSizeCalc.response
-		: options.forceStreamSizeCalc;
+	const shouldForceContentLengthCalc = isObject(options.forceCalculateStreamSize)
+		? options.forceCalculateStreamSize.response
+		: options.forceCalculateStreamSize;
 
 	// If no content length is present and `forceContentLengthCalculation` is enabled, we read the total bytes from the body
 	if (!contentLength && shouldForceContentLengthCalc) {
@@ -167,6 +148,8 @@ export const toStreamableResponse = async (context: StreamableResponseContext): 
 
 	await executeHooks(
 		options.onResponseStream({
+			baseConfig,
+			config,
 			event: createProgressEvent({ chunk: new Uint8Array(), totalBytes, transferredBytes }),
 			options,
 			request,
@@ -187,6 +170,8 @@ export const toStreamableResponse = async (context: StreamableResponseContext): 
 
 				await executeHooks(
 					options.onResponseStream?.({
+						baseConfig,
+						config,
 						event: createProgressEvent({ chunk, totalBytes, transferredBytes }),
 						options,
 						request,

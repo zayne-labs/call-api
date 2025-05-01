@@ -1,11 +1,9 @@
-import { HTTPError } from "../error";
-import type { PossibleHTTPError, PossibleJavaScriptError } from "../types";
+import type { CallApiResultErrorVariant } from "@/types";
+import { HTTPError, type PossibleHTTPError } from "../error";
 import type { AnyFunction } from "./type-helpers";
 
-type ErrorObjectUnion<TErrorData = unknown> = PossibleHTTPError<TErrorData> | PossibleJavaScriptError;
-
 export const isHTTPError = <TErrorData>(
-	error: ErrorObjectUnion<TErrorData> | null
+	error: CallApiResultErrorVariant<TErrorData>["error"] | null
 ): error is PossibleHTTPError<TErrorData> => {
 	return isPlainObject(error) && error.name === "HTTPError";
 };

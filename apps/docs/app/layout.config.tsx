@@ -83,10 +83,10 @@ export const docsOptions: DocsLayoutProps = {
 				};
 
 				const modifiedDescription = isString(node.description)
-					&& node.description.startsWith("v") && {
+					&& node.description === "v" && {
 						description: callApi<{ version: string }>(
 							`https://registry.npmjs.org/@zayne-labs/callapi/latest`
-						).then((res) => res.data?.version),
+						).then((result) => `v${result.data?.version ?? "1.*.*"}`),
 					};
 
 				return {
