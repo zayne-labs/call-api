@@ -1,5 +1,12 @@
 # dev
 
+## 0.0.20
+
+### Patch Changes
+
+- Updated dependencies [f211571]
+   - @zayne-labs/callapi@1.7.4
+
 ## 0.0.19
 
 ### Patch Changes
