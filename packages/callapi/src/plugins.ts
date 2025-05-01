@@ -1,11 +1,10 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import {
 	type Hooks,
+	type HooksOrHooksArray,
 	type SharedHookContext,
-	type WithMoreOptions,
 	composeTwoHooks,
 	hookRegistries,
-	type hooksOrHooksArray,
 } from "./hooks";
 import type {
 	BaseCallApiExtraOptions,
@@ -35,14 +34,26 @@ export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIn
 >;
 
 export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = Prettify<
-	SharedHookContext & WithMoreOptions<TMoreOptions> & { initURL: InitURL | undefined }
+	SharedHookContext<TMoreOptions> & { initURL: InitURL | undefined }
 >;
 
 export type PluginInitResult = Partial<
 	Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
 >;
 
-export interface CallApiPlugin<TData = never, TErrorData = never> {
+export type PluginHooksWithMoreOptions<TMoreOptions = DefaultMoreOptions> = HooksOrHooksArray<
+	never,
+	never,
+	TMoreOptions
+>;
+
+export type PluginHooks<
+	TData = never,
+	TErrorData = never,
+	TMoreOptions = DefaultMoreOptions,
+> = HooksOrHooksArray<TData, TErrorData, TMoreOptions>;
+
+export interface CallApiPlugin {
 	/**
 	 * Defines additional options that can be passed to callApi
 	 */
@@ -56,7 +67,7 @@ export interface CallApiPlugin<TData = never, TErrorData = never> {
 	/**
 	 * Hooks / Interceptors for the plugin
 	 */
-	hooks?: hooksOrHooksArray<TData, TErrorData>;
+	hooks?: PluginHooks;
 
 	/**
 	 *  A unique id for the plugin
@@ -105,9 +116,7 @@ const resolvePluginArray = (
 	return plugins;
 };
 
-export const initializePlugins = async (
-	context: Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
-) => {
+export const initializePlugins = async (context: PluginInitContext) => {
 	const { baseConfig, config, initURL, options, request } = context;
 
 	const clonedHookRegistries = structuredClone(hookRegistries);
@@ -146,7 +155,7 @@ export const initializePlugins = async (
 			config,
 			initURL,
 			options,
-			request: request as CallApiRequestOptionsForHooks,
+			request,
 		});
 
 		if (!isPlainObject(initResult)) return;

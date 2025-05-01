@@ -116,7 +116,7 @@ export const createFetchClient = <
 			config,
 			initURL,
 			options: mergedExtraOptions as CombinedCallApiExtraOptions,
-			request: mergedRequestOptions,
+			request: mergedRequestOptions as CallApiRequestOptionsForHooks,
 		});
 
 		const fullURL = `${resolvedOptions.baseURL}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;

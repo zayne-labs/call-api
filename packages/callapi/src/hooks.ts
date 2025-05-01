@@ -78,7 +78,7 @@ export type Hooks<
 	) => Awaitable<unknown>;
 };
 
-export type hooksOrHooksArray<
+export type HooksOrHooksArray<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TMoreOptions = DefaultMoreOptions,
@@ -89,7 +89,7 @@ export type hooksOrHooksArray<
 		| Array<Hooks<TData, TErrorData, TMoreOptions>[Key]>;
 };
 
-export type SharedHookContext = {
+export type SharedHookContext<TMoreOptions = DefaultMoreOptions> = {
 	/**
 	 * Config object passed to createFetchClient
 	 */
@@ -102,7 +102,7 @@ export type SharedHookContext = {
 	 * Merged options consisting of extra options from createFetchClient, the callApi instance and default options.
 	 *
 	 */
-	options: CombinedCallApiExtraOptions;
+	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
 	/**
 	 * Merged request consisting of request options from createFetchClient, the callApi instance and default request options.
 	 */

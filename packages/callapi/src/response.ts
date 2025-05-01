@@ -22,7 +22,7 @@ export const getResponseType = <TResponse>(response: Response, parser?: Parser) 
 
 type InitResponseTypeMap<TResponse = unknown> = ReturnType<typeof getResponseType<TResponse>>;
 
-export type ResponseTypeUnion = keyof InitResponseTypeMap | undefined;
+export type ResponseTypeUnion = keyof InitResponseTypeMap | null;
 
 export type ResponseTypeMap<TResponse> = {
 	[Key in keyof InitResponseTypeMap<TResponse>]: Awaited<ReturnType<InitResponseTypeMap<TResponse>[Key]>>;
@@ -31,19 +31,23 @@ export type ResponseTypeMap<TResponse> = {
 export type GetResponseType<
 	TResponse,
 	TResponseType extends ResponseTypeUnion,
-	TComputedMap extends ResponseTypeMap<TResponse> = ResponseTypeMap<TResponse>,
-> = undefined extends TResponseType
-	? TComputedMap["json"]
+	TComputedResponseTypeMap extends ResponseTypeMap<TResponse> = ResponseTypeMap<TResponse>,
+> = null extends TResponseType
+	? TComputedResponseTypeMap["json"]
 	: TResponseType extends NonNullable<ResponseTypeUnion>
-		? TComputedMap[TResponseType]
+		? TComputedResponseTypeMap[TResponseType]
 		: never;
 
 export const resolveResponseData = async <TResponse>(
 	response: Response,
-	responseType: keyof ResponseTypeMap<TResponse>,
+	responseType: ResponseTypeUnion,
 	parser: Parser | undefined
 ) => {
 	const RESPONSE_TYPE_LOOKUP = getResponseType<TResponse>(response, parser);
+
+	if (!responseType) {
+		return RESPONSE_TYPE_LOOKUP.json();
+	}
 
 	if (!Object.hasOwn(RESPONSE_TYPE_LOOKUP, responseType)) {
 		throw new Error(`Invalid response type: ${responseType}`);

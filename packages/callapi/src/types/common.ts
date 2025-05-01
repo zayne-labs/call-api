@@ -1,6 +1,6 @@
 import type { Auth } from "../auth";
 import type { PossibleHTTPError, PossibleJavaScriptError } from "../error";
-import type { ErrorContext, Hooks, hooksOrHooksArray } from "../hooks";
+import type { ErrorContext, Hooks, HooksOrHooksArray } from "../hooks";
 import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
 import type { GetResponseType, ResponseTypeUnion } from "../response";
 import type { RetryOptions } from "../retry";
@@ -166,7 +166,7 @@ export type ExtraOptions<
 	 */
 	validators?: CallApiValidators<TData, TErrorData>;
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
-} & hooksOrHooksArray<TData, TErrorData>
+} & HooksOrHooksArray<TData, TErrorData, Partial<InferPluginOptions<TPluginArray>>>
 	& Partial<InferPluginOptions<TPluginArray>>
 	& MetaOption<TSchemas>
 	& RetryOptions<TErrorData>
@@ -246,9 +246,8 @@ export type BaseCallApiExtraOptions<
 
 type CombinedExtraOptionsWithoutHooks = Omit<BaseCallApiExtraOptions & CallApiExtraOptions, keyof Hooks>;
 
-type ResolvedHooks = Hooks;
-
-export type CombinedCallApiExtraOptions = CombinedExtraOptionsWithoutHooks & ResolvedHooks;
+// eslint-disable-next-line ts-eslint/consistent-type-definitions -- Allow this to be an interface
+export interface CombinedCallApiExtraOptions extends CombinedExtraOptionsWithoutHooks, Hooks {}
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
@@ -376,7 +375,7 @@ export type ResultModeMap<
 	/* eslint-enable perfectionist/sort-union-types -- I need the first one to be first */
 }>;
 
-export type ResultModeUnion = keyof ResultModeMap | undefined;
+export type ResultModeUnion = keyof ResultModeMap | null;
 
 export type GetCallApiResult<
 	TData,
@@ -386,7 +385,7 @@ export type GetCallApiResult<
 	TResponseType extends ResponseTypeUnion,
 > = TErrorData extends false | undefined
 	? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-	: ResultModeUnion | undefined extends TResultMode
+	: null extends TResultMode
 		? TThrowOnError extends true
 			? ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]
 			: ResultModeMap<TData, TErrorData, TResponseType>["all"]

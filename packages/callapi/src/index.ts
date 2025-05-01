@@ -1,10 +1,18 @@
 export { callApi, createFetchClient } from "./createFetchClient";
 
-export { definePlugin, type CallApiPlugin, type PluginInitContext } from "./plugins";
+export {
+	definePlugin,
+	type CallApiPlugin,
+	type PluginInitContext,
+	type PluginHooks,
+	type PluginHooksWithMoreOptions,
+} from "./plugins";
 
 export { defineParameters } from "./defineParameters";
 
 export type { CallApiSchemas, InferSchemaResult } from "./validation";
+
+export type { ResponseTypeUnion } from "./response";
 
 export { getDefaultOptions } from "./utils/constants";
 
@@ -15,7 +23,7 @@ export { HTTPError, type PossibleHTTPError, type PossibleJavaScriptError } from 
 export type {
 	ErrorContext,
 	Hooks,
-	hooksOrHooksArray,
+	HooksOrHooksArray,
 	SharedHookContext,
 	RequestContext,
 	RequestErrorContext,

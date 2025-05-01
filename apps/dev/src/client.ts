@@ -1,6 +1,6 @@
 import {
 	type CallApiSchemas,
-	type InterceptorsOrInterceptorArray,
+	type PluginHooksWithMoreOptions,
 	type PluginInitContext,
 	type SuccessContext,
 	createFetchClient,
@@ -17,6 +17,8 @@ const newOptionSchema1 = z.object({
 	),
 });
 
+type Plugin1Options = z.infer<typeof newOptionSchema1>;
+
 const newOptionSchema2 = z.object({
 	onUploadSuccess: z.function().args(
 		z.object({
@@ -25,6 +27,8 @@ const newOptionSchema2 = z.object({
 		})
 	),
 });
+
+type Plugin2Options = z.infer<typeof newOptionSchema2>;
 
 const plugin1 = definePlugin({
 	createExtraOptions: () => newOptionSchema1,
@@ -42,13 +46,13 @@ const plugin2 = definePlugin(() => ({
 	createExtraOptions: () => newOptionSchema2,
 
 	hooks: {
-		onRequest: () => console.info("PLUGIN2-OnRequest"),
+		onRequest: (ctx) => console.info("PLUGIN2-OnRequest"),
 		onSuccess: (_ctx: SuccessContext<{ foo: string }>) => console.info("PLUGIN2-OnSuccess"),
-	} satisfies InterceptorsOrInterceptorArray<never, never, z.infer<typeof newOptionSchema2>>,
+	} satisfies PluginHooksWithMoreOptions<Plugin2Options>,
 
 	id: "2",
 
-	init: ({ options, request }: PluginInitContext<z.infer<typeof newOptionSchema2>>) => {
+	init: ({ options, request }: PluginInitContext<Plugin2Options>) => {
 		options.onUploadSuccess?.({ load: 0, tots: 0 });
 
 		return {
@@ -115,8 +119,9 @@ const callMainApi = createFetchClient({
 // }).pipeThrough(new TextEncoderStream());
 
 const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
-	callMainApi<"", false | undefined>("/products/:id", {
+	callMainApi<{ foo: string }, false | undefined>("/products/:id", {
 		params: [1],
+		resultMode: "onlySuccessWithException",
 	}),
 	callMainApi("/products/:id", {
 		params: [1],

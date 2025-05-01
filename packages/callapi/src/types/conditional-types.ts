@@ -115,6 +115,6 @@ export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> = 
 	? { resultMode: "onlySuccessWithException" }
 	: TErrorData extends false | undefined
 		? { resultMode?: "onlySuccessWithException" }
-		: undefined extends TResultMode
+		: null extends TResultMode
 			? { resultMode?: TResultMode }
 			: { resultMode: TResultMode };
