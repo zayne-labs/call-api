@@ -8,7 +8,7 @@
 		"build:callapi": "turbo --filter \"./packages/callapi\" build",
 		"build:dev": "turbo --filter \"./packages/*\" build:dev",
 		"build:test": "turbo --filter \"./packages/*\" build:test",
-		"dev:callapi": "turbo --filter \"./packages/callapi\" dev",
+		"dev": "turbo --filter \"./packages/*\" dev",
 		"inspect:eslint-config": "pnpx @eslint/config-inspector@latest",
 		"lint:attw": "turbo --filter \"./packages/*\" lint:attw",
 		"lint:eslint": "turbo --filter \"./packages/*\" lint:eslint",

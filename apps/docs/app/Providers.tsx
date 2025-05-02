@@ -12,19 +12,19 @@ function Providers(props: { children: React.ReactNode }) {
 	const [isDarkMode, setIsDarkMode] = useState(false);
 
 	const mutationObserver = useConstant(() => {
-		return (isBrowser()
-			&& new MutationObserver((mutations) => {
-				for (const mutation of mutations) {
-					const isClassAttributeMutation =
-						mutation.type === "attributes" && mutation.attributeName === "class";
+		if (!isBrowser()) return;
 
-					if (!isClassAttributeMutation) continue;
+		return new MutationObserver((mutations) => {
+			const classAttributeMutation = mutations.find(
+				(mutation) => mutation.type === "attributes" && mutation.attributeName === "class"
+			);
 
-					const newState = document.documentElement.classList.contains("dark");
+			if (!classAttributeMutation) return;
 
-					setIsDarkMode(newState);
-				}
-			})) as MutationObserver | undefined;
+			const newState = document.documentElement.classList.contains("dark");
+
+			setIsDarkMode(newState);
+		});
 	});
 
 	useEffectOnce(() => {
