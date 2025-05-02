@@ -20,11 +20,4 @@ export default defineConfig([
 		target: "esnext",
 		treeshake: true,
 	},
-
-	{
-		...commonOptions,
-		format: ["cjs"],
-		outDir: "./dist/cjs",
-		platform: "node",
-	},
 ]);

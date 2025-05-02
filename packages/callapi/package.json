@@ -25,9 +25,7 @@
 	"sideEffects": false,
 	"exports": {
 		".": "./dist/esm/index.js",
-		"./utils": "./dist/esm/utils/index.js",
-		"./legacy": "./dist/cjs/index.cjs",
-		"./legacy/utils": "./dist/cjs/utils/index.cjs"
+		"./utils": "./dist/esm/utils/index.js"
 	},
 	"main": "./dist/esm/index.js",
 	"module": "./dist/esm/index.js",
