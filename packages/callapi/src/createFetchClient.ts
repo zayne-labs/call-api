@@ -30,7 +30,7 @@ import {
 	splitConfig,
 	waitUntil,
 } from "./utils/common";
-import { defaultExtraOptions, defaultRequestOptions } from "./utils/constants";
+import { getDefaultOptions, getDefaultRequest } from "./utils/constants";
 import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/guards";
 import { type CallApiSchemas, type InferSchemaResult, handleValidation } from "./validation";
 
@@ -92,7 +92,7 @@ export const createFetchClient = <
 
 		// == Merged Extra Options
 		const mergedExtraOptions = {
-			...defaultExtraOptions,
+			...getDefaultOptions(),
 			...baseExtraOptions,
 			...(baseExtraOptions.skipAutoMergeFor !== "all"
 				&& baseExtraOptions.skipAutoMergeFor !== "options"
@@ -101,7 +101,7 @@ export const createFetchClient = <
 
 		// == Merged Request Options
 		const mergedRequestOptions = {
-			...defaultRequestOptions,
+			...getDefaultRequest(),
 			...baseFetchOptions,
 			...(baseExtraOptions.skipAutoMergeFor !== "all"
 				&& baseExtraOptions.skipAutoMergeFor !== "request"
@@ -280,7 +280,7 @@ export const createFetchClient = <
 
 					const updatedOptions = {
 						...config,
-						"~retryCount": (options["~retryCount"] ?? 0) + 1,
+						"~retryAttemptCount": (options["~retryAttemptCount"] ?? 0) + 1,
 					} satisfies typeof config;
 
 					return callApi(initURL, updatedOptions as never) as never;

@@ -44,7 +44,6 @@ const plugin2 = definePlugin(() => ({
 	createExtraOptions: () => newOptionSchema2,
 
 	hooks: {
-		onRequest: () => console.info("PLUGIN2-OnRequest"),
 		onSuccess: (_ctx: SuccessContext<{ foo: string }>) => console.info("PLUGIN2-OnSuccess"),
 	} satisfies PluginHooksWithMoreOptions<Plugin2Options>,
 
@@ -89,7 +88,6 @@ const baseSchemas = {
 
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
-	onRequest: () => console.info("OnBaseRequest"),
 	onUpload: (progress) => console.info({ progress }),
 	onUploadSuccess: (progress) => console.info({ progress }),
 	plugins: [plugin1, plugin2()],
@@ -126,6 +124,7 @@ const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 	}),
 	callMainApi("/products/:id", {
 		params: [1302],
+		retryAttempts: 2,
 	}),
 	callMainApi("/products/:id", {
 		body: ["dev"],

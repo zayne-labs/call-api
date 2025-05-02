@@ -223,6 +223,9 @@ importers:
       '@total-typescript/ts-reset':
         specifier: 0.6.1
         version: 0.6.1
+      '@zayne-labs/toolkit-type-helpers':
+        specifier: ^0.9.33
+        version: 0.9.33
       '@zayne-labs/tsconfig':
         specifier: 0.8.1
         version: 0.8.1
@@ -2016,10 +2019,6 @@ packages:
         optional: true
       zustand:
         optional: true
-
-  '@zayne-labs/toolkit-type-helpers@0.9.27':
-    resolution: {integrity: sha512-AorVNNdDkd07httCGH83RaqCc8UlVbRn/IMIkVzgMImN9xcTmkcd5kSB8l1n99fM/OkGrpnPkLFu+vNigPuhHQ==}
-    engines: {node: '>=18.x'}
 
   '@zayne-labs/toolkit-type-helpers@0.9.29':
     resolution: {integrity: sha512-4mm47kIhhyePb+DQBYgb4JrUnfVTNg5xIMF3oTIq9qD6xVSHU/xEMqNJ6/F2ED0PJyXOtZG6jzeg1wUjLrZHQw==}
@@ -6579,7 +6578,7 @@ snapshots:
       '@eslint/compat': 1.2.8(eslint@9.25.1(jiti@2.4.2))
       '@eslint/js': 9.24.0
       '@stylistic/eslint-plugin': 4.2.0(eslint@9.25.1(jiti@2.4.2))(typescript@5.8.3)
-      '@zayne-labs/toolkit-type-helpers': 0.9.27
+      '@zayne-labs/toolkit-type-helpers': 0.9.33
       ansis: 3.17.0
       cac: 6.7.14
       eslint: 9.25.1(jiti@2.4.2)
@@ -6617,7 +6616,7 @@ snapshots:
 
   '@zayne-labs/prettier-config@0.8.1':
     dependencies:
-      '@zayne-labs/toolkit-type-helpers': 0.9.27
+      '@zayne-labs/toolkit-type-helpers': 0.9.33
 
   '@zayne-labs/toolkit-core@0.9.29':
     dependencies:
@@ -6644,8 +6643,6 @@ snapshots:
       '@types/react': 19.1.2
       react: 19.1.0
       zustand: 5.0.3(@types/react@19.1.2)(react@19.1.0)
-
-  '@zayne-labs/toolkit-type-helpers@0.9.27': {}
 
   '@zayne-labs/toolkit-type-helpers@0.9.29': {}
 
