@@ -1,29 +1,24 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import { type defaultRetryStatusCodesLookup, retryDefaults } from "./constants/default-options";
+import { retryDefaults } from "./constants/default-options";
 import { resolveErrorResult } from "./error";
 import { type ErrorContext, executeHooks } from "./hooks";
 import type { Method } from "./types";
 import { isFunction } from "./utils/guards";
-import type { AnyNumber, Awaitable, UnmaskType } from "./utils/type-helpers";
+import type { Awaitable } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;
 
-type InnerRetryKeys<TErrorData> = Exclude<keyof RetryOptions<TErrorData>, "~retryCount" | "retry">;
+type InnerRetryKeys<TErrorData> = Exclude<keyof RetryOptions<TErrorData>, "~retryAttemptCount" | "retry">;
 
-type InnerRetryOptions<TErrorData> = UnmaskType<
-	{
-		[Key in InnerRetryKeys<TErrorData> as Key extends `retry${infer TRest}`
-			? Uncapitalize<TRest> extends "attempts"
-				? never
-				: Uncapitalize<TRest>
-			: Key]?: RetryOptions<TErrorData>[Key];
-	} & {
-		attempts: NonNullable<RetryOptions<TErrorData>["retryAttempts"]>;
-	}
->;
-
-// eslint-disable-next-line perfectionist/sort-union-types -- Allow
-type RetryStatusCodes = UnmaskType<Array<keyof typeof defaultRetryStatusCodesLookup | AnyNumber>>;
+type InnerRetryOptions<TErrorData> = {
+	[Key in InnerRetryKeys<TErrorData> as Key extends `retry${infer TRest}`
+		? Uncapitalize<TRest> extends "attempts"
+			? never
+			: Uncapitalize<TRest>
+		: Key]?: RetryOptions<TErrorData>[Key];
+} & {
+	attempts: NonNullable<RetryOptions<TErrorData>["retryAttempts"]>;
+};
 
 export interface RetryOptions<TErrorData> {
 	/**
@@ -32,6 +27,9 @@ export interface RetryOptions<TErrorData> {
 	 */
 	readonly ["~retryAttemptCount"]?: number;
 
+	/**
+	 * All retry options in a single object instead of separate properties
+	 */
 	retry?: InnerRetryOptions<TErrorData>;
 
 	/**
@@ -66,7 +64,7 @@ export interface RetryOptions<TErrorData> {
 	/**
 	 * HTTP status codes that trigger a retry
 	 */
-	retryStatusCodes?: RetryStatusCodes;
+	retryStatusCodes?: number[];
 
 	/**
 	 * Strategy to use when retrying

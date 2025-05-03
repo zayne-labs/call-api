@@ -7,7 +7,7 @@ description: Configure automatic retries and request timeouts
 
 You can set the request timeout in milliseconds.
 
-```ts twoslash title="api.ts"
+```ts title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callBackendApi = createFetchClient({
@@ -24,7 +24,7 @@ const result = await callBackendApi("/api/users", {
 
 You can set the retry attempts and interval in milliseconds.
 
-```ts twoslash title="api.ts"
+```ts title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callBackendApi = createFetchClient({
@@ -44,7 +44,7 @@ CallApi provides flexible retry mechanisms with both linear and exponential back
 
 ### Basic Retry with only number of attempts
 
-```ts twoslash title="api.ts"
+```ts title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callBackendApi = createFetchClient({
@@ -62,7 +62,7 @@ const result = await callBackendApi("/api/users", {
 
 Waits a fixed amount of time between retries:
 
-```ts twoslash title="api.ts"
+```ts title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callBackendApi = createFetchClient({
@@ -81,7 +81,7 @@ const result = await callBackendApi("/api/users", {
 
 Increases the delay between retries exponentially:
 
-```ts twoslash title="api.ts"
+```ts title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callBackendApi = createFetchClient({
@@ -101,22 +101,11 @@ const result = await callBackendApi("/api/users", {
 
 You can customize when to retry a request with the `retryMethods` and `retryStatusCodes` options.
 
-Current defaults:
+1. **Retry Methods**: This option allows you to specify which HTTP methods should be retried. By default, this option is set to `["GET", "POST"]`.This implies that only `GET` and `POST` requests will be retried by default.
 
-1. **Retry status codes**:
+2. **Retry Status Codes**: This option allows you to specify which HTTP status codes should be retried. There are no default values for this option.
 
-- `408` - Request Timeout
-- `409` - Conflict
-- `425` - Too Early
-- `429` - Too Many Requests
-- `500` - Internal Server Error
-- `502` - Bad Gateway
-- `503` - Service Unavailable
-- `504` - Gateway Timeout
-
-2. **Retry Methods**: `GET`, `POST`
-
-```ts twoslash title="api.ts"
+```ts title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callBackendApi = createFetchClient({
@@ -137,7 +126,7 @@ const result = await callBackendApi("/api/users", {
 
 Use `retryCondition` to implement custom retry logic:
 
-```ts twoslash title="api.ts"
+```ts title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callBackendApi = createFetchClient({
@@ -159,7 +148,7 @@ const result = await callBackendApi("/api/users", {
 
 Listen to retry attempts using the `onRetry` hook:
 
-```ts twoslash title="api.ts"
+```ts title="api.ts"
 import { createFetchClient } from "@zayne-labs/callapi";
 
 const callApi = createFetchClient({
