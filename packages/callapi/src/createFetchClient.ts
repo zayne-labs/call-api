@@ -216,7 +216,6 @@ export const createFetchClient = <
 				);
 
 				// == Push all error handling responsibilities to the catch block if not retrying
-				// eslint-disable-next-line ts-eslint/only-throw-error -- This is intended
 				throw new HTTPError({
 					defaultErrorMessage: options.defaultErrorMessage,
 					errorData: validErrorData,

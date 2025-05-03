@@ -80,16 +80,12 @@ type ErrorOptions = {
 	cause?: unknown;
 };
 
-export class HTTPError<TErrorResponse = Record<string, unknown>> {
-	cause: ErrorOptions["cause"];
-
+export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
 	errorData: ErrorDetails<TErrorResponse>["errorData"];
 
 	isHTTPError = true;
 
-	message: string;
-
-	name = "HTTPError" as const;
+	override name = "HTTPError" as const;
 
 	response: ErrorDetails<TErrorResponse>["response"];
 
@@ -98,9 +94,11 @@ export class HTTPError<TErrorResponse = Record<string, unknown>> {
 
 		const selectedDefaultErrorMessage = defaultErrorMessage ?? commonDefaults.defaultErrorMessage;
 
-		this.message =
+		const message =
 			(errorData as { message?: string } | undefined)?.message ?? selectedDefaultErrorMessage;
-		errorOptions?.cause && (this.cause = errorOptions.cause);
+
+		super(message, errorOptions);
+
 		this.errorData = errorData;
 		this.response = response;
 		Error.captureStackTrace(this, this.constructor);
