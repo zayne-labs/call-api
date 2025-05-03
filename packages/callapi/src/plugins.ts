@@ -1,4 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import { hookDefaults } from "./constants/default-options";
 import {
 	type Hooks,
 	type HooksOrHooksArray,
@@ -15,7 +16,7 @@ import type {
 import type { DefaultMoreOptions } from "./types/default-types";
 import type { StandardSchemaV1 } from "./types/standard-schema";
 import type { InitURL } from "./url";
-import { isFunction, isPlainObject, isString } from "./utils/guards";
+import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
 import type { AnyFunction, Awaitable, Prettify } from "./utils/type-helpers";
 import type { InferSchemaResult } from "./validation";
 
@@ -122,22 +123,36 @@ export const initializePlugins = async (context: PluginInitContext) => {
 	const clonedHookRegistries = structuredClone(hookRegistries);
 
 	const addMainHooks = () => {
-		for (const key of Object.keys(clonedHookRegistries)) {
-			const mainHook = options[key as keyof Hooks] as never;
+		for (const key of Object.keys(clonedHookRegistries) as Array<keyof Hooks>) {
+			const baseHook = baseConfig[key];
+			const instanceHook = config[key];
 
-			clonedHookRegistries[key as keyof Hooks].add(mainHook);
+			const overriddenHook = options[key] as HooksOrHooksArray[typeof key];
+
+			// If the base hook is an array and instance hook is defined, we need to compose it with the overridden hook
+			const mainHook =
+				isArray(baseHook) && Boolean(instanceHook) ? [baseHook, instanceHook].flat() : overriddenHook;
+
+			if (!mainHook) continue;
+
+			clonedHookRegistries[key].add(mainHook as never);
 		}
 	};
 
 	const addPluginHooks = (pluginHooks: Required<CallApiPlugin>["hooks"]) => {
-		for (const key of Object.keys(clonedHookRegistries)) {
-			const pluginHook = pluginHooks[key as keyof Hooks] as never;
+		for (const key of Object.keys(clonedHookRegistries) as Array<keyof Hooks>) {
+			const pluginHook = pluginHooks[key];
 
-			clonedHookRegistries[key as keyof Hooks].add(pluginHook);
+			if (!pluginHook) continue;
+
+			clonedHookRegistries[key].add(pluginHook as never);
 		}
 	};
 
-	if (options.mergedHooksExecutionOrder === "mainHooksBeforePlugins") {
+	const mergedHooksExecutionOrder =
+		options.mergedHooksExecutionOrder ?? hookDefaults.mergedHooksExecutionOrder;
+
+	if (mergedHooksExecutionOrder === "mainHooksBeforePlugins") {
 		addMainHooks();
 	}
 
@@ -182,19 +197,19 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		addPluginHooks(plugin.hooks);
 	}
 
-	if (
-		!options.mergedHooksExecutionOrder
-		|| options.mergedHooksExecutionOrder === "mainHooksAfterPlugins"
-	) {
+	if (mergedHooksExecutionOrder === "mainHooksAfterPlugins") {
 		addMainHooks();
 	}
 
 	const resolvedHooks: Hooks = {};
 
 	for (const [key, hookRegistry] of Object.entries(clonedHookRegistries)) {
-		const flattenedHookArray = [...hookRegistry].flat().filter(Boolean);
+		const flattenedHookArray = [...hookRegistry].flat();
 
-		const composedHook = composeTwoHooks(flattenedHookArray, options.mergedHooksExecutionMode);
+		const mergedHooksExecutionMode =
+			options.mergedHooksExecutionMode ?? hookDefaults.mergedHooksExecutionMode;
+
+		const composedHook = composeTwoHooks(flattenedHookArray, mergedHooksExecutionMode);
 
 		resolvedHooks[key as keyof Hooks] = composedHook;
 	}

@@ -1,6 +1,6 @@
 import type { CallApiPlugin } from "./plugins";
-import type { ResponseTypeUnion } from "./response";
-import type { CallApiParameters, ResultModeUnion } from "./types";
+import type { ResponseTypeUnion, ResultModeUnion } from "./response";
+import type { CallApiParameters } from "./types";
 import type { DefaultMoreOptions, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
 import type { CallApiSchemas } from "./validation";
 

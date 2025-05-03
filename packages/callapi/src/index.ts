@@ -12,9 +12,7 @@ export { defineParameters } from "./defineParameters";
 
 export type { CallApiSchemas, InferSchemaResult } from "./validation";
 
-export type { ResponseTypeUnion } from "./response";
-
-export { getDefaultOptions } from "./utils/constants";
+export type { ResponseTypeUnion, ResultModeUnion } from "./response";
 
 export type { RetryOptions } from "./retry";
 
@@ -41,8 +39,8 @@ export type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CallApiResultErrorVariant,
+	CallApiResult,
 	CallApiResultSuccessVariant,
 	CombinedCallApiExtraOptions,
 	Register,
-	ResultModeUnion,
 } from "./types";

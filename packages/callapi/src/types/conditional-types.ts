@@ -1,4 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import type { ResultModeUnion } from "../response";
 import type {
 	AnyString,
 	CommonAuthorizationHeaders,
@@ -7,7 +8,6 @@ import type {
 	UnmaskType,
 } from "../utils/type-helpers";
 import type { CallApiSchemas, InferSchemaResult } from "../validation";
-import type { ResultModeUnion } from "./common";
 import type { StandardSchemaV1 } from "./standard-schema";
 
 /**

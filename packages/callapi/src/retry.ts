@@ -1,9 +1,10 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import { type defaultRetryStatusCodesLookup, retryDefaults } from "./constants/default-options";
 import { resolveErrorResult } from "./error";
 import { type ErrorContext, executeHooks } from "./hooks";
-import type { BaseCallApiExtraOptions, Method } from "./types";
+import type { Method } from "./types";
 import { isFunction } from "./utils/guards";
-import { type AnyNumber, type Awaitable, type UnmaskType, defineEnum } from "./utils/type-helpers";
+import type { AnyNumber, Awaitable, UnmaskType } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;
 
@@ -20,6 +21,9 @@ type InnerRetryOptions<TErrorData> = UnmaskType<
 		attempts: NonNullable<RetryOptions<TErrorData>["retryAttempts"]>;
 	}
 >;
+
+// eslint-disable-next-line perfectionist/sort-union-types -- Allow
+type RetryStatusCodes = UnmaskType<Array<keyof typeof defaultRetryStatusCodesLookup | AnyNumber>>;
 
 export interface RetryOptions<TErrorData> {
 	/**
@@ -62,7 +66,7 @@ export interface RetryOptions<TErrorData> {
 	/**
 	 * HTTP status codes that trigger a retry
 	 */
-	retryStatusCodes?: DefaultRetryStatusCodes;
+	retryStatusCodes?: RetryStatusCodes;
 
 	/**
 	 * Strategy to use when retrying
@@ -75,7 +79,7 @@ const getLinearDelay = <TErrorData>(currentAttemptCount: number, options: RetryO
 	const retryDelay = options.retryDelay ?? options.retry?.delay;
 
 	const resolveRetryDelay =
-		(isFunction(retryDelay) ? retryDelay(currentAttemptCount) : retryDelay) ?? defaultRetryDelay;
+		(isFunction(retryDelay) ? retryDelay(currentAttemptCount) : retryDelay) ?? retryDefaults.delay;
 
 	return resolveRetryDelay;
 };
@@ -84,11 +88,11 @@ const getExponentialDelay = <TErrorData>(
 	currentAttemptCount: number,
 	options: RetryOptions<TErrorData>
 ) => {
-	const retryDelay = options.retryDelay ?? options.retry?.delay ?? defaultRetryDelay;
+	const retryDelay = options.retryDelay ?? options.retry?.delay ?? retryDefaults.delay;
 
 	const resolveRetryDelay = Number(isFunction(retryDelay) ? retryDelay(currentAttemptCount) : retryDelay);
 
-	const maxDelay = Number(options.retryMaxDelay ?? options.retry?.maxDelay ?? defaultRetryMaxDelay);
+	const maxDelay = Number(options.retryMaxDelay ?? options.retry?.maxDelay ?? retryDefaults.maxDelay);
 
 	const exponentialDelay = resolveRetryDelay * 2 ** currentAttemptCount;
 
@@ -100,7 +104,7 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 
 	const currentAttemptCount = options["~retryAttemptCount"] ?? 0;
 
-	const retryStrategy = options.retryStrategy ?? options.retry?.strategy ?? defaultRetryStrategy;
+	const retryStrategy = options.retryStrategy ?? options.retry?.strategy ?? retryDefaults.strategy;
 
 	const getDelay = () => {
 		switch (retryStrategy) {
@@ -117,9 +121,9 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 	};
 
 	const shouldAttemptRetry = async () => {
-		const retryCondition = options.retryCondition ?? options.retry?.condition ?? defaultRetryCondition;
+		const retryCondition = options.retryCondition ?? options.retry?.condition ?? retryDefaults.condition;
 
-		const maxRetryAttempts = options.retryAttempts ?? options.retry?.attempts ?? defaultRetryAttempts;
+		const maxRetryAttempts = options.retryAttempts ?? options.retry?.attempts ?? retryDefaults.attempts;
 
 		const customRetryCondition = await retryCondition(ctx);
 
@@ -129,7 +133,9 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 			return baseShouldRetry;
 		}
 
-		const retryMethods = new Set(options.retryMethods ?? options.retry?.methods ?? defaultRetryMethods);
+		const retryMethods = new Set(
+			options.retryMethods ?? options.retry?.methods ?? retryDefaults.methods
+		);
 
 		const selectedStatusCodeArray = options.retryStatusCodes ?? options.retry?.statusCodes;
 
@@ -151,7 +157,7 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 		} catch (error) {
 			const { apiDetails } = resolveErrorResult({
 				cloneResponse: options.cloneResponse,
-				defaultErrorMessage: options.defaultErrorMessage as string,
+				defaultErrorMessage: options.defaultErrorMessage,
 				error,
 				resultMode: options.resultMode,
 			});
@@ -170,34 +176,6 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 		shouldAttemptRetry,
 	};
 };
-
-const defaultRetryDelay = 1000;
-
-const defaultRetryCondition = () => true;
-
-const defaultRetryMaxDelay = 10000;
-
-const defaultRetryAttempts = 0;
-
-const defaultRetryStrategy = "linear";
-
-export const defaultRetryMethods = ["GET", "POST"] satisfies BaseCallApiExtraOptions["retryMethods"];
-
-export const defaultRetryStatusCodesLookup = defineEnum({
-	408: "Request Timeout",
-	409: "Conflict",
-	425: "Too Early",
-	429: "Too Many Requests",
-	500: "Internal Server Error",
-	502: "Bad Gateway",
-	503: "Service Unavailable",
-	504: "Gateway Timeout",
-});
-
-// eslint-disable-next-line perfectionist/sort-union-types -- Allow
-type DefaultRetryStatusCodes = UnmaskType<Array<keyof typeof defaultRetryStatusCodesLookup | AnyNumber>>;
-
-export const defaultRetryStatusCodes = [] satisfies DefaultRetryStatusCodes;
 
 // // prettier-ignore
 // export const defaultRetryStatusCodes = Object.keys(retryStatusCodesLookup).map(

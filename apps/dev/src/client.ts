@@ -44,6 +44,7 @@ const plugin2 = definePlugin(() => ({
 	createExtraOptions: () => newOptionSchema2,
 
 	hooks: {
+		onRequest: () => console.info("PLUGIN2-OnRequest"),
 		onSuccess: (_ctx: SuccessContext<{ foo: string }>) => console.info("PLUGIN2-OnSuccess"),
 	} satisfies PluginHooksWithMoreOptions<Plugin2Options>,
 
@@ -88,6 +89,7 @@ const baseSchemas = {
 
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
+	onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
 	onUpload: (progress) => console.info({ progress }),
 	onUploadSuccess: (progress) => console.info({ progress }),
 	plugins: [plugin1, plugin2()],
@@ -116,8 +118,8 @@ const callMainApi = createFetchClient({
 
 const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 	callMainApi<{ foo: string }, false | undefined>("/products/:id", {
+		onRequest: [() => console.info("Instance-OnRequest"), () => console.info("Instance-OnRequest2")],
 		params: [1],
-		resultMode: "onlySuccessWithException",
 	}),
 	callMainApi("/products/:id", {
 		params: [1],
@@ -135,7 +137,6 @@ const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 		baseURL: "",
 		onRequestStream: (ctx) => console.info("OnRequestStream", { event: ctx.event }),
 		onResponseStream: (ctx) => console.info("OnResponseStream", { event: ctx.event }),
-		throwOnError: true,
 	}),
 ]);
 

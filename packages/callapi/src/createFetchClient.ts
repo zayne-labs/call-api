@@ -1,8 +1,14 @@
+import { commonDefaults } from "./constants/default-options";
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError, resolveErrorResult } from "./error";
 import { type ErrorContext, type SuccessContext, executeHooks } from "./hooks";
 import { type CallApiPlugin, initializePlugins } from "./plugins";
-import { type ResponseTypeUnion, resolveResponseData, resolveSuccessResult } from "./response";
+import {
+	type ResponseTypeUnion,
+	type ResultModeUnion,
+	resolveResponseData,
+	resolveSuccessResult,
+} from "./response";
 import { createRetryStrategy } from "./retry";
 import type {
 	BaseCallApiConfig,
@@ -13,7 +19,6 @@ import type {
 	CallApiRequestOptionsForHooks,
 	CallApiResult,
 	CombinedCallApiExtraOptions,
-	ResultModeUnion,
 } from "./types/common";
 import type {
 	DefaultDataType,
@@ -30,7 +35,6 @@ import {
 	splitConfig,
 	waitUntil,
 } from "./utils/common";
-import { getDefaultOptions, getDefaultRequest } from "./utils/constants";
 import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/guards";
 import { type CallApiSchemas, type InferSchemaResult, handleValidation } from "./validation";
 
@@ -92,7 +96,6 @@ export const createFetchClient = <
 
 		// == Merged Extra Options
 		const mergedExtraOptions = {
-			...getDefaultOptions(),
 			...baseExtraOptions,
 			...(baseExtraOptions.skipAutoMergeFor !== "all"
 				&& baseExtraOptions.skipAutoMergeFor !== "options"
@@ -101,7 +104,6 @@ export const createFetchClient = <
 
 		// == Merged Request Options
 		const mergedRequestOptions = {
-			...getDefaultRequest(),
 			...baseFetchOptions,
 			...(baseExtraOptions.skipAutoMergeFor !== "all"
 				&& baseExtraOptions.skipAutoMergeFor !== "request"
@@ -119,7 +121,7 @@ export const createFetchClient = <
 			request: mergedRequestOptions as CallApiRequestOptionsForHooks,
 		});
 
-		const fullURL = `${resolvedOptions.baseURL}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;
+		const fullURL = `${resolvedOptions.baseURL ?? ""}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;
 
 		// FIXME -  Consider adding an option for refetching a callApi request
 		const options = {
@@ -139,11 +141,13 @@ export const createFetchClient = <
 			newFetchController.signal
 		);
 
+		const bodySerializer = options.bodySerializer ?? commonDefaults.bodySerializer;
+
 		const request = {
 			...resolvedRequestOptions,
 
 			body: isSerializable(resolvedRequestOptions.body)
-				? options.bodySerializer(resolvedRequestOptions.body)
+				? bodySerializer(resolvedRequestOptions.body)
 				: resolvedRequestOptions.body,
 
 			headers: mergeAndResolveHeaders({
@@ -156,15 +160,19 @@ export const createFetchClient = <
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
 
-		const { handleRequestCancelStrategy, handleRequestDeferStrategy, removeDedupeKeyFromCache } =
-			await createDedupeStrategy({
-				$RequestInfoCache,
-				baseConfig,
-				config,
-				newFetchController,
-				options,
-				request,
-			});
+		const {
+			dedupeStrategy,
+			handleRequestCancelStrategy,
+			handleRequestDeferStrategy,
+			removeDedupeKeyFromCache,
+		} = await createDedupeStrategy({
+			$RequestInfoCache,
+			baseConfig,
+			config,
+			newFetchController,
+			options,
+			request,
+		});
 
 		await handleRequestCancelStrategy();
 
@@ -181,7 +189,8 @@ export const createFetchClient = <
 			const response = await handleRequestDeferStrategy();
 
 			// == Also clone response when dedupeStrategy is set to "defer" or when onRequestStream is set, to avoid error thrown from reading response.(whatever) more than once
-			const shouldCloneResponse = options.dedupeStrategy === "defer" || options.cloneResponse;
+
+			const shouldCloneResponse = dedupeStrategy === "defer" || options.cloneResponse;
 
 			const schemas = (
 				isFunction(options.schemas)

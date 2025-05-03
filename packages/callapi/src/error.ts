@@ -1,11 +1,13 @@
-import type { CallApiExtraOptions, CallApiResultErrorVariant, ResultModeMap } from "./types/common";
+import { commonDefaults } from "./constants/default-options";
+import type { ResultModeMap } from "./response";
+import type { CallApiExtraOptions, CallApiResultErrorVariant } from "./types/common";
 import { omitKeys } from "./utils/common";
 import { isHTTPErrorInstance } from "./utils/guards";
 import type { UnmaskType } from "./utils/type-helpers";
 
 type ErrorInfo = {
 	cloneResponse: CallApiExtraOptions["cloneResponse"];
-	defaultErrorMessage: Required<CallApiExtraOptions>["defaultErrorMessage"];
+	defaultErrorMessage: CallApiExtraOptions["defaultErrorMessage"];
 	error?: unknown;
 	message?: string;
 	resultMode: CallApiExtraOptions["resultMode"];
@@ -25,7 +27,9 @@ export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 	};
 
 	if (isHTTPErrorInstance<never>(error)) {
-		const { errorData, message = defaultErrorMessage, name, response } = error;
+		const selectedDefaultErrorMessage = defaultErrorMessage ?? commonDefaults.defaultErrorMessage;
+
+		const { errorData, message = selectedDefaultErrorMessage, name, response } = error;
 
 		apiDetails = {
 			data: null,
@@ -67,7 +71,7 @@ export const resolveErrorResult = <TCallApiResult = never>(info: ErrorInfo) => {
 };
 
 type ErrorDetails<TErrorResponse> = {
-	defaultErrorMessage: string;
+	defaultErrorMessage: CallApiExtraOptions["defaultErrorMessage"];
 	errorData: TErrorResponse;
 	response: Response;
 };
@@ -92,7 +96,10 @@ export class HTTPError<TErrorResponse = Record<string, unknown>> {
 	constructor(errorDetails: ErrorDetails<TErrorResponse>, errorOptions?: ErrorOptions) {
 		const { defaultErrorMessage, errorData, response } = errorDetails;
 
-		this.message = (errorData as { message?: string } | undefined)?.message ?? defaultErrorMessage;
+		const selectedDefaultErrorMessage = defaultErrorMessage ?? commonDefaults.defaultErrorMessage;
+
+		this.message =
+			(errorData as { message?: string } | undefined)?.message ?? selectedDefaultErrorMessage;
 		errorOptions?.cause && (this.cause = errorOptions.cause);
 		this.errorData = errorData;
 		this.response = response;

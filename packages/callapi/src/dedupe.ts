@@ -1,6 +1,6 @@
+import { dedupeDefaults, requestOptionDefaults } from "./constants/default-options";
 import type { SharedHookContext } from "./hooks";
 import { toStreamableRequest, toStreamableResponse } from "./stream";
-import type { CallApiRequestOptions, CombinedCallApiExtraOptions } from "./types/common";
 import { getFetchImpl, waitUntil } from "./utils/common";
 import { isReadableStream } from "./utils/guards";
 
@@ -16,20 +16,22 @@ type DedupeContext = SharedHookContext & {
 	newFetchController: AbortController;
 };
 
-const generateDedupeKey = (options: CombinedCallApiExtraOptions, request: CallApiRequestOptions) => {
-	const shouldHaveDedupeKey = options.dedupeStrategy === "cancel" || options.dedupeStrategy === "defer";
-
-	if (!shouldHaveDedupeKey) {
-		return null;
-	}
-
-	return `${options.fullURL}-${JSON.stringify({ options, request })}`;
-};
-
 export const createDedupeStrategy = async (context: DedupeContext) => {
 	const { $RequestInfoCache, baseConfig, config, newFetchController, options, request } = context;
 
-	const dedupeKey = options.dedupeKey ?? generateDedupeKey(options, request);
+	const dedupeStrategy = options.dedupeStrategy ?? dedupeDefaults.dedupeStrategy;
+
+	const generateDedupeKey = () => {
+		const shouldHaveDedupeKey = dedupeStrategy === "cancel" || dedupeStrategy === "defer";
+
+		if (!shouldHaveDedupeKey) {
+			return null;
+		}
+
+		return `${options.fullURL}-${JSON.stringify({ options, request })}`;
+	};
+
+	const dedupeKey = options.dedupeKey ?? generateDedupeKey();
 
 	// == This is to ensure cache operations only occur when key is available
 	const $RequestInfoCacheOrNull = dedupeKey !== null ? $RequestInfoCache : null;
@@ -45,7 +47,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 	const prevRequestInfo = $RequestInfoCacheOrNull?.get(dedupeKey);
 
 	const handleRequestCancelStrategy = () => {
-		const shouldCancelRequest = prevRequestInfo && options.dedupeStrategy === "cancel";
+		const shouldCancelRequest = prevRequestInfo && dedupeStrategy === "cancel";
 
 		if (!shouldCancelRequest) return;
 
@@ -64,7 +66,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 	const handleRequestDeferStrategy = async () => {
 		const fetchApi = getFetchImpl(options.customFetchImpl);
 
-		const shouldUsePromiseFromCache = prevRequestInfo && options.dedupeStrategy === "defer";
+		const shouldUsePromiseFromCache = prevRequestInfo && dedupeStrategy === "defer";
 
 		const requestInstance = new Request(
 			options.fullURL as NonNullable<typeof options.fullURL>,
@@ -86,7 +88,11 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 				return fetchApi(requestInstance.clone());
 			}
 
-			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, request as RequestInit);
+			const method = request.method ?? requestOptionDefaults.method;
+
+			const modifiedRequest = { ...request, method } as RequestInit;
+
+			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, modifiedRequest);
 		};
 
 		const responsePromise = shouldUsePromiseFromCache
@@ -111,6 +117,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 	};
 
 	return {
+		dedupeStrategy,
 		handleRequestCancelStrategy,
 		handleRequestDeferStrategy,
 		removeDedupeKeyFromCache,

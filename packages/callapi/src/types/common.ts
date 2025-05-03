@@ -1,11 +1,11 @@
 import type { Auth } from "../auth";
+import type { fetchSpecificKeys } from "../constants/common";
 import type { PossibleHTTPError, PossibleJavaScriptError } from "../error";
 import type { ErrorContext, Hooks, HooksOrHooksArray } from "../hooks";
 import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
-import type { GetResponseType, ResponseTypeUnion } from "../response";
+import type { GetCallApiResult, ResponseTypeUnion, ResultModeUnion } from "../response";
 import type { RetryOptions } from "../retry";
 import type { InitURL, UrlOptions } from "../url";
-import type { ModifiedRequestInit, fetchSpecificKeys } from "../utils/constants";
 import { type Awaitable, type Prettify, type UnmaskType, defineEnum } from "../utils/type-helpers";
 import type { CallApiSchemas, CallApiValidators, InferSchemaResult } from "../validation";
 import type {
@@ -23,6 +23,8 @@ import type {
 } from "./default-types";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
+
+export type ModifiedRequestInit = RequestInit & { duplex?: "half" };
 
 export type CallApiRequestOptions<TSchemas extends CallApiSchemas = DefaultMoreOptions> = Prettify<
 	BodyOption<TSchemas>
@@ -340,62 +342,6 @@ export type CallApiResultErrorVariant<TErrorData> =
 			error: PossibleJavaScriptError;
 			response: null;
 	  };
-
-export type ResultModeMap<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
-	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-	TComputedData = GetResponseType<TData, TResponseType>,
-	TComputedErrorData = GetResponseType<TErrorData, TResponseType>,
-> = UnmaskType<{
-	/* eslint-disable perfectionist/sort-union-types -- I need the first one to be first */
-	all: CallApiResultSuccessVariant<TComputedData> | CallApiResultErrorVariant<TComputedErrorData>;
-
-	allWithException: CallApiResultSuccessVariant<TComputedData>;
-
-	allWithoutResponse:
-		| CallApiResultSuccessVariant<TComputedData>["data" | "error"]
-		| CallApiResultErrorVariant<TComputedErrorData>["data" | "error"];
-
-	onlyError:
-		| CallApiResultSuccessVariant<TComputedData>["error"]
-		| CallApiResultErrorVariant<TComputedErrorData>["error"];
-
-	onlyResponse:
-		| CallApiResultErrorVariant<TComputedErrorData>["response"]
-		| CallApiResultSuccessVariant<TComputedData>["response"];
-
-	onlyResponseWithException: CallApiResultSuccessVariant<TComputedData>["response"];
-
-	onlySuccess:
-		| CallApiResultErrorVariant<TComputedErrorData>["data"]
-		| CallApiResultSuccessVariant<TComputedData>["data"];
-
-	onlySuccessWithException: CallApiResultSuccessVariant<TComputedData>["data"];
-	/* eslint-enable perfectionist/sort-union-types -- I need the first one to be first */
-}>;
-
-export type ResultModeUnion = keyof ResultModeMap | null;
-
-export type GetCallApiResult<
-	TData,
-	TErrorData,
-	TResultMode extends ResultModeUnion,
-	TThrowOnError extends boolean,
-	TResponseType extends ResponseTypeUnion,
-> = TErrorData extends false | undefined
-	? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-	: null extends TResultMode
-		? TThrowOnError extends true
-			? ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]
-			: ResultModeMap<TData, TErrorData, TResponseType>["all"]
-		: TResultMode extends NonNullable<ResultModeUnion>
-			? TResultMode extends "onlySuccess"
-				? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-				: TResultMode extends "onlyResponse"
-					? ResultModeMap<TData, TErrorData, TResponseType>["onlyResponseWithException"]
-					: ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
-			: never;
 
 export type CallApiResult<
 	TData,

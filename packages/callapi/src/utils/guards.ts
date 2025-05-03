@@ -1,5 +1,5 @@
-import type { CallApiResultErrorVariant } from "@/types";
 import { HTTPError, type PossibleHTTPError } from "../error";
+import type { CallApiResultErrorVariant } from "../types";
 import type { AnyFunction } from "./type-helpers";
 
 export const isHTTPError = <TErrorData>(
