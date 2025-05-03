@@ -1,5 +1,24 @@
 # @zayne-labs/callapi
 
+## 1.7.6
+
+### Patch Changes
+
+- 83160f4: fix(hooks): re-add support for merge base and instance hooks if the base is an array
+  refactor(core): Move constants to dedicated directory
+  refactor(types): Improve type definitions and conditional types
+  chore(cleanup): Remove deprecated constants file
+- e81116a: refactor(retry)!: revamp retry system with improved type safety and flexibility 🔄 ⚡️
+
+   feat(retry): add function support for retry delay configuration 🎛️
+   feat(retry): make attempts required in InnerRetryOptions 🔒
+   feat(retry): add UnmaskType utility for better type inference 🎯
+   refactor(retry): rename ~retryCount to ~retryAttemptCount for clarity 📝
+   refactor(retry): move retry constants to retry.ts for better organization 🏗️
+   refactor(retry): improve retry strategy handling with switch statement 🔀
+   refactor(retry): enhance status code and method checking with Set 🚀
+   chore(deps): update @zayne-labs/toolkit-type-helpers to 0.9.33 📦
+
 ## 1.7.4
 
 ### Patch Changes
