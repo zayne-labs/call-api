@@ -1,7 +1,6 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import { retryDefaults } from "./constants/default-options";
-import { resolveErrorResult } from "./error";
-import { type ErrorContext, executeHooks } from "./hooks";
+import { requestOptionDefaults, retryDefaults } from "./constants/default-options";
+import type { ErrorContext } from "./hooks";
 import type { Method } from "./types";
 import { isFunction } from "./utils/guards";
 import type { Awaitable } from "./utils/type-helpers";
@@ -100,7 +99,7 @@ const getExponentialDelay = <TErrorData>(
 export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) => {
 	const { options } = ctx;
 
-	const currentAttemptCount = options["~retryAttemptCount"] ?? 0;
+	const currentAttemptCount = options["~retryAttemptCount"] ?? 1;
 
 	const retryStrategy = options.retryStrategy ?? options.retry?.strategy ?? retryDefaults.strategy;
 
@@ -125,21 +124,23 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 
 		const customRetryCondition = await retryCondition(ctx);
 
-		const baseShouldRetry = maxRetryAttempts > currentAttemptCount && customRetryCondition;
+		const baseShouldRetry = maxRetryAttempts >= currentAttemptCount && customRetryCondition;
 
 		if (ctx.error.name !== "HTTPError") {
 			return baseShouldRetry;
 		}
 
-		const retryMethods = new Set(
-			options.retryMethods ?? options.retry?.methods ?? retryDefaults.methods
-		);
+		const selectedMethodArray = options.retryMethods ?? options.retry?.methods ?? retryDefaults.methods;
+
+		const retryMethods = new Set(selectedMethodArray);
+
+		const method = ctx.request.method ?? requestOptionDefaults.method;
+
+		const includesMethod = Boolean(method) && retryMethods.has(method);
 
 		const selectedStatusCodeArray = options.retryStatusCodes ?? options.retry?.statusCodes;
 
 		const retryStatusCodes = selectedStatusCodeArray ? new Set(selectedStatusCodeArray) : null;
-
-		const includesMethod = Boolean(ctx.request.method) && retryMethods.has(ctx.request.method);
 
 		const includesStatusCodes =
 			Boolean(ctx.response?.status) && (retryStatusCodes?.has(ctx.response.status) ?? true);
@@ -149,27 +150,8 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 		return shouldRetry;
 	};
 
-	const executeRetryHook = async (shouldThrowOnError: boolean | undefined) => {
-		try {
-			return await executeHooks(options.onRetry?.(ctx));
-		} catch (error) {
-			const { apiDetails } = resolveErrorResult({
-				cloneResponse: options.cloneResponse,
-				defaultErrorMessage: options.defaultErrorMessage,
-				error,
-				resultMode: options.resultMode,
-			});
-
-			if (shouldThrowOnError) {
-				throw error;
-			}
-
-			return apiDetails;
-		}
-	};
-
 	return {
-		executeRetryHook,
+		currentAttemptCount,
 		getDelay,
 		shouldAttemptRetry,
 	};

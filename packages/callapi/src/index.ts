@@ -12,11 +12,17 @@ export { defineParameters } from "./defineParameters";
 
 export type { CallApiSchemas, InferSchemaResult } from "./validation";
 
-export type { ResponseTypeUnion, ResultModeUnion } from "./response";
-
 export type { RetryOptions } from "./retry";
 
-export { HTTPError, type PossibleHTTPError, type PossibleJavaScriptError } from "./error";
+export {
+	HTTPError,
+	type PossibleHTTPError,
+	type PossibleJavaScriptError,
+	type ResponseTypeUnion,
+	type CallApiResultErrorVariant,
+	type CallApiResultSuccessVariant,
+	type ResultModeUnion,
+} from "./result";
 
 export type {
 	ErrorContext,
@@ -38,9 +44,7 @@ export type {
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
-	CallApiResultErrorVariant,
 	CallApiResult,
-	CallApiResultSuccessVariant,
 	CombinedCallApiExtraOptions,
 	Register,
 } from "./types";

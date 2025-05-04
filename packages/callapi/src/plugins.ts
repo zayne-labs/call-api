@@ -211,7 +211,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 		const composedHook = composeTwoHooks(flattenedHookArray, mergedHooksExecutionMode);
 
-		resolvedHooks[key as keyof Hooks] = composedHook;
+		composedHook && (resolvedHooks[key as keyof Hooks] = composedHook);
 	}
 
 	return {

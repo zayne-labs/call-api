@@ -1,4 +1,9 @@
-import type { PossibleHTTPError, PossibleJavaScriptError } from "./error";
+import {
+	type ErrorInfo,
+	type PossibleHTTPError,
+	type PossibleJavaScriptError,
+	resolveErrorResult,
+} from "./result";
 import type { StreamProgressEvent } from "./stream";
 import type {
 	BaseCallApiExtraOptions,
@@ -68,7 +73,7 @@ export type Hooks<
 	/**
 	 * Hook that will be called when a request is retried.
 	 */
-	onRetry?: (response: ErrorContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
+	onRetry?: (response: RetryContext<TErrorData> & WithMoreOptions<TMoreOptions>) => Awaitable<unknown>;
 
 	/**
 	 * Hook that will be called when a successful response is received from the api.
@@ -156,6 +161,10 @@ export type ResponseErrorContext<TErrorData> = UnmaskType<
 	>
 >;
 
+export type RetryContext<TErrorData> = UnmaskType<
+	Prettify<ErrorContext<TErrorData> & { retryAttemptCount: number }>
+>;
+
 export type ErrorContext<TErrorData> = UnmaskType<
 	| Prettify<
 			SharedHookContext & {
@@ -231,4 +240,33 @@ export const composeTwoHooks = (
 	return mergedHook;
 };
 
-export const executeHooks = <THook extends Awaitable<unknown>>(...hooks: THook[]) => Promise.all(hooks);
+export const executeHooksInTryBlock = async (...hookResults: Array<Awaitable<unknown>>) => {
+	await Promise.all(hookResults);
+};
+
+type Info = {
+	errorInfo: ErrorInfo;
+	shouldThrowOnError: boolean | undefined;
+};
+
+export const createExecuteHooksFn = (info: Info) => {
+	const { errorInfo, shouldThrowOnError } = info;
+
+	const executeHooksInCatchBlock = async (...hookResults: Array<Awaitable<unknown>>) => {
+		try {
+			await Promise.all(hookResults);
+
+			return null;
+		} catch (hookError) {
+			const hookErrorResult = resolveErrorResult(hookError, errorInfo);
+
+			if (shouldThrowOnError) {
+				throw hookError;
+			}
+
+			return hookErrorResult;
+		}
+	};
+
+	return executeHooksInCatchBlock;
+};

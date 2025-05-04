@@ -1,4 +1,4 @@
-import { type SharedHookContext, executeHooks } from "./hooks";
+import { type SharedHookContext, executeHooksInTryBlock } from "./hooks";
 import { isObject } from "./utils/guards";
 
 export type StreamProgressEvent = {
@@ -84,7 +84,7 @@ export const toStreamableRequest = async (context: ToStreamableRequestContext) =
 
 	let transferredBytes = 0;
 
-	await executeHooks(
+	await executeHooksInTryBlock(
 		options.onRequestStream({
 			baseConfig,
 			config,
@@ -106,7 +106,7 @@ export const toStreamableRequest = async (context: ToStreamableRequestContext) =
 
 				totalBytes = Math.max(totalBytes, transferredBytes);
 
-				await executeHooks(
+				await executeHooksInTryBlock(
 					options.onRequestStream?.({
 						baseConfig,
 						config,
@@ -146,7 +146,7 @@ export const toStreamableResponse = async (context: StreamableResponseContext): 
 
 	let transferredBytes = 0;
 
-	await executeHooks(
+	await executeHooksInTryBlock(
 		options.onResponseStream({
 			baseConfig,
 			config,
@@ -168,7 +168,7 @@ export const toStreamableResponse = async (context: StreamableResponseContext): 
 
 				totalBytes = Math.max(totalBytes, transferredBytes);
 
-				await executeHooks(
+				await executeHooksInTryBlock(
 					options.onResponseStream?.({
 						baseConfig,
 						config,

@@ -1,14 +1,23 @@
 import { commonDefaults } from "./constants/default-options";
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
-import { HTTPError, resolveErrorResult } from "./error";
-import { type ErrorContext, type SuccessContext, executeHooks } from "./hooks";
+import {
+	type ErrorContext,
+	type RetryContext,
+	type SuccessContext,
+	createExecuteHooksFn,
+	executeHooksInTryBlock,
+} from "./hooks";
 import { type CallApiPlugin, initializePlugins } from "./plugins";
 import {
+	type ErrorInfo,
+	HTTPError,
 	type ResponseTypeUnion,
 	type ResultModeUnion,
+	getCustomizedErrorResult,
+	resolveErrorResult,
 	resolveResponseData,
 	resolveSuccessResult,
-} from "./response";
+} from "./result";
 import { createRetryStrategy } from "./retry";
 import type {
 	BaseCallApiConfig,
@@ -30,7 +39,7 @@ import { mergeUrlWithParamsAndQuery } from "./url";
 import {
 	createCombinedSignal,
 	createTimeoutSignal,
-	mergeAndResolveHeaders,
+	getHeaders,
 	splitBaseConfig,
 	splitConfig,
 	waitUntil,
@@ -150,7 +159,7 @@ export const createFetchClient = <
 				? bodySerializer(resolvedRequestOptions.body)
 				: resolvedRequestOptions.body,
 
-			headers: mergeAndResolveHeaders({
+			headers: await getHeaders({
 				auth: options.auth,
 				baseHeaders: baseFetchOptions.headers,
 				body: resolvedRequestOptions.body,
@@ -177,10 +186,10 @@ export const createFetchClient = <
 		await handleRequestCancelStrategy();
 
 		try {
-			await executeHooks(options.onRequest?.({ baseConfig, config, options, request }));
+			await executeHooksInTryBlock(options.onRequest?.({ baseConfig, config, options, request }));
 
 			// == Apply determined headers again after onRequest incase they were modified
-			request.headers = mergeAndResolveHeaders({
+			request.headers = await getHeaders({
 				auth: options.auth,
 				body: request.body,
 				headers: request.headers,
@@ -194,12 +203,12 @@ export const createFetchClient = <
 
 			const schemas = (
 				isFunction(options.schemas)
-					? options.schemas({ baseSchemas: baseExtraOptions.schemas ?? {} })
+					? options.schemas({ baseSchemas: baseExtraOptions.schemas })
 					: options.schemas
 			) as CallApiSchemas | undefined;
 
 			const validators = isFunction(options.validators)
-				? options.validators({ baseValidators: baseExtraOptions.validators ?? {} })
+				? options.validators({ baseValidators: baseExtraOptions.validators })
 				: options.validators;
 
 			if (!response.ok) {
@@ -240,47 +249,61 @@ export const createFetchClient = <
 				response,
 			} satisfies SuccessContext<unknown>;
 
-			await executeHooks(
+			await executeHooksInTryBlock(
 				options.onSuccess?.(successContext),
 
 				options.onResponse?.({ ...successContext, error: null })
 			);
 
-			return await resolveSuccessResult({
-				data: successContext.data,
+			const successResult = await resolveSuccessResult(successContext.data, {
 				response: successContext.response,
 				resultMode: options.resultMode,
 			});
 
+			return successResult as never;
+
 			// == Exhaustive Error handling
 		} catch (error) {
-			const { apiDetails, getErrorResult } = resolveErrorResult({
+			const errorInfo = {
 				cloneResponse: options.cloneResponse,
 				defaultErrorMessage: options.defaultErrorMessage,
-				error,
 				resultMode: options.resultMode,
-			});
+			} satisfies ErrorInfo;
+
+			const generalErrorResult = resolveErrorResult(error, errorInfo);
 
 			const errorContext = {
 				baseConfig,
 				config,
-				error: apiDetails.error as never,
+				error: generalErrorResult?.error as never,
 				options,
 				request,
-				response: apiDetails.response as never,
+				response: generalErrorResult?.response as never,
 			} satisfies ErrorContext<unknown>;
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
 				? options.throwOnError(errorContext)
 				: options.throwOnError;
 
-			const handleRetryOrGetResult = async (customInfo?: { message?: string }) => {
-				const { executeRetryHook, getDelay, shouldAttemptRetry } = createRetryStrategy(errorContext);
+			const executeHooksInCatchBlock = createExecuteHooksFn({ errorInfo, shouldThrowOnError });
+
+			const handleRetryOrGetErrorResult = async () => {
+				const { currentAttemptCount, getDelay, shouldAttemptRetry } =
+					createRetryStrategy(errorContext);
 
 				const shouldRetry = !combinedSignal.aborted && (await shouldAttemptRetry());
 
 				if (shouldRetry) {
-					await executeRetryHook(shouldThrowOnError);
+					const retryContext = {
+						...errorContext,
+						retryAttemptCount: currentAttemptCount,
+					} satisfies RetryContext<unknown>;
+
+					const hookError = await executeHooksInCatchBlock(options.onRetry?.(retryContext));
+
+					if (hookError) {
+						return hookError;
+					}
 
 					const delay = getDelay();
 
@@ -288,7 +311,7 @@ export const createFetchClient = <
 
 					const updatedOptions = {
 						...config,
-						"~retryAttemptCount": (options["~retryAttemptCount"] ?? 0) + 1,
+						"~retryAttemptCount": currentAttemptCount + 1,
 					} satisfies typeof config;
 
 					return callApi(initURL, updatedOptions as never) as never;
@@ -298,11 +321,11 @@ export const createFetchClient = <
 					throw error;
 				}
 
-				return customInfo ? getErrorResult(customInfo) : getErrorResult();
+				return generalErrorResult;
 			};
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
-				await executeHooks(
+				const hookError = await executeHooksInCatchBlock(
 					options.onResponseError?.(errorContext),
 
 					options.onError?.(errorContext),
@@ -310,7 +333,12 @@ export const createFetchClient = <
 					options.onResponse?.({ ...errorContext, data: null })
 				);
 
-				return await handleRetryOrGetResult();
+				// eslint-disable-next-line max-depth -- Allow for now
+				if (hookError) {
+					return hookError as never;
+				}
+
+				return (await handleRetryOrGetErrorResult()) as never;
 			}
 
 			if (error instanceof DOMException && error.name === "AbortError") {
@@ -318,7 +346,7 @@ export const createFetchClient = <
 
 				!shouldThrowOnError && console.error(`${name}:`, message);
 
-				return await handleRetryOrGetResult();
+				return (await handleRetryOrGetErrorResult()) as never;
 			}
 
 			if (error instanceof DOMException && error.name === "TimeoutError") {
@@ -326,18 +354,24 @@ export const createFetchClient = <
 
 				!shouldThrowOnError && console.error(`${error.name}:`, message);
 
-				return await handleRetryOrGetResult({ message });
+				const errorResult = await handleRetryOrGetErrorResult();
+
+				return getCustomizedErrorResult(errorResult, { message }) as never;
 			}
 
-			await executeHooks(
+			const hookError = await executeHooksInCatchBlock(
 				// == At this point only the request errors exist, so the request error hook is called
-				options.onRequestError?.(errorContext as never),
+				options.onRequestError?.(errorContext),
 
 				// == Also call the onError hook
 				options.onError?.(errorContext)
 			);
 
-			return await handleRetryOrGetResult();
+			if (hookError) {
+				return hookError as never;
+			}
+
+			return (await handleRetryOrGetErrorResult()) as never;
 
 			// == Removing the now unneeded AbortController from store
 		} finally {

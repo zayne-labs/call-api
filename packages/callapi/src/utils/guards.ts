@@ -1,5 +1,4 @@
-import { HTTPError, type PossibleHTTPError } from "../error";
-import type { CallApiResultErrorVariant } from "../types";
+import { type CallApiResultErrorVariant, HTTPError, type PossibleHTTPError } from "../result";
 import type { AnyFunction } from "./type-helpers";
 
 export const isHTTPError = <TErrorData>(
@@ -11,10 +10,11 @@ export const isHTTPError = <TErrorData>(
 export const isHTTPErrorInstance = <TErrorResponse>(
 	error: unknown
 ): error is HTTPError<TErrorResponse> => {
-	return (
-		// prettier-ignore
-		error instanceof HTTPError|| (isPlainObject(error) && error.name === "HTTPError" && error.isHTTPError === true)
-	);
+	if (error instanceof HTTPError) {
+		return true;
+	}
+
+	return isPlainObject(error) && error.name === "HTTPError" && error.isHTTPError === true;
 };
 
 // FIXME: Outsource to type-helpers later as a peer dependency

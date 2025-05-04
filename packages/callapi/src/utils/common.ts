@@ -95,7 +95,7 @@ type MergeAndResolveHeadersOptions = {
 	headers: CallApiRequestOptions["headers"];
 };
 
-export const mergeAndResolveHeaders = (options: MergeAndResolveHeadersOptions) => {
+export const getHeaders = async (options: MergeAndResolveHeadersOptions) => {
 	const { auth, baseHeaders, body, headers } = options;
 
 	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing -- Nullish coalescing makes no sense in this boolean context
@@ -108,7 +108,7 @@ export const mergeAndResolveHeaders = (options: MergeAndResolveHeadersOptions) =
 	if (!shouldResolveHeaders) return;
 
 	const headersObject: Record<string, string | undefined> = {
-		...getAuthHeader(auth),
+		...(await getAuthHeader(auth)),
 		...objectifyHeaders(baseHeaders),
 		...objectifyHeaders(headers),
 	};

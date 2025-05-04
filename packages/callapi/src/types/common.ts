@@ -1,9 +1,8 @@
 import type { Auth } from "../auth";
 import type { fetchSpecificKeys } from "../constants/common";
-import type { PossibleHTTPError, PossibleJavaScriptError } from "../error";
 import type { ErrorContext, Hooks, HooksOrHooksArray } from "../hooks";
 import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
-import type { GetCallApiResult, ResponseTypeUnion, ResultModeUnion } from "../response";
+import type { GetCallApiResult, ResponseTypeUnion, ResultModeUnion } from "../result";
 import type { RetryOptions } from "../retry";
 import type { InitURL, UrlOptions } from "../url";
 import { type Awaitable, type Prettify, type UnmaskType, defineEnum } from "../utils/type-helpers";
@@ -189,12 +188,12 @@ export type CallApiExtraOptions<
 		| Plugins<TPluginArray>
 		| ((context: { basePlugins: Plugins<TPluginArray> }) => Plugins<TPluginArray>);
 
-	schemas?: TSchemas | ((context: { baseSchemas: TSchemas }) => TSchemas);
+	schemas?: TSchemas | ((context: { baseSchemas: TSchemas | undefined }) => TSchemas);
 
 	validators?:
 		| CallApiValidators<TData, TErrorData>
 		| ((context: {
-				baseValidators: CallApiValidators<TData, TErrorData>;
+				baseValidators: CallApiValidators<TData, TErrorData> | undefined;
 		  }) => CallApiValidators<TData, TErrorData>);
 };
 
@@ -324,24 +323,6 @@ export type CallApiParameters<
 		TSchemas
 	>,
 ];
-
-export type CallApiResultSuccessVariant<TData> = {
-	data: TData;
-	error: null;
-	response: Response;
-};
-
-export type CallApiResultErrorVariant<TErrorData> =
-	| {
-			data: null;
-			error: PossibleHTTPError<TErrorData>;
-			response: Response;
-	  }
-	| {
-			data: null;
-			error: PossibleJavaScriptError;
-			response: null;
-	  };
 
 export type CallApiResult<
 	TData,

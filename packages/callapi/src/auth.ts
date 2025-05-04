@@ -2,8 +2,11 @@
 
 import type { ExtraOptions } from "./types/common";
 import { isFunction, isString } from "./utils/guards";
+import type { Awaitable } from "./utils/type-helpers";
 
 type ValueOrFunctionResult<TValue> = TValue | (() => TValue);
+
+type ValidAuthValue = ValueOrFunctionResult<Awaitable<string | null | undefined>>;
 
 /**
  * Bearer Or Token authentication
@@ -17,13 +20,13 @@ type ValueOrFunctionResult<TValue> = TValue | (() => TValue);
 export type BearerOrTokenAuth =
 	| {
 			type?: "Bearer";
-			bearer?: ValueOrFunctionResult<string | null>;
+			bearer?: ValidAuthValue;
 			token?: never;
 	  }
 	| {
 			type?: "Token";
 			bearer?: never;
-			token?: ValueOrFunctionResult<string | null>;
+			token?: ValidAuthValue;
 	  };
 
 /**
@@ -31,8 +34,8 @@ export type BearerOrTokenAuth =
  */
 export type BasicAuth = {
 	type: "Basic";
-	username: ValueOrFunctionResult<string | null | undefined>;
-	password: ValueOrFunctionResult<string | null | undefined>;
+	username: ValidAuthValue;
+	password: ValidAuthValue;
 };
 
 /**
@@ -52,14 +55,14 @@ export type BasicAuth = {
  */
 export type CustomAuth = {
 	type: "Custom";
-	prefix: ValueOrFunctionResult<string | null | undefined>;
-	value: ValueOrFunctionResult<string | null | undefined>;
+	prefix: ValidAuthValue;
+	value: ValidAuthValue;
 };
 
 // eslint-disable-next-line perfectionist/sort-union-types -- Let the first one be first
 export type Auth = BearerOrTokenAuth | BasicAuth | CustomAuth;
 
-const getValue = (value: ValueOrFunctionResult<string | null | undefined>) => {
+const getValue = (value: ValidAuthValue) => {
 	return isFunction(value) ? value() : value;
 };
 
@@ -67,7 +70,9 @@ type AuthorizationHeader = {
 	Authorization: string;
 };
 
-export const getAuthHeader = (auth: ExtraOptions["auth"]): false | AuthorizationHeader | undefined => {
+export const getAuthHeader = async (
+	auth: ExtraOptions["auth"]
+): Promise<false | AuthorizationHeader | undefined> => {
 	if (auth === undefined) return;
 
 	if (isString(auth) || auth === null) {
@@ -76,8 +81,8 @@ export const getAuthHeader = (auth: ExtraOptions["auth"]): false | Authorization
 
 	switch (auth.type) {
 		case "Basic": {
-			const username = getValue(auth.username);
-			const password = getValue(auth.password);
+			const username = await getValue(auth.username);
+			const password = await getValue(auth.password);
 
 			if (username === undefined || password === undefined) return;
 
@@ -87,11 +92,11 @@ export const getAuthHeader = (auth: ExtraOptions["auth"]): false | Authorization
 		}
 
 		case "Custom": {
-			const value = getValue(auth.value);
+			const value = await getValue(auth.value);
 
 			if (value === undefined) return;
 
-			const prefix = getValue(auth.prefix);
+			const prefix = await getValue(auth.prefix);
 
 			return {
 				Authorization: `${prefix} ${value}`,
@@ -99,8 +104,8 @@ export const getAuthHeader = (auth: ExtraOptions["auth"]): false | Authorization
 		}
 
 		default: {
-			const bearer = getValue(auth.bearer);
-			const token = getValue(auth.token);
+			const bearer = await getValue(auth.bearer);
+			const token = await getValue(auth.token);
 
 			if ("token" in auth && token !== undefined) {
 				return { Authorization: `Token ${token}` };
