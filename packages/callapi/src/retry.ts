@@ -2,7 +2,7 @@
 import { requestOptionDefaults, retryDefaults } from "./constants/default-options";
 import type { ErrorContext } from "./hooks";
 import type { Method } from "./types";
-import { isFunction } from "./utils/guards";
+import { isFunction, isHTTPError } from "./utils/guards";
 import type { Awaitable } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;
@@ -87,11 +87,13 @@ const getExponentialDelay = <TErrorData>(
 ) => {
 	const retryDelay = options.retryDelay ?? options.retry?.delay ?? retryDefaults.delay;
 
-	const resolveRetryDelay = Number(isFunction(retryDelay) ? retryDelay(currentAttemptCount) : retryDelay);
+	const resolvedRetryDelay = Number(
+		isFunction(retryDelay) ? retryDelay(currentAttemptCount) : retryDelay
+	);
 
 	const maxDelay = Number(options.retryMaxDelay ?? options.retry?.maxDelay ?? retryDefaults.maxDelay);
 
-	const exponentialDelay = resolveRetryDelay * 2 ** currentAttemptCount;
+	const exponentialDelay = resolvedRetryDelay * 2 ** currentAttemptCount;
 
 	return Math.min(exponentialDelay, maxDelay);
 };
@@ -112,7 +114,7 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 				return getLinearDelay(currentAttemptCount, options);
 			}
 			default: {
-				throw new Error(`Invalid retry strategy: ${retryStrategy as string}`);
+				throw new Error(`Invalid retry strategy: ${String(retryStrategy)}`);
 			}
 		}
 	};
@@ -120,14 +122,20 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 	const shouldAttemptRetry = async () => {
 		const retryCondition = options.retryCondition ?? options.retry?.condition ?? retryDefaults.condition;
 
-		const maxRetryAttempts = options.retryAttempts ?? options.retry?.attempts ?? retryDefaults.attempts;
+		const maximumRetryAttempts =
+			options.retryAttempts ?? options.retry?.attempts ?? retryDefaults.attempts;
 
 		const customRetryCondition = await retryCondition(ctx);
 
-		const baseShouldRetry = maxRetryAttempts >= currentAttemptCount && customRetryCondition;
+		const baseShouldRetry = maximumRetryAttempts >= currentAttemptCount && customRetryCondition;
 
-		if (ctx.error.name !== "HTTPError") {
-			return baseShouldRetry;
+		if (!baseShouldRetry) {
+			return false;
+		}
+
+		// == If error is not an HTTP error, just return true since at this point we know it's a retryable error
+		if (!isHTTPError(ctx.error)) {
+			return true;
 		}
 
 		const selectedMethodArray = options.retryMethods ?? options.retry?.methods ?? retryDefaults.methods;
@@ -145,7 +153,7 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 		const includesStatusCodes =
 			Boolean(ctx.response?.status) && (retryStatusCodes?.has(ctx.response.status) ?? true);
 
-		const shouldRetry = baseShouldRetry && includesMethod && includesStatusCodes;
+		const shouldRetry = includesMethod && includesStatusCodes;
 
 		return shouldRetry;
 	};
@@ -156,8 +164,3 @@ export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) =
 		shouldAttemptRetry,
 	};
 };
-
-// // prettier-ignore
-// export const defaultRetryStatusCodes = Object.keys(retryStatusCodesLookup).map(
-// 	Number
-// ) as DefaultRetryStatusCodes;
