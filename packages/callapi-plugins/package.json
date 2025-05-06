@@ -32,8 +32,8 @@
 	},
 	"peerDependencies": {
 		"@zayne-labs/callapi": "workspace:*",
-		"@zayne-labs/toolkit-type-helpers": "^0.9.33",
-		"consola": "^3.2.3"
+		"@zayne-labs/toolkit-type-helpers": "^0.9.35",
+		"consola": "^3.4.2"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "0.17.4",
