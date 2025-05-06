@@ -1,5 +1,14 @@
 # @zayne-labs/callapi
 
+## 1.7.14
+
+### Patch Changes
+
+- ce8ba66: 🐛 fix(types): improve type safety in guards and type helpers
+  📄 docs(comparisons): update documentation with latest framework comparisons
+  🔄 refactor(validation): streamline schema validation with zod v3.24.4
+  📦 chore(pnpm): update lockfile with latest package versions
+
 ## 1.7.10
 
 ### Patch Changes
