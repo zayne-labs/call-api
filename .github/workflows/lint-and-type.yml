@@ -32,5 +32,6 @@ jobs:
          - name: Install dependencies and run tests
            run: |
               pnpm install --frozen-lockfile
+              pnpm build:callapi
               pnpm lint:type-check
               pnpm lint:eslint

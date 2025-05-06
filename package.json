@@ -5,6 +5,8 @@
 	"packageManager": "pnpm@9.15.4",
 	"scripts": {
 		"build": "turbo run --filter \"./packages/*\" build",
+		"build:callapi": "turbo run --filter \"./packages/callapi\" build",
+		"build:callapi-plugins": "turbo run --filter \"./packages/callapi-plugins\" build",
 		"build:dev": "turbo run --filter \"./packages/*\" build:dev",
 		"build:test": "turbo run --filter \"./packages/*\" build:test",
 		"dev:callapi": "turbo run --filter \"./packages/callapi\" dev",
