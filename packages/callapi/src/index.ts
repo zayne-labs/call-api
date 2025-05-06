@@ -14,8 +14,9 @@ export type { CallApiSchemas, InferSchemaResult } from "./validation";
 
 export type { RetryOptions } from "./retry";
 
+export { HTTPError } from "./error";
+
 export {
-	HTTPError,
 	type PossibleHTTPError,
 	type PossibleJavaScriptError,
 	type ResponseTypeUnion,

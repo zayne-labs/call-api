@@ -18,7 +18,7 @@ type MakeSchemaOptionRequired<
 	TObject,
 > = undefined extends TSchema
 	? TObject
-	: undefined extends InferSchemaResult<TSchema, NonNullable<unknown>>
+	: undefined extends InferSchemaResult<TSchema>
 		? TObject
 		: Required<TObject>;
 

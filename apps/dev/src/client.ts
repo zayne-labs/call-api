@@ -6,6 +6,7 @@ import {
 	createFetchClient,
 	definePlugin,
 } from "@zayne-labs/callapi";
+import { loggerPlugin } from "@zayne-labs/callapi-plugins";
 import { z } from "zod";
 
 const newOptionSchema1 = z.object({
@@ -89,10 +90,10 @@ const baseSchemas = {
 
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
-	onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
-	onUpload: (progress) => console.info({ progress }),
-	onUploadSuccess: (progress) => console.info({ progress }),
-	plugins: [plugin1, plugin2()],
+	// onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
+	onUpload: (_progress) => {},
+	onUploadSuccess: (_progress) => {},
+	plugins: [plugin1, plugin2(), loggerPlugin({ verbose: true })],
 	schemas: baseSchemas,
 });
 
@@ -118,7 +119,7 @@ const callMainApi = createFetchClient({
 
 const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 	callMainApi<{ foo: string }, false | undefined>("/products/:id", {
-		onRequest: [() => console.info("Instance-OnRequest"), () => console.info("Instance-OnRequest2")],
+		// onRequest: [() => console.info("Instance-OnRequest"), () => console.info("Instance-OnRequest2")],
 		params: [1],
 	}),
 	callMainApi("/products/:id", {

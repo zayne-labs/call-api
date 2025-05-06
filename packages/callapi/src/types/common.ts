@@ -65,7 +65,7 @@ export type ExtraOptions<
 	bodySerializer?: (bodyData: Record<string, unknown>) => string;
 
 	/**
-	 * Whether or not to clone the response, so response.json() and the like, can be read again else where.
+	 * Whether or not to clone the response, so response.json() and the like can be read again else where.
 	 * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
 	 * @default false
 	 */

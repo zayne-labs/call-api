@@ -24,7 +24,7 @@ export const defaultRetryStatusCodesLookup = defineEnum({
 
 export const commonDefaults = defineEnum({
 	bodySerializer: JSON.stringify,
-	defaultErrorMessage: "Failed to fetch data from server!",
+	defaultErrorMessage: "An unexpected error occurred during the HTTP request.",
 });
 
 export const responseDefaults = defineEnum({

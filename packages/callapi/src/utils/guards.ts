@@ -1,10 +1,11 @@
-import { type CallApiResultErrorVariant, HTTPError, type PossibleHTTPError } from "../result";
+import { HTTPError } from "../error";
+import type { CallApiResultErrorVariant, PossibleHTTPError } from "../result";
 import type { AnyFunction } from "./type-helpers";
 
 export const isHTTPError = <TErrorData>(
 	error: CallApiResultErrorVariant<TErrorData>["error"] | null
 ): error is PossibleHTTPError<TErrorData> => {
-	return isPlainObject(error) && error.name === "HTTPError";
+	return isObject(error) && error.name === "HTTPError";
 };
 
 export const isHTTPErrorInstance = <TErrorResponse>(
@@ -17,11 +18,11 @@ export const isHTTPErrorInstance = <TErrorResponse>(
 	return isPlainObject(error) && error.name === "HTTPError" && error.isHTTPError === true;
 };
 
-// FIXME: Outsource to type-helpers later as a peer dependency
-
 export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Array.isArray(value);
 
-export const isObject = (value: unknown) => typeof value === "object" && value !== null;
+export const isObject = (value: unknown) => {
+	return typeof value === "object" && value !== null;
+};
 
 const hasObjectPrototype = (value: unknown) => {
 	return Object.prototype.toString.call(value) === "[object Object]";
@@ -92,8 +93,11 @@ export const isQueryString = (value: unknown): value is string => isString(value
 
 export const isString = (value: unknown) => typeof value === "string";
 
+export const isReadableStream = (value: unknown): value is ReadableStream<unknown> => {
+	return value instanceof ReadableStream;
+};
+
 // https://github.com/unjs/ofetch/blob/main/src/utils.ts
-// TODO Find a way to incorporate this function in checking when to apply the bodySerializer on the body and also whether to add the content type application/json
 export const isJSONSerializable = (value: unknown) => {
 	if (value === undefined) {
 		return false;
@@ -118,8 +122,4 @@ export const isJSONSerializable = (value: unknown) => {
 		// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing -- Nullish coalescing makes no sense in this boolean context
 		|| typeof (value as { toJSON: () => unknown } | null)?.toJSON === "function"
 	);
-};
-
-export const isReadableStream = (value: unknown): value is ReadableStream<unknown> => {
-	return value instanceof ReadableStream;
 };

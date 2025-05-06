@@ -1,5 +1,6 @@
 import { commonDefaults } from "./constants/default-options";
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
+import { HTTPError } from "./error";
 import {
 	type ErrorContext,
 	type RetryContext,
@@ -10,7 +11,6 @@ import {
 import { type CallApiPlugin, initializePlugins } from "./plugins";
 import {
 	type ErrorInfo,
-	HTTPError,
 	type ResponseTypeUnion,
 	type ResultModeUnion,
 	getCustomizedErrorResult,
@@ -225,11 +225,14 @@ export const createFetchClient = <
 				);
 
 				// == Push all error handling responsibilities to the catch block if not retrying
-				throw new HTTPError({
-					defaultErrorMessage: options.defaultErrorMessage,
-					errorData: validErrorData,
-					response,
-				});
+				throw new HTTPError(
+					{
+						defaultErrorMessage: options.defaultErrorMessage,
+						errorData: validErrorData,
+						response,
+					},
+					{ cause: validErrorData }
+				);
 			}
 
 			const successData = await resolveResponseData<TData>(
@@ -342,21 +345,15 @@ export const createFetchClient = <
 			}
 
 			if (error instanceof DOMException && error.name === "AbortError") {
-				const { message, name } = error;
-
-				!shouldThrowOnError && console.error(`${name}:`, message);
-
-				return (await handleRetryOrGetErrorResult()) as never;
+				!shouldThrowOnError && console.error(`${error.name}:`, error.message);
 			}
 
+			let timeoutMessage: string | undefined;
+
 			if (error instanceof DOMException && error.name === "TimeoutError") {
-				const message = `Request timed out after ${options.timeout}ms`;
+				timeoutMessage = `Request timed out after ${options.timeout}ms`;
 
-				!shouldThrowOnError && console.error(`${error.name}:`, message);
-
-				const errorResult = await handleRetryOrGetErrorResult();
-
-				return getCustomizedErrorResult(errorResult, { message }) as never;
+				!shouldThrowOnError && console.error(`${error.name}:`, timeoutMessage);
 			}
 
 			const hookError = await executeHooksInCatchBlock(
@@ -371,7 +368,13 @@ export const createFetchClient = <
 				return hookError as never;
 			}
 
-			return (await handleRetryOrGetErrorResult()) as never;
+			const errorResult = await handleRetryOrGetErrorResult();
+
+			return (
+				timeoutMessage
+					? getCustomizedErrorResult(errorResult, { message: timeoutMessage })
+					: errorResult
+			) as never;
 
 			// == Removing the now unneeded AbortController from store
 		} finally {

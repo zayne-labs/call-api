@@ -77,7 +77,7 @@ export interface CallApiValidators<TData = unknown, TErrorData = unknown> {
 	errorData?: (value: unknown) => TErrorData;
 }
 
-export type InferSchemaResult<TSchema, TData> = TSchema extends StandardSchemaV1
+export type InferSchemaResult<TSchema, TData = NonNullable<unknown>> = TSchema extends StandardSchemaV1
 	? StandardSchemaV1.InferOutput<TSchema>
 	: TData;
 

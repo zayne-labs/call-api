@@ -1,4 +1,5 @@
 import { commonDefaults, responseDefaults } from "./constants/default-options";
+import type { HTTPError } from "./error";
 import type { CallApiExtraOptions } from "./types";
 import type { DefaultDataType } from "./types/default-types";
 import { isHTTPErrorInstance } from "./utils/guards";
@@ -58,6 +59,22 @@ export type CallApiResultSuccessVariant<TData> = {
 	error: null;
 	response: Response;
 };
+
+export type PossibleJavaScriptError = UnmaskType<{
+	errorData: DOMException | Error | SyntaxError | TypeError;
+	message: string;
+	name: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | (`${string}Error` & {});
+	originalError: DOMException | Error | SyntaxError | TypeError;
+}>;
+
+export type PossibleHTTPError<TErrorData> = Prettify<
+	UnmaskType<{
+		errorData: TErrorData;
+		message: string;
+		name: "HTTPError";
+		originalError: HTTPError;
+	}>
+>;
 
 export type CallApiResultErrorVariant<TErrorData> =
 	| {
@@ -172,53 +189,6 @@ export const resolveSuccessResult = (data: unknown, info: SuccessInfo) => {
 // 	return { errorContext, errorResult, executeHooksInCatchBlock, shouldThrowOnError };
 // };
 
-type ErrorDetails<TErrorResponse> = {
-	defaultErrorMessage: CallApiExtraOptions["defaultErrorMessage"];
-	errorData: TErrorResponse;
-	response: Response;
-};
-
-// export const httpErrorSymbol = Symbol("HTTPError");
-
-export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
-	errorData: ErrorDetails<TErrorResponse>["errorData"];
-
-	isHTTPError = true;
-
-	override name = "HTTPError" as const;
-
-	response: ErrorDetails<TErrorResponse>["response"];
-
-	constructor(errorDetails: ErrorDetails<TErrorResponse>, errorOptions?: ErrorOptions) {
-		const { defaultErrorMessage, errorData, response } = errorDetails;
-
-		const selectedDefaultErrorMessage = defaultErrorMessage ?? commonDefaults.defaultErrorMessage;
-
-		const message =
-			(errorData as { message?: string } | undefined)?.message ?? selectedDefaultErrorMessage;
-
-		super(message, errorOptions);
-
-		this.errorData = errorData;
-		this.response = response;
-		Error.captureStackTrace(this, this.constructor);
-	}
-}
-
-export type PossibleJavaScriptError = UnmaskType<{
-	errorData: DOMException | Error | SyntaxError | TypeError;
-	message: string;
-	name: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | (`${string}Error` & {});
-}>;
-
-export type PossibleHTTPError<TErrorData> = Prettify<
-	UnmaskType<{
-		errorData: TErrorData;
-		message: string;
-		name: "HTTPError";
-	}>
->;
-
 export type ErrorInfo = {
 	cloneResponse: CallApiExtraOptions["cloneResponse"];
 	defaultErrorMessage: CallApiExtraOptions["defaultErrorMessage"];
@@ -237,6 +207,7 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 			errorData: error as Error,
 			message: customErrorMessage ?? (error as Error).message,
 			name: (error as Error).name as PossibleJavaScriptError["name"],
+			originalError: error as Error,
 		},
 		response: null,
 	} satisfies CallApiResultErrorVariant<unknown> as CallApiResultErrorVariant<unknown>;
@@ -252,6 +223,7 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 				errorData,
 				message,
 				name,
+				originalError: error,
 			},
 			response: cloneResponse ? response.clone() : response,
 		};

@@ -14,7 +14,6 @@ import type {
 	CallApiRequestOptionsForHooks,
 } from "./types/common";
 import type { DefaultMoreOptions } from "./types/default-types";
-import type { StandardSchemaV1 } from "./types/standard-schema";
 import type { InitURL } from "./url";
 import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
 import type { AnyFunction, Awaitable, Prettify } from "./utils/type-helpers";
@@ -26,12 +25,17 @@ type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => 
 	? TParam
 	: never;
 
-type InferSchema<TResult> = TResult extends StandardSchemaV1
-	? InferSchemaResult<TResult, NonNullable<unknown>>
-	: TResult;
-
-export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
-	InferSchema<ReturnType<NonNullable<TPluginArray[number]["createExtraOptions"]>>>
+export type InferPluginOptions<
+	TPluginArray extends CallApiPlugin[],
+	// TCreateExtraOptions = ReturnType<NonNullable<TPluginArray[number]["createExtraOptions"]>>,
+> = UnionToIntersection<
+	TPluginArray extends Array<infer TPlugin>
+		? TPlugin extends CallApiPlugin
+			? TPlugin["createExtraOptions"] extends AnyFunction<infer TResult>
+				? InferSchemaResult<TResult, TResult>
+				: NonNullable<unknown>
+			: NonNullable<unknown>
+		: NonNullable<unknown>
 >;
 
 export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = Prettify<
