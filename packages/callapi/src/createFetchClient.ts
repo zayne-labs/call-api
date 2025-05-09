@@ -3,9 +3,10 @@ import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError } from "./error";
 import {
 	type ErrorContext,
+	type ExecuteHookInfo,
 	type RetryContext,
 	type SuccessContext,
-	createExecuteHooksFn,
+	executeHooksInCatchBlock,
 	executeHooksInTryBlock,
 } from "./hooks";
 import { type CallApiPlugin, initializePlugins } from "./plugins";
@@ -258,7 +259,7 @@ export const createFetchClient = <
 				options.onResponse?.({ ...successContext, error: null })
 			);
 
-			const successResult = await resolveSuccessResult(successContext.data, {
+			const successResult = resolveSuccessResult(successContext.data, {
 				response: successContext.response,
 				resultMode: options.resultMode,
 			});
@@ -288,7 +289,10 @@ export const createFetchClient = <
 				? options.throwOnError(errorContext)
 				: options.throwOnError;
 
-			const executeHooksInCatchBlock = createExecuteHooksFn({ errorInfo, shouldThrowOnError });
+			const hookInfo = {
+				errorInfo,
+				shouldThrowOnError,
+			} satisfies ExecuteHookInfo;
 
 			const handleRetryOrGetErrorResult = async () => {
 				const { currentAttemptCount, getDelay, shouldAttemptRetry } =
@@ -302,7 +306,10 @@ export const createFetchClient = <
 						retryAttemptCount: currentAttemptCount,
 					} satisfies RetryContext<unknown>;
 
-					const hookError = await executeHooksInCatchBlock(options.onRetry?.(retryContext));
+					const hookError = await executeHooksInCatchBlock(
+						[options.onRetry?.(retryContext)],
+						hookInfo
+					);
 
 					if (hookError) {
 						return hookError;
@@ -329,14 +336,17 @@ export const createFetchClient = <
 
 			if (isHTTPErrorInstance<TErrorData>(error)) {
 				const hookError = await executeHooksInCatchBlock(
-					options.onResponseError?.(errorContext),
+					[
+						options.onResponseError?.(errorContext),
 
-					options.onError?.(errorContext),
+						options.onError?.(errorContext),
 
-					options.onResponse?.({ ...errorContext, data: null })
+						options.onResponse?.({ ...errorContext, data: null }),
+					],
+					hookInfo
 				);
 
-				// eslint-disable-next-line max-depth -- Allow for now
+				// eslint-disable-next-line max-depth -- Ignore for now
 				if (hookError) {
 					return hookError as never;
 				}
@@ -357,11 +367,8 @@ export const createFetchClient = <
 			}
 
 			const hookError = await executeHooksInCatchBlock(
-				// == At this point only the request errors exist, so the request error hook is called
-				options.onRequestError?.(errorContext),
-
-				// == Also call the onError hook
-				options.onError?.(errorContext)
+				[options.onRequestError?.(errorContext), options.onError?.(errorContext)],
+				hookInfo
 			);
 
 			if (hookError) {

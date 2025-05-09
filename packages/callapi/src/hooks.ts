@@ -240,33 +240,32 @@ export const composeTwoHooks = (
 	return mergedHook;
 };
 
-export const executeHooksInTryBlock = async (...hookResults: Array<Awaitable<unknown>>) => {
-	await Promise.all(hookResults);
+export const executeHooksInTryBlock = async (...hookResultsOrPromise: Array<Awaitable<unknown>>) => {
+	await Promise.all(hookResultsOrPromise);
 };
 
-type Info = {
+export type ExecuteHookInfo = {
 	errorInfo: ErrorInfo;
 	shouldThrowOnError: boolean | undefined;
 };
 
-export const createExecuteHooksFn = (info: Info) => {
-	const { errorInfo, shouldThrowOnError } = info;
+export const executeHooksInCatchBlock = async (
+	hookResultsOrPromise: Array<Awaitable<unknown>>,
+	hookInfo: ExecuteHookInfo
+) => {
+	const { errorInfo, shouldThrowOnError } = hookInfo;
 
-	const executeHooksInCatchBlock = async (...hookResults: Array<Awaitable<unknown>>) => {
-		try {
-			await Promise.all(hookResults);
+	try {
+		await Promise.all(hookResultsOrPromise);
 
-			return null;
-		} catch (hookError) {
-			const hookErrorResult = resolveErrorResult(hookError, errorInfo);
+		return null;
+	} catch (hookError) {
+		const hookErrorResult = resolveErrorResult(hookError, errorInfo);
 
-			if (shouldThrowOnError) {
-				throw hookError;
-			}
-
-			return hookErrorResult;
+		if (shouldThrowOnError) {
+			throw hookError;
 		}
-	};
 
-	return executeHooksInCatchBlock;
+		return hookErrorResult;
+	}
 };

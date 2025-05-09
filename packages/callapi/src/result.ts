@@ -2,6 +2,7 @@ import { commonDefaults, responseDefaults } from "./constants/default-options";
 import type { HTTPError } from "./error";
 import type { CallApiExtraOptions } from "./types";
 import type { DefaultDataType } from "./types/default-types";
+import { omitKeys } from "./utils/common";
 import { isHTTPErrorInstance } from "./utils/guards";
 import type { Awaitable, Prettify, UnmaskType } from "./utils/type-helpers";
 
@@ -61,7 +62,7 @@ export type CallApiResultSuccessVariant<TData> = {
 };
 
 export type PossibleJavaScriptError = UnmaskType<{
-	errorData: DOMException | Error | SyntaxError | TypeError;
+	errorData: PossibleJavaScriptError["originalError"];
 	message: string;
 	name: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | (`${string}Error` & {});
 	originalError: DOMException | Error | SyntaxError | TypeError;
@@ -100,6 +101,12 @@ export type ResultModeMap<
 
 	allWithException: CallApiResultSuccessVariant<TComputedData>;
 
+	allWithoutResponse:
+		| Omit<CallApiResultSuccessVariant<TComputedData>, "response">
+		| Omit<CallApiResultErrorVariant<TComputedErrorData>, "response">;
+
+	allWithoutResponseWithException: Omit<CallApiResultSuccessVariant<TComputedData>, "response">;
+
 	onlySuccess:
 		| CallApiResultErrorVariant<TComputedErrorData>["data"]
 		| CallApiResultSuccessVariant<TComputedData>["data"];
@@ -131,9 +138,30 @@ type SuccessInfo = {
 	resultMode: CallApiExtraOptions["resultMode"];
 };
 
+type LazyResultModeMap = {
+	[key in keyof ResultModeMap]: () => ResultModeMap[key];
+};
+
+const getResultModeMap = (
+	details: CallApiResultErrorVariant<unknown> | CallApiResultSuccessVariant<unknown>
+) => {
+	const resultModeMap = {
+		all: () => details,
+		allWithException: () => resultModeMap.all() as never,
+		allWithoutResponse: () => omitKeys(details, ["response"]) as never,
+		allWithoutResponseWithException: () => resultModeMap.allWithoutResponse() as never,
+		onlySuccess: () => details.data,
+		onlySuccessWithException: () => resultModeMap.onlySuccess(),
+	} satisfies LazyResultModeMap as LazyResultModeMap;
+
+	return resultModeMap;
+};
+
+type SuccessResult = CallApiResultSuccessVariant<unknown> | null;
+
 // == The CallApiResult type is used to cast all return statements due to a design limitation in ts.
 // LINK - See https://www.zhenghao.io/posts/type-functions for more info
-export const resolveSuccessResult = (data: unknown, info: SuccessInfo) => {
+export const resolveSuccessResult = (data: unknown, info: SuccessInfo): SuccessResult => {
 	const { response, resultMode } = info;
 
 	const details = {
@@ -142,16 +170,11 @@ export const resolveSuccessResult = (data: unknown, info: SuccessInfo) => {
 		response,
 	} satisfies CallApiResultSuccessVariant<unknown>;
 
-	const resultModeMap = {
-		all: details,
-		allWithException: details,
-		onlySuccess: details.data,
-		onlySuccessWithException: details.data,
-	} satisfies ResultModeMap;
+	const resultModeMap = getResultModeMap(details);
 
-	const successResult = resultModeMap[resultMode ?? "all"];
+	const successResult = resultModeMap[resultMode ?? "all"]();
 
-	return successResult;
+	return successResult as SuccessResult;
 };
 
 // export const resolveErrorResultAndContextForHooks = (info: ErrorInfo) => {
@@ -229,16 +252,11 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 		};
 	}
 
-	const resultModeMap = {
-		all: details,
-		allWithException: details as never,
-		onlySuccess: details.data,
-		onlySuccessWithException: details.data,
-	} satisfies ResultModeMap;
+	const resultModeMap = getResultModeMap(details);
 
-	const errorResult = resultModeMap[resultMode ?? "all"];
+	const errorResult = resultModeMap[resultMode ?? "all"]();
 
-	return errorResult;
+	return errorResult as ErrorResult;
 };
 
 export const getCustomizedErrorResult = (

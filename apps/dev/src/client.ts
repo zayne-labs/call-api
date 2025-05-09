@@ -93,7 +93,7 @@ const callMainApi = createFetchClient({
 	// onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
 	onUpload: (_progress) => {},
 	onUploadSuccess: (_progress) => {},
-	plugins: [plugin1, plugin2(), loggerPlugin({ verbose: true })],
+	plugins: [plugin1, plugin2(), loggerPlugin()],
 	schemas: baseSchemas,
 });
 
@@ -128,6 +128,7 @@ const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 	callMainApi("/products/:id", {
 		params: [1302],
 		retryAttempts: 2,
+		throwOnError: true,
 	}),
 	callMainApi("/products/:id", {
 		body: ["dev"],
