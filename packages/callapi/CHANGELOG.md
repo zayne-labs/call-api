@@ -1,5 +1,12 @@
 # @zayne-labs/callapi
 
+## 1.7.15
+
+### Patch Changes
+
+- 434dec2: ✨ result: Introduce allWithoutResponse variants using omitKeys utility
+  📦 core: Add new result mode types to handle response-excluded scenarios
+
 ## 1.7.14
 
 ### Patch Changes
