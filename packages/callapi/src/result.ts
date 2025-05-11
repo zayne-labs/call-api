@@ -2,7 +2,6 @@ import { commonDefaults, responseDefaults } from "./constants/default-options";
 import type { HTTPError } from "./error";
 import type { CallApiExtraOptions } from "./types";
 import type { DefaultDataType } from "./types/default-types";
-import { omitKeys } from "./utils/common";
 import { isHTTPErrorInstance } from "./utils/guards";
 import type { Awaitable, Prettify, UnmaskType } from "./utils/type-helpers";
 
@@ -101,12 +100,6 @@ export type ResultModeMap<
 
 	allWithException: CallApiResultSuccessVariant<TComputedData>;
 
-	allWithoutResponse:
-		| Omit<CallApiResultSuccessVariant<TComputedData>, "response">
-		| Omit<CallApiResultErrorVariant<TComputedErrorData>, "response">;
-
-	allWithoutResponseWithException: Omit<CallApiResultSuccessVariant<TComputedData>, "response">;
-
 	onlySuccess:
 		| CallApiResultErrorVariant<TComputedErrorData>["data"]
 		| CallApiResultSuccessVariant<TComputedData>["data"];
@@ -148,8 +141,6 @@ const getResultModeMap = (
 	const resultModeMap = {
 		all: () => details,
 		allWithException: () => resultModeMap.all() as never,
-		allWithoutResponse: () => omitKeys(details, ["response"]) as never,
-		allWithoutResponseWithException: () => resultModeMap.allWithoutResponse() as never,
 		onlySuccess: () => details.data,
 		onlySuccessWithException: () => resultModeMap.onlySuccess(),
 	} satisfies LazyResultModeMap as LazyResultModeMap;
