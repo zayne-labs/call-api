@@ -8,9 +8,7 @@ export const isHTTPError = <TErrorData>(
 	return isObject(error) && error.name === "HTTPError";
 };
 
-export const isHTTPErrorInstance = <TErrorData>(
-	error: unknown
-) => {
+export const isHTTPErrorInstance = <TErrorData>(error: unknown) => {
 	return HTTPError.isError<TErrorData>(error);
 };
 
