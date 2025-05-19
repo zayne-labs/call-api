@@ -43,7 +43,7 @@ import {
 	getHeaders,
 	splitBaseConfig,
 	splitConfig,
-	waitUntil,
+	waitFor,
 } from "./utils/common";
 import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/guards";
 import { type CallApiSchemas, type InferSchemaResult, handleValidation } from "./validation";
@@ -317,7 +317,7 @@ export const createFetchClient = <
 
 					const delay = getDelay();
 
-					await waitUntil(delay);
+					await waitFor(delay);
 
 					const updatedOptions = {
 						...config,

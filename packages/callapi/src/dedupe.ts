@@ -1,7 +1,7 @@
 import { dedupeDefaults, requestOptionDefaults } from "./constants/default-options";
 import type { SharedHookContext } from "./hooks";
 import { toStreamableRequest, toStreamableResponse } from "./stream";
-import { getFetchImpl, waitUntil } from "./utils/common";
+import { getFetchImpl, waitFor } from "./utils/common";
 import { isReadableStream } from "./utils/guards";
 
 type RequestInfo = {
@@ -41,7 +41,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 	 * == This gives time for the cache to be updated with the previous request info before the next request checks it.
 	 ******/
 	if (dedupeKey !== null) {
-		await waitUntil(0.1);
+		await waitFor(0.1);
 	}
 
 	const prevRequestInfo = $RequestInfoCacheOrNull?.get(dedupeKey);

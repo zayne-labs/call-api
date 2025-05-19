@@ -111,10 +111,20 @@ export type MetaOption<TSchemas extends CallApiSchemas> = {
 	meta?: InferSchemaResult<TSchemas["meta"], GlobalMeta>;
 };
 
+type ExtractKeys<T, U extends T> = Extract<T, U>;
+
 export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> = TErrorData extends false
 	? { resultMode: "onlySuccessWithException" }
 	: TErrorData extends false | undefined
 		? { resultMode?: "onlySuccessWithException" }
-		: null extends TResultMode
-			? { resultMode?: TResultMode }
-			: { resultMode: TResultMode };
+		: TErrorData extends false | null
+			? { resultMode?: ExtractKeys<ResultModeUnion, "onlySuccess" | "onlySuccessWithException"> }
+			: null extends TResultMode
+				? { resultMode?: TResultMode }
+				: { resultMode: TResultMode };
+
+export type ThrowOnErrorOption<TErrorData> = TErrorData extends false
+	? { throwOnError: true }
+	: TErrorData extends false | undefined
+		? { throwOnError?: true }
+		: NonNullable<unknown>;

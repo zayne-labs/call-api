@@ -1,24 +1,27 @@
 import { commonDefaults } from "./constants/default-options";
 import type { CallApiExtraOptions } from "./types";
+import { isObject } from "./utils/guards";
 
-type ErrorDetails<TErrorResponse> = {
+type ErrorDetails<TErrorData> = {
 	defaultErrorMessage: CallApiExtraOptions["defaultErrorMessage"];
-	errorData: TErrorResponse;
+	errorData: TErrorData;
 	response: Response;
 };
 
-// export const httpErrorSymbol = Symbol("HTTPError");
+const httpErrorSymbol = Symbol("HTTPError");
 
-export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
-	errorData: ErrorDetails<TErrorResponse>["errorData"];
+export class HTTPError<TErrorData = Record<string, unknown>> extends Error {
+	errorData: ErrorDetails<TErrorData>["errorData"];
+
+	httpErrorSymbol = httpErrorSymbol;
 
 	isHTTPError = true;
 
 	override name = "HTTPError" as const;
 
-	response: ErrorDetails<TErrorResponse>["response"];
+	response: ErrorDetails<TErrorData>["response"];
 
-	constructor(errorDetails: ErrorDetails<TErrorResponse>, errorOptions?: ErrorOptions) {
+	constructor(errorDetails: ErrorDetails<TErrorData>, errorOptions?: ErrorOptions) {
 		const { defaultErrorMessage, errorData, response } = errorDetails;
 
 		const selectedDefaultErrorMessage =
@@ -32,5 +35,22 @@ export class HTTPError<TErrorResponse = Record<string, unknown>> extends Error {
 		this.errorData = errorData;
 		this.response = response;
 		Error.captureStackTrace(this, this.constructor);
+	}
+
+	/**
+	 * @description Checks if the given error is an instance of HTTPError
+	 * @param error - The error to check
+	 * @returns true if the error is an instance of HTTPError, false otherwise
+	 */
+	static isError<TErrorData>(error: unknown): error is HTTPError<TErrorData> {
+		if (!isObject<Record<string, unknown>>(error)) {
+			return false;
+		}
+
+		if (error instanceof HTTPError) {
+			return true;
+		}
+
+		return error.httpErrorSymbol === httpErrorSymbol && error.isHTTPError === true;
 	}
 }

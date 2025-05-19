@@ -151,7 +151,7 @@ const PromiseWithResolvers = () => {
 	return { promise, reject, resolve };
 };
 
-export const waitUntil = (delay: number) => {
+export const waitFor = (delay: number) => {
 	if (delay === 0) return;
 
 	const { promise, resolve } = PromiseWithResolvers();

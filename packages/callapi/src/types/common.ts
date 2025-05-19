@@ -13,6 +13,7 @@ import type {
 	MetaOption,
 	MethodOption,
 	ResultModeOption,
+	ThrowOnErrorOption,
 } from "./conditional-types";
 import type {
 	DefaultDataType,
@@ -172,6 +173,7 @@ export type ExtraOptions<
 	& MetaOption<TSchemas>
 	& RetryOptions<TErrorData>
 	& ResultModeOption<TErrorData, TResultMode>
+	& ThrowOnErrorOption<TErrorData>
 	& UrlOptions<TSchemas>;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 

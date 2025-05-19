@@ -116,15 +116,19 @@ export type GetCallApiResult<
 	TResultMode extends ResultModeUnion,
 	TThrowOnError extends boolean,
 	TResponseType extends ResponseTypeUnion,
-> = TErrorData extends false | undefined
+> = TErrorData extends false
 	? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-	: null extends TResultMode
-		? TThrowOnError extends true
-			? ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]
-			: ResultModeMap<TData, TErrorData, TResponseType>["all"]
-		: TResultMode extends NonNullable<ResultModeUnion>
-			? ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
-			: never;
+	: TErrorData extends false | undefined
+		? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
+		: TErrorData extends false | null
+			? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccess"]
+			: null extends TResultMode
+				? TThrowOnError extends true
+					? ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]
+					: ResultModeMap<TData, TErrorData, TResponseType>["all"]
+				: TResultMode extends NonNullable<ResultModeUnion>
+					? ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
+					: never;
 
 type SuccessInfo = {
 	response: Response;

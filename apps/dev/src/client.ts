@@ -118,9 +118,11 @@ const callMainApi = createFetchClient({
 // }).pipeThrough(new TextEncoderStream());
 
 const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
-	callMainApi<{ foo: string }, false | undefined>("/products/:id", {
+	callMainApi<{ foo: string }, undefined>("/products/:id", {
 		// onRequest: [() => console.info("Instance-OnRequest"), () => console.info("Instance-OnRequest2")],
 		params: [1],
+		resultMode: "onlySuccessWithException",
+		throwOnError: true,
 	}),
 	callMainApi("/products/:id", {
 		params: [1],
@@ -135,7 +137,7 @@ const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 		method: "POST",
 		params: [1],
 	}),
-	callMainApi("https://api.github.com/repos/javascript-tutorial/en.javascript.info/commits?per_page=50", {
+	callMainApi("https://api.github.com/repos/zayne-labs/ui/commits?per_page=50", {
 		baseURL: "",
 		onRequestStream: (ctx) => console.info("OnRequestStream", { event: ctx.event }),
 		onResponseStream: (ctx) => console.info("OnResponseStream", { event: ctx.event }),

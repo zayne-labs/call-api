@@ -8,19 +8,15 @@ export const isHTTPError = <TErrorData>(
 	return isObject(error) && error.name === "HTTPError";
 };
 
-export const isHTTPErrorInstance = <TErrorResponse>(
+export const isHTTPErrorInstance = <TErrorData>(
 	error: unknown
-): error is HTTPError<TErrorResponse> => {
-	if (error instanceof HTTPError) {
-		return true;
-	}
-
-	return isPlainObject(error) && error.name === "HTTPError" && error.isHTTPError === true;
+) => {
+	return HTTPError.isError<TErrorData>(error);
 };
 
 export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Array.isArray(value);
 
-export const isObject = (value: unknown) => {
+export const isObject = <TObject extends object>(value: unknown): value is TObject => {
 	return typeof value === "object" && value !== null;
 };
 
