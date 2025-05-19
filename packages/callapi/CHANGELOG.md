@@ -1,5 +1,14 @@
 # @zayne-labs/callapi
 
+## 1.7.18
+
+### Patch Changes
+
+- eb629cf: feat(error): ✨ Add HTTPError.isError static method for better type checking
+  refactor(utils): 🔄 Rename waitUntil to waitFor for better clarity
+  refactor(types): 🏷️ Improve type annotations and error generics
+  feat(types): 🔄 Add conditional ThrowOnErrorOption and refine ResultModeOption
+
 ## 1.7.15
 
 ### Patch Changes
