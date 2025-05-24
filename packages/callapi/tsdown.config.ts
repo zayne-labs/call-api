@@ -1,4 +1,4 @@
-import { type Options, defineConfig } from "tsup";
+import { type Options, defineConfig } from "tsdown";
 
 const isDevMode = process.env.NODE_ENV === "development";
 
@@ -16,7 +16,6 @@ export default defineConfig([
 		format: ["esm"],
 		outDir: "./dist/esm",
 		platform: "browser",
-		splitting: true,
 		target: "esnext",
 		treeshake: true,
 	},
