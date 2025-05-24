@@ -22,7 +22,8 @@ type InnerRetryOptions<TErrorData> = {
 export interface RetryOptions<TErrorData> {
 	/**
 	 * Keeps track of the number of times the request has already been retried
-	 * @deprecated This property is used internally to track retries. Please abstain from modifying it.
+	 *
+	 * **NOTE**: This property is used internally to track retries. Please abstain from modifying it.
 	 */
 	readonly ["~retryAttemptCount"]?: number;
 

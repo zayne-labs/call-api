@@ -36,21 +36,21 @@
 		"consola": "^3.4.2"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "0.17.4",
+		"@arethetypeswrong/cli": "0.18.1",
 		"@size-limit/esbuild-why": "11.2.0",
 		"@size-limit/preset-small-lib": "11.2.0",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@zayne-labs/callapi": "workspace:*",
-		"@zayne-labs/toolkit-type-helpers": "^0.9.35",
-		"@zayne-labs/tsconfig": "0.8.2",
+		"@zayne-labs/toolkit-type-helpers": "^0.9.46",
+		"@zayne-labs/tsconfig": "0.9.1",
 		"concurrently": "^9.1.2",
 		"consola": "3.4.2",
 		"cross-env": "^7.0.3",
 		"publint": "^0.3.12",
 		"size-limit": "11.2.0",
-		"tsup": "8.4.0",
+		"tsup": "8.5.0",
 		"typescript": "5.8.3",
-		"vitest": "^3.1.2"
+		"vitest": "^3.1.4"
 	},
 	"publishConfig": {
 		"access": "public",

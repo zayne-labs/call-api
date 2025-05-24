@@ -58,7 +58,7 @@ function Button(props: ButtonProps) {
 
 	const BTN_CLASSES = unstyled ? className : buttonVariants({ className, size, theme });
 
-	const Component = asChild ? Slot : "button";
+	const Component = asChild ? Slot.Root : "button";
 
 	return <Component type={type} className={cnMerge(BTN_CLASSES)} {...extraButtonProps} />;
 }
