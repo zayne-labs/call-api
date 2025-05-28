@@ -8,9 +8,8 @@ export const isHTTPError = <TErrorData>(
 	return isObject(error) && error.name === "HTTPError";
 };
 
-
 export const isHTTPErrorInstance = <TErrorData>(error: unknown) => {
-	return HTTPError.isError<TErrorData>(error)
+	return HTTPError.isError<TErrorData>(error);
 };
 
 export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Array.isArray(value);
