@@ -81,12 +81,14 @@ export type InferSchemaResult<TSchema, TData = NonNullable<unknown>> = TSchema e
 	? StandardSchemaV1.InferOutput<TSchema>
 	: TData;
 
+const identity = <T>(value: T) => value;
+
 export const handleValidation = async (
 	responseData: unknown,
 	schema: CallApiSchemas[keyof NonNullable<CallApiSchemas>],
-	validator?: CallApiValidators[keyof NonNullable<CallApiValidators>]
+	validator: CallApiValidators[keyof NonNullable<CallApiValidators>] = identity
 ) => {
-	const validResponseData = validator ? validator(responseData) : responseData;
+	const validResponseData = validator(responseData);
 
 	const schemaValidResponseData = schema
 		? await standardSchemaParser(schema, validResponseData)
