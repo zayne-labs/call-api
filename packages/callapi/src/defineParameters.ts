@@ -7,7 +7,7 @@ import type {
 	DefaultPluginArray,
 	DefaultThrowOnError,
 } from "./types/default-types";
-import type { CallApiSchemas } from "./validation";
+import type { BaseCallApiSchemas, CallApiSchemas } from "./validation";
 
 const defineParameters = <
 	TData = DefaultDataType,
@@ -16,6 +16,7 @@ const defineParameters = <
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 >(
 	...parameters: CallApiParameters<
@@ -25,6 +26,7 @@ const defineParameters = <
 		TThrowOnError,
 		TResponseType,
 		TPluginArray,
+		TBaseSchemas,
 		TSchemas
 	>
 ) => {

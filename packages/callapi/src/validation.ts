@@ -1,7 +1,8 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { Body, GlobalMeta, Headers, Method } from "./types";
 import type { StandardSchemaV1 } from "./types/standard-schema";
-import type { InitURL, Params, Query } from "./url";
+import { type AnyString, defineEnum } from "./types/type-helpers";
+import type { Params, Query } from "./url";
 
 export const standardSchemaParser = async <TSchema extends StandardSchemaV1>(
 	schema: TSchema,
@@ -16,6 +17,58 @@ export const standardSchemaParser = async <TSchema extends StandardSchemaV1>(
 
 	return result.value;
 };
+
+interface BaseSchemaConfig {
+	/**
+	 * The base url of the schema. By default it's the baseURL of the fetch instance.
+	 */
+	baseURL?: string;
+
+	/**
+	 * Whether to disable the automatic extraction and application of the method gotten from the url via the method modifiers `@get`, `@post`, `@put`, `@patch`, `@delete`.
+	 *
+	 * @default false
+	 */
+	disableAutoMethodExtraction?: boolean;
+
+	/**
+	 * Controls the strictness of API route validation.
+	 *
+	 * When true:
+	 * - Only routes explicitly defined in the schema will be considered valid
+	 * - Attempting to call undefined routes will result in validation errors
+	 * - Useful for ensuring API calls conform exactly to your schema definition
+	 *
+	 * When false (default):
+	 * - Routes not defined in the schema will be allowed
+	 * - Provides more flexibility but less type safety
+	 *
+	 * @default false
+	 */
+	strict?: boolean;
+}
+
+export const routeKeyMethods = defineEnum(["delete", "get", "patch", "post", "put"]);
+
+export type RouteKeyMethods = (typeof routeKeyMethods)[number];
+
+type RouteKey = `@${RouteKeyMethods}/` | AnyString;
+
+type BaseSchemaRoutes = {
+	[key in RouteKey]?: CallApiSchemas;
+};
+
+export interface BaseCallApiSchemas {
+	/**
+	 * Base schema configuration options
+	 */
+	config?: BaseSchemaConfig;
+
+	/**
+	 * Schema routes
+	 */
+	routes?: BaseSchemaRoutes;
+}
 
 export interface CallApiSchemas {
 	/**
@@ -36,32 +89,27 @@ export interface CallApiSchemas {
 	/**
 	 *  The schema to use for validating the request headers.
 	 */
-	headers?: StandardSchemaV1<Headers>;
-
-	/**
-	 *  The schema to use for validating the request url.
-	 */
-	initURL?: StandardSchemaV1<InitURL>;
+	headers?: StandardSchemaV1<Headers | undefined>;
 
 	/**
 	 *  The schema to use for validating the meta option.
 	 */
-	meta?: StandardSchemaV1<GlobalMeta>;
+	meta?: StandardSchemaV1<GlobalMeta | undefined>;
 
 	/**
 	 *  The schema to use for validating the request method.
 	 */
-	method?: StandardSchemaV1<Method>;
+	method?: StandardSchemaV1<Method | undefined>;
 
 	/**
 	 *  The schema to use for validating the request url parameter.
 	 */
-	params?: StandardSchemaV1<Params>;
+	params?: StandardSchemaV1<Params | undefined>;
 
 	/**
 	 *  The schema to use for validating the request url querys.
 	 */
-	query?: StandardSchemaV1<Query>;
+	query?: StandardSchemaV1<Query | undefined>;
 }
 
 export interface CallApiValidators<TData = unknown, TErrorData = unknown> {

@@ -1,4 +1,4 @@
-import { dedupeDefaults, requestOptionDefaults } from "./constants/default-options";
+import { dedupeDefaults } from "./constants/default-options";
 import type { SharedHookContext } from "./hooks";
 import { toStreamableRequest, toStreamableResponse } from "./stream";
 import { getFetchImpl, waitFor } from "./utils/common";
@@ -88,9 +88,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 				return fetchApi(requestInstance.clone());
 			}
 
-			const method = request.method ?? requestOptionDefaults.method;
-
-			const modifiedRequest = { ...request, method } as RequestInit;
+			const modifiedRequest = { ...request } as RequestInit;
 
 			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, modifiedRequest);
 		};

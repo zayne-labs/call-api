@@ -1,5 +1,5 @@
 import type { BaseCallApiExtraOptions } from "../types";
-import { defineEnum } from "../utils/type-helpers";
+import { defineEnum } from "../types/type-helpers";
 
 export const retryDefaults = defineEnum({
 	attempts: 0,

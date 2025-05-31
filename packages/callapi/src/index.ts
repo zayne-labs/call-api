@@ -10,7 +10,7 @@ export {
 
 export { defineParameters } from "./defineParameters";
 
-export type { CallApiSchemas, InferSchemaResult } from "./validation";
+export type { CallApiSchemas, InferSchemaResult, BaseCallApiSchemas } from "./validation";
 
 export type { RetryOptions } from "./retry";
 

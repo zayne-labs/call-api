@@ -1,4 +1,4 @@
-import { commonDefaults } from "./constants/default-options";
+import { commonDefaults, requestOptionDefaults } from "./constants/default-options";
 import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
 import { HTTPError } from "./error";
 import {
@@ -20,6 +20,7 @@ import {
 	resolveSuccessResult,
 } from "./result";
 import { createRetryStrategy } from "./retry";
+import type { ExtractKey, InferInitURL } from "./types";
 import type {
 	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
@@ -30,13 +31,8 @@ import type {
 	CallApiResult,
 	CombinedCallApiExtraOptions,
 } from "./types/common";
-import type {
-	DefaultDataType,
-	DefaultMoreOptions,
-	DefaultPluginArray,
-	DefaultThrowOnError,
-} from "./types/default-types";
-import { mergeUrlWithParamsAndQuery } from "./url";
+import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
+import { getMainURL, getMethodFromURL } from "./url";
 import {
 	createCombinedSignal,
 	createTimeoutSignal,
@@ -46,7 +42,13 @@ import {
 	waitFor,
 } from "./utils/common";
 import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/guards";
-import { type CallApiSchemas, type InferSchemaResult, handleValidation } from "./validation";
+import {
+	type BaseCallApiSchemas,
+	type CallApiSchemas,
+	type CallApiValidators,
+	type InferSchemaResult,
+	handleValidation,
+} from "./validation";
 
 export const createFetchClient = <
 	TBaseData = DefaultDataType,
@@ -55,7 +57,7 @@ export const createFetchClient = <
 	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
+	const TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
 >(
 	initBaseConfig: BaseCallApiConfig<
 		TBaseData,
@@ -70,13 +72,15 @@ export const createFetchClient = <
 	const $RequestInfoCache: RequestInfoCache = new Map();
 
 	const callApi = async <
-		TData = InferSchemaResult<TBaseSchemas["data"], TBaseData>,
-		TErrorData = InferSchemaResult<TBaseSchemas["errorData"], TBaseErrorData>,
+		TData = TBaseData,
+		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 		TThrowOnError extends boolean = TBaseThrowOnError,
 		TResponseType extends ResponseTypeUnion = TBaseResponseType,
+		TInitURL extends InferInitURL<TBaseSchemas> = InferInitURL<TBaseSchemas>,
+		TRouteKey extends ExtractKey<TBaseSchemas, TInitURL> = ExtractKey<TBaseSchemas, TInitURL>,
+		const TSchemas extends CallApiSchemas = NonNullable<NonNullable<TBaseSchemas["routes"]>[TRouteKey]>,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
-		TSchemas extends CallApiSchemas = TBaseSchemas,
 	>(
 		...parameters: CallApiParameters<
 			TData,
@@ -85,7 +89,10 @@ export const createFetchClient = <
 			TThrowOnError,
 			TResponseType,
 			TPluginArray,
-			TSchemas
+			TBaseSchemas,
+			TSchemas,
+			TInitURL,
+			TRouteKey
 		>
 	): CallApiResult<
 		InferSchemaResult<TSchemas["data"], TData>,
@@ -131,14 +138,14 @@ export const createFetchClient = <
 			request: mergedRequestOptions as CallApiRequestOptionsForHooks,
 		});
 
-		const fullURL = `${resolvedOptions.baseURL ?? ""}${mergeUrlWithParamsAndQuery(url, resolvedOptions.params, resolvedOptions.query)}`;
+		const fullURL = `${resolvedOptions.baseURL ?? ""}${getMainURL(url, resolvedOptions.params, resolvedOptions.query)}`;
 
 		// FIXME -  Consider adding an option for refetching a callApi request
 		const options = {
 			...resolvedOptions,
 			...resolvedHooks,
 			fullURL,
-			initURL: initURL.toString(),
+			initURL: url,
 		} satisfies CombinedCallApiExtraOptions as typeof mergedExtraOptions & typeof resolvedHooks;
 
 		const newFetchController = new AbortController();
@@ -166,6 +173,8 @@ export const createFetchClient = <
 				body: resolvedRequestOptions.body,
 				headers: fetchOptions.headers,
 			}),
+
+			method: resolvedRequestOptions.method ?? getMethodFromURL(url) ?? requestOptionDefaults.method,
 
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
@@ -199,18 +208,21 @@ export const createFetchClient = <
 			const response = await handleRequestDeferStrategy();
 
 			// == Also clone response when dedupeStrategy is set to "defer" or when onRequestStream is set, to avoid error thrown from reading response.(whatever) more than once
-
 			const shouldCloneResponse = dedupeStrategy === "defer" || options.cloneResponse;
 
+			// FIXME - Utilize a better way of handling this
+			// prettier-ignore
 			const schemas = (
-				isFunction(options.schemas)
-					? options.schemas({ baseSchemas: baseExtraOptions.schemas })
-					: options.schemas
+				// isFunction(options.schemas)
+					// ? options.schemas({ baseSchemas: baseExtraOptions.schemas?.routes?.["."] })
+					options.schemas
 			) as CallApiSchemas | undefined;
 
-			const validators = isFunction(options.validators)
-				? options.validators({ baseValidators: baseExtraOptions.validators })
-				: options.validators;
+			const validators = (
+				isFunction(options.validators)
+					? options.validators({ baseValidators: baseExtraOptions.validators })
+					: options.validators
+			) as CallApiValidators | undefined;
 
 			if (!response.ok) {
 				const errorData = await resolveResponseData<TErrorData>(

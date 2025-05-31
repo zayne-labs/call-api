@@ -14,9 +14,8 @@ import type {
 	CallApiRequestOptionsForHooks,
 } from "./types/common";
 import type { DefaultMoreOptions } from "./types/default-types";
-import type { InitURL } from "./url";
+import type { AnyFunction, Awaitable, Prettify } from "./types/type-helpers";
 import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
-import type { AnyFunction, Awaitable, Prettify } from "./utils/type-helpers";
 import type { InferSchemaResult } from "./validation";
 
 type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => void : never) extends (
@@ -39,7 +38,7 @@ export type InferPluginOptions<
 >;
 
 export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = Prettify<
-	SharedHookContext<TMoreOptions> & { initURL: InitURL | undefined }
+	SharedHookContext<TMoreOptions> & { initURL: string | URL | undefined }
 >;
 
 export type PluginInitResult = Partial<

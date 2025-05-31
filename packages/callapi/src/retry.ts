@@ -2,8 +2,8 @@
 import { requestOptionDefaults, retryDefaults } from "./constants/default-options";
 import type { ErrorContext } from "./hooks";
 import type { Method } from "./types";
+import type { Awaitable } from "./types/type-helpers";
 import { isFunction, isHTTPError } from "./utils/guards";
-import type { Awaitable } from "./utils/type-helpers";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;
 

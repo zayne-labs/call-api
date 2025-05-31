@@ -1,8 +1,8 @@
 /* eslint-disable perfectionist/sort-object-types -- Avoid Sorting for now */
 
 import type { ExtraOptions } from "./types/common";
+import type { Awaitable } from "./types/type-helpers";
 import { isFunction, isString } from "./utils/guards";
-import type { Awaitable } from "./utils/type-helpers";
 
 type ValueOrFunctionResult<TValue> = TValue | (() => TValue);
 

@@ -4,14 +4,16 @@ import type { ErrorContext, Hooks, HooksOrHooksArray } from "../hooks";
 import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
 import type { GetCallApiResult, ResponseTypeUnion, ResultModeUnion } from "../result";
 import type { RetryOptions } from "../retry";
-import type { InitURL, UrlOptions } from "../url";
-import { type Awaitable, type Prettify, type UnmaskType, defineEnum } from "../utils/type-helpers";
-import type { CallApiSchemas, CallApiValidators, InferSchemaResult } from "../validation";
+import type { UrlOptions } from "../url";
+import type { BaseCallApiSchemas, CallApiSchemas, CallApiValidators } from "../validation";
 import type {
-	BodyOption,
-	HeadersOption,
-	MetaOption,
-	MethodOption,
+	Body,
+	GlobalMeta,
+	Headers,
+	InferExtraOptions,
+	InferInitURL,
+	InferRequestOptions,
+	Method,
 	ResultModeOption,
 	ThrowOnErrorOption,
 } from "./conditional-types";
@@ -21,22 +23,32 @@ import type {
 	DefaultPluginArray,
 	DefaultThrowOnError,
 } from "./default-types";
+import { type Awaitable, type Prettify, type UnmaskType, defineEnum } from "./type-helpers";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
 export type ModifiedRequestInit = RequestInit & { duplex?: "half" };
 
-export type CallApiRequestOptions<TSchemas extends CallApiSchemas = DefaultMoreOptions> = Prettify<
-	BodyOption<TSchemas>
-		& HeadersOption<TSchemas>
-		& MethodOption<TSchemas>
-		& Pick<ModifiedRequestInit, FetchSpecificKeysUnion>
+export type CallApiRequestOptions = Prettify<
+	{
+		/**
+		 * Body of the request, can be a object or any other supported body type.
+		 */
+		body?: Body;
+		/**
+		 * Headers to be used in the request.
+		 */
+		headers?: Headers;
+		/**
+		 * HTTP method for the request.
+		 * @default "GET"
+		 */
+		method?: Method;
+		// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
+	} & Pick<ModifiedRequestInit, FetchSpecificKeysUnion>
 >;
 
-export type CallApiRequestOptionsForHooks<TSchemas extends CallApiSchemas = DefaultMoreOptions> = Omit<
-	CallApiRequestOptions<TSchemas>,
-	"headers"
-> & {
+export type CallApiRequestOptionsForHooks = Omit<CallApiRequestOptions, "headers"> & {
 	headers?: Record<string, string | undefined>;
 };
 
@@ -49,16 +61,11 @@ export type ExtraOptions<
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
 > = {
 	/**
 	 * Authorization header value.
 	 */
 	auth?: string | Auth | null;
-	/**
-	 * Base URL to be prepended to all request URLs
-	 */
-	baseURL?: string;
 
 	/**
 	 * Custom function to serialize the body object into a string.
@@ -105,11 +112,6 @@ export type ExtraOptions<
 	forceCalculateStreamSize?: boolean | { request?: boolean; response?: boolean };
 
 	/**
-	 * Resolved request URL
-	 */
-	readonly fullURL?: string;
-
-	/**
 	 * Defines the mode in which the composed hooks are executed".
 	 * - If set to "parallel", main and plugin hooks will be executed in parallel.
 	 * - If set to "sequential", the plugin hooks will be executed first, followed by the main hook.
@@ -122,6 +124,31 @@ export type ExtraOptions<
 	 * @default "mainHooksAfterPlugins"
 	 */
 	mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
+
+	/**
+	 * - An optional field you can fill with additional information,
+	 * to associate with the request, typically used for logging or tracing.
+	 *
+	 * - A good use case for this, would be to use the info to handle specific cases in any of the shared interceptors.
+	 *
+	 * @example
+	 * ```ts
+	 * const callMainApi = callApi.create({
+	 * 	baseURL: "https://main-api.com",
+	 * 	onResponseError: ({ response, options }) => {
+	 * 		if (options.meta?.userId) {
+	 * 			console.error(`User ${options.meta.userId} made an error`);
+	 * 		}
+	 * 	},
+	 * });
+	 *
+	 * const response = await callMainApi({
+	 * 	url: "https://example.com/api/data",
+	 * 	meta: { userId: "123" },
+	 * });
+	 * ```
+	 */
+	meta?: GlobalMeta;
 
 	/**
 	 * An array of CallApi plugins. It allows you to extend the behavior of the library.
@@ -147,11 +174,6 @@ export type ExtraOptions<
 	resultMode?: TResultMode;
 
 	/**
-	 * Type-safe schemas for the response validation.
-	 */
-	schemas?: TSchemas;
-
-	/**
 	 * If true or the function returns true, throws errors instead of returning them
 	 * The function is passed the error object and can be used to conditionally throw the error
 	 * @default false
@@ -170,38 +192,13 @@ export type ExtraOptions<
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 } & HooksOrHooksArray<TData, TErrorData, Partial<InferPluginOptions<TPluginArray>>>
 	& Partial<InferPluginOptions<TPluginArray>>
-	& MetaOption<TSchemas>
 	& RetryOptions<TErrorData>
 	& ResultModeOption<TErrorData, TResultMode>
 	& ThrowOnErrorOption<TErrorData>
-	& UrlOptions<TSchemas>;
+	& UrlOptions;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 
-export type CallApiExtraOptions<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
-	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TThrowOnError extends boolean = DefaultThrowOnError,
-	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-> = ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray, TSchemas> & {
-	plugins?:
-		| Plugins<TPluginArray>
-		| ((context: { basePlugins: Plugins<TPluginArray> }) => Plugins<TPluginArray>);
-
-	schemas?: TSchemas | ((context: { baseSchemas: TSchemas | undefined }) => TSchemas);
-
-	validators?:
-		| CallApiValidators<TData, TErrorData>
-		| ((context: {
-				baseValidators: CallApiValidators<TData, TErrorData> | undefined;
-		  }) => CallApiValidators<TData, TErrorData>);
-};
-
-export const optionsEnumToOmitFromBase = defineEnum(["dedupeKey"] satisfies Array<
-	keyof CallApiExtraOptions
->);
+export const optionsEnumToOmitFromBase = defineEnum(["dedupeKey"] satisfies Array<keyof ExtraOptions>);
 
 export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
@@ -210,31 +207,39 @@ export type BaseCallApiExtraOptions<
 	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
+	TBaseSchema extends BaseCallApiSchemas = BaseCallApiSchemas,
+	TBaseURL extends string = string,
 > = Omit<
 	Partial<
-		CallApiExtraOptions<
+		ExtraOptions<
 			TBaseData,
 			TBaseErrorData,
 			TBaseResultMode,
 			TBaseThrowOnError,
 			TBaseResponseType,
-			TBasePluginArray,
-			TBaseSchemas
+			TBasePluginArray
 		>
 	>,
 	(typeof optionsEnumToOmitFromBase)[number]
 > & {
+	baseURL?: TBaseURL;
+
+	/**
+	 * Base schemas for the client.
+	 */
+	schemas?: TBaseSchema;
+
 	/**
 	 * Specifies which configuration parts should skip automatic merging between base and main configs.
 	 * Use this when you need manual control over how configs are combined.
 	 *
-	 * @values
-	 * - "all" - Disables automatic merging for both request and options
-	 * - "options" - Disables automatic merging of options only
-	 * - "request" - Disables automatic merging of request only
+	 * @enum
+	 * - `"all"` - Disables automatic merging for both request and options
+	 * - `"options"` - Disables automatic merging of options only
+	 * - `"request"` - Disables automatic merging of request only
 	 *
-	 * @example
+	 * **Example**
+	 *
 	 * ```ts
 	 * const client = createFetchClient((ctx) => ({
 	 *   skipAutoMergeFor: "options",
@@ -245,6 +250,29 @@ export type BaseCallApiExtraOptions<
 	 * ```
 	 */
 	skipAutoMergeFor?: "all" | "options" | "request";
+};
+
+export type CallApiExtraOptions<
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+	TThrowOnError extends boolean = DefaultThrowOnError,
+	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
+	TSchemas extends CallApiSchemas = DefaultMoreOptions,
+> = ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray> & {
+	plugins?:
+		| Plugins<TPluginArray>
+		| ((context: { basePlugins: Plugins<TPluginArray> }) => Plugins<TPluginArray>);
+
+	schemas?: TSchemas | ((context: { baseSchemas: TBaseSchemas }) => TSchemas);
+
+	validators?:
+		| CallApiValidators<TData, TErrorData>
+		| ((context: {
+				baseValidators: CallApiValidators<TData, TErrorData> | undefined;
+		  }) => CallApiValidators<TData, TErrorData>);
 };
 
 type CombinedExtraOptionsWithoutHooks = Omit<BaseCallApiExtraOptions & CallApiExtraOptions, keyof Hooks>;
@@ -259,9 +287,9 @@ export type BaseCallApiConfig<
 	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchemas extends CallApiSchemas = DefaultMoreOptions,
+	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
 > =
-	| (CallApiRequestOptions<TBaseSchemas> // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
+	| (CallApiRequestOptions // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
 			& BaseCallApiExtraOptions<
 				TBaseData,
 				TBaseErrorData,
@@ -275,7 +303,7 @@ export type BaseCallApiConfig<
 			initURL: string;
 			options: CallApiExtraOptions;
 			request: CallApiRequestOptions;
-	  }) => CallApiRequestOptions<TBaseSchemas> // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
+	  }) => CallApiRequestOptions // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
 			& BaseCallApiExtraOptions<
 				TBaseData,
 				TBaseErrorData,
@@ -293,17 +321,26 @@ export type CallApiConfig<
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
-> = CallApiRequestOptions<TSchemas> // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs
-	& CallApiExtraOptions<
-		TData,
-		TErrorData,
-		TResultMode,
-		TThrowOnError,
-		TResponseType,
-		TPluginArray,
-		TSchemas
-	>;
+	TInitURL extends InferInitURL<BaseCallApiSchemas> = InferInitURL<BaseCallApiSchemas>,
+	TRouteKey extends string = string,
+> = InferExtraOptions<TSchemas, TRouteKey>
+	& InferRequestOptions<TSchemas, TInitURL, TBaseSchemas>
+	& Omit<
+		CallApiExtraOptions<
+			TData,
+			TErrorData,
+			TResultMode,
+			TThrowOnError,
+			TResponseType,
+			TPluginArray,
+			TBaseSchemas,
+			TSchemas
+		>,
+		keyof InferExtraOptions<TSchemas, TRouteKey>
+	>
+	& Omit<CallApiRequestOptions, keyof InferRequestOptions<TSchemas, TInitURL, TBaseSchemas>>;
 
 export type CallApiParameters<
 	TData = DefaultDataType,
@@ -312,9 +349,12 @@ export type CallApiParameters<
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
 	TSchemas extends CallApiSchemas = DefaultMoreOptions,
+	TInitURL extends InferInitURL<BaseCallApiSchemas> = InferInitURL<BaseCallApiSchemas>,
+	TRouteKey extends string = string,
 > = [
-	initURL: InferSchemaResult<TSchemas["initURL"], InitURL>,
+	initURL: TInitURL,
 	config?: CallApiConfig<
 		TData,
 		TErrorData,
@@ -322,7 +362,10 @@ export type CallApiParameters<
 		TThrowOnError,
 		TResponseType,
 		TPluginArray,
-		TSchemas
+		TBaseSchemas,
+		TSchemas,
+		TInitURL,
+		TRouteKey
 	>,
 ];
 

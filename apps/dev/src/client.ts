@@ -1,5 +1,5 @@
 import {
-	type CallApiSchemas,
+	type BaseCallApiSchemas,
 	type PluginHooksWithMoreOptions,
 	type PluginInitContext,
 	type SuccessContext,
@@ -69,28 +69,42 @@ const plugin2 = definePlugin(() => ({
 }));
 
 const baseSchemas = {
-	// body: z.object({
-	// 	foo: z.number(),
-	// }),
-	// data: z.object({
-	// 	foo: z.number(),
-	// }),
-	// initURL: z.literal("/products/:id"),
-	// method: z.enum(["GET"]),
-	// errorData: z.object({
-	// 	message: z.string(),
-	// }),
-	// headers: z.object({
-	// 	"X-Environment": z.string(),
-	// }),
-	// query: z.object({
-	// 	id: z.string(),
-	// }),
-} satisfies CallApiSchemas;
+	config: {
+		// baseURL: "http:localhost:3000",
+		// strict: true,
+	},
+
+	routes: {
+		"@delete/products/:food": {
+			// body: z.object({
+			// 	foo: z.number(),
+			// }),
+			data: z.object({
+				foo: z.number(),
+			}),
+			// method: z.optional(z.string()),
+		},
+		"/products/:id": {
+			// body: z
+			// 	.object({
+			// 		aron: z.number(),
+			// 		flow: z.string(),
+			// 	})
+			// 	.optional(),
+			// body: z.object({
+			// 	foo: z.number(),
+			// }),
+			data: z.object({
+				sonGoku: z.number(),
+			}),
+			// params: z.tuple([z.literal(1)]),
+		},
+	},
+} satisfies BaseCallApiSchemas;
 
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
-	// onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
+	onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
 	onUpload: (_progress) => {},
 	onUploadSuccess: (_progress) => {},
 	plugins: [plugin1, plugin2(), loggerPlugin()],
@@ -124,8 +138,10 @@ const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 		resultMode: "onlySuccessWithException",
 		throwOnError: true,
 	}),
-	callMainApi("/products/:id", {
-		params: [1],
+	callMainApi("@delete/products/:food", {
+		method: "DELETE",
+		params: [3],
+		// schemas: {},
 	}),
 	callMainApi("/products/:id", {
 		params: [1302],

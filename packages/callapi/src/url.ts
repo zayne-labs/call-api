@@ -1,9 +1,9 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import type { CallApiExtraOptions } from "./types/common";
+import type { UnmaskType } from "./types/type-helpers";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/guards";
-import type { UnmaskType } from "./utils/type-helpers";
-import type { CallApiSchemas, InferSchemaResult } from "./validation";
+import { routeKeyMethods } from "./validation";
 
 const slash = "/";
 const column = ":";
@@ -56,28 +56,63 @@ const mergeUrlWithQuery = (url: string, query: CallApiExtraOptions["query"]): st
 	return `${url}${questionMark}${queryString}`;
 };
 
-export const mergeUrlWithParamsAndQuery = (
+export const getMethodFromURL = (url: string | undefined) => {
+	if (!url?.startsWith("@")) return;
+
+	const method = url.split("@")[1]?.split("/")[0];
+
+	if (!method || !routeKeyMethods.includes(method)) return;
+
+	return method;
+};
+
+const removeMethodFromURL = (url: string) => {
+	const method = getMethodFromURL(url);
+
+	if (method) {
+		const actualUrl = url.replace(`@${method}/`, "/");
+
+		return actualUrl;
+	}
+
+	return url;
+};
+
+export const getMainURL = (
 	url: string | undefined,
 	params: CallApiExtraOptions["params"],
 	query: CallApiExtraOptions["query"]
 ) => {
 	if (!url) return;
 
-	const urlWithMergedParams = mergeUrlWithParams(url, params);
+	// == Remove method modifiers
+	const actualUrl = removeMethodFromURL(url);
+
+	const urlWithMergedParams = mergeUrlWithParams(actualUrl, params);
 
 	return mergeUrlWithQuery(urlWithMergedParams, query);
 };
 
+export type AllowedQueryParamValues = UnmaskType<boolean | number | string>;
+
 export type Params = UnmaskType<
 	// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
-	Record<string, boolean | number | string> | Array<boolean | number | string>
+	Record<string, AllowedQueryParamValues> | AllowedQueryParamValues[]
 >;
 
-export type Query = UnmaskType<Record<string, boolean | number | string>>;
+export type Query = UnmaskType<Record<string, AllowedQueryParamValues>>;
 
-export type InitURL = UnmaskType<string | URL>;
+export interface UrlOptions {
+	/**
+	 * Base URL to be prepended to all request URLs
+	 */
+	baseURL?: string;
 
-export interface UrlOptions<TSchemas extends CallApiSchemas> {
+	/**
+	 * Resolved request URL
+	 */
+	readonly fullURL?: string;
+
 	/**
 	 * URL to be used in the request.
 	 */
@@ -86,10 +121,10 @@ export interface UrlOptions<TSchemas extends CallApiSchemas> {
 	/**
 	 * Parameters to be appended to the URL (i.e: /:id)
 	 */
-	params?: InferSchemaResult<TSchemas["params"], Params>;
+	params?: Params;
 
 	/**
 	 * Query parameters to append to the URL.
 	 */
-	query?: InferSchemaResult<TSchemas["query"], Query>;
+	query?: Query;
 }

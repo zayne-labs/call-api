@@ -13,7 +13,7 @@ import type {
 	CombinedCallApiExtraOptions,
 } from "./types/common";
 import type { DefaultDataType, DefaultMoreOptions } from "./types/default-types";
-import type { AnyFunction, Awaitable, Prettify, UnmaskType } from "./utils/type-helpers";
+import type { AnyFunction, Awaitable, Prettify, UnmaskType } from "./types/type-helpers";
 
 export type WithMoreOptions<TMoreOptions = DefaultMoreOptions> = {
 	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
