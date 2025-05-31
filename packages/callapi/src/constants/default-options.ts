@@ -1,4 +1,4 @@
-import type { BaseCallApiExtraOptions } from "../types";
+import type { ExtraOptions } from "../types";
 import { defineEnum } from "../types/type-helpers";
 
 export const retryDefaults = defineEnum({
@@ -6,8 +6,8 @@ export const retryDefaults = defineEnum({
 	condition: () => true,
 	delay: 1000,
 	maxDelay: 10000,
-	methods: ["GET", "POST"] satisfies BaseCallApiExtraOptions["retryMethods"],
-	statusCodes: [] satisfies BaseCallApiExtraOptions["retryStatusCodes"],
+	methods: ["GET", "POST"] satisfies ExtraOptions["retryMethods"],
+	statusCodes: [] satisfies ExtraOptions["retryStatusCodes"],
 	strategy: "linear",
 });
 
