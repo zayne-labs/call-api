@@ -10,7 +10,12 @@ export {
 
 export { defineParameters } from "./defineParameters";
 
-export type { CallApiSchema, InferSchemaResult, BaseCallApiSchema } from "./validation";
+export {
+	type CallApiSchema,
+	type BaseCallApiSchema,
+	type InferSchemaResult,
+	ValidationError,
+} from "./validation";
 
 export type { RetryOptions } from "./retry";
 
@@ -19,6 +24,7 @@ export { HTTPError } from "./error";
 export {
 	type PossibleHTTPError,
 	type PossibleJavaScriptError,
+	type PossibleValidationError,
 	type ResponseTypeUnion,
 	type CallApiResultErrorVariant,
 	type CallApiResultSuccessVariant,

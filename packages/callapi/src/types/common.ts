@@ -171,6 +171,7 @@ export type SharedExtraOptions<
 	timeout?: number;
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 } & HooksOrHooksArray<TData, TErrorData, Partial<InferPluginOptions<TPluginArray>>>
+	& Partial<InferPluginOptions<TPluginArray>>
 	& RetryOptions<TErrorData>
 	& ResultModeOption<TErrorData, TResultMode>
 	& ThrowOnErrorOption<TErrorData>
@@ -185,49 +186,48 @@ export type BaseCallApiExtraOptions<
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
-> = Partial<InferPluginOptions<TBasePluginArray>>
-	& SharedExtraOptions<
-		TBaseData,
-		TBaseErrorData,
-		TBaseResultMode,
-		TBaseThrowOnError,
-		TBaseResponseType,
-		TBasePluginArray
-	> & {
-		baseURL?: string;
+> = SharedExtraOptions<
+	TBaseData,
+	TBaseErrorData,
+	TBaseResultMode,
+	TBaseThrowOnError,
+	TBaseResponseType,
+	TBasePluginArray
+> & {
+	baseURL?: string;
 
-		/**
-		 * An array of base callApi plugins. It allows you to extend the behavior of the library.
-		 */
-		plugins?: TBasePluginArray;
+	/**
+	 * An array of base callApi plugins. It allows you to extend the behavior of the library.
+	 */
+	plugins?: TBasePluginArray;
 
-		/**
-		 * Base schemas for the client.
-		 */
-		schema?: TBaseSchema;
+	/**
+	 * Base schemas for the client.
+	 */
+	schema?: TBaseSchema;
 
-		/**
-		 * Specifies which configuration parts should skip automatic merging between base and main configs.
-		 * Use this when you need manual control over how configs are combined.
-		 *
-		 * @enum
-		 * - `"all"` - Disables automatic merging for both request and options
-		 * - `"options"` - Disables automatic merging of options only
-		 * - `"request"` - Disables automatic merging of request only
-		 *
-		 * **Example**
-		 *
-		 * ```ts
-		 * const client = createFetchClient((ctx) => ({
-		 *   skipAutoMergeFor: "options",
-		 *
-		 *   // Now you can manually merge options in your config function
-		 *   ...ctx.options,
-		 * }));
-		 * ```
-		 */
-		skipAutoMergeFor?: "all" | "options" | "request";
-	};
+	/**
+	 * Specifies which configuration parts should skip automatic merging between base and main configs.
+	 * Use this when you need manual control over how configs are combined.
+	 *
+	 * @enum
+	 * - `"all"` - Disables automatic merging for both request and options
+	 * - `"options"` - Disables automatic merging of options only
+	 * - `"request"` - Disables automatic merging of request only
+	 *
+	 * **Example**
+	 *
+	 * ```ts
+	 * const client = createFetchClient((ctx) => ({
+	 *   skipAutoMergeFor: "options",
+	 *
+	 *   // Now you can manually merge options in your config function
+	 *   ...ctx.options,
+	 * }));
+	 * ```
+	 */
+	skipAutoMergeFor?: "all" | "options" | "request";
+};
 
 export type CallApiExtraOptions<
 	TData = DefaultDataType,

@@ -16,6 +16,15 @@ type DedupeContext = SharedHookContext & {
 	newFetchController: AbortController;
 };
 
+export const getAbortErrorMessage = (
+	dedupeKey: DedupeContext["options"]["dedupeKey"],
+	fullURL: DedupeContext["options"]["fullURL"]
+) => {
+	return dedupeKey
+		? `Duplicate request detected - Aborting previous request with key '${dedupeKey}' as a new request was initiated`
+		: `Duplicate request detected - Aborting previous request to '${fullURL}' as a new request with identical options was initiated`;
+};
+
 export const createDedupeStrategy = async (context: DedupeContext) => {
 	const { $RequestInfoCache, baseConfig, config, newFetchController, options, request } = context;
 
@@ -51,9 +60,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 
 		if (!shouldCancelRequest) return;
 
-		const message = options.dedupeKey
-			? `Duplicate request detected - Aborting previous request with key '${options.dedupeKey}' as a new request was initiated`
-			: `Duplicate request detected - Aborting previous request to '${options.fullURL}' as a new request with identical options was initiated`;
+		const message = getAbortErrorMessage(options.dedupeKey, options.fullURL);
 
 		const reason = new DOMException(message, "AbortError");
 

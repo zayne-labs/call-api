@@ -1,6 +1,7 @@
 import { HTTPError } from "../error";
 import type { CallApiResultErrorVariant, PossibleHTTPError } from "../result";
 import type { AnyFunction } from "../types/type-helpers";
+import { ValidationError } from "../validation";
 
 export const isHTTPError = <TErrorData>(
 	error: CallApiResultErrorVariant<TErrorData>["error"] | null
@@ -10,6 +11,10 @@ export const isHTTPError = <TErrorData>(
 
 export const isHTTPErrorInstance = <TErrorData>(error: unknown) => {
 	return HTTPError.isError<TErrorData>(error);
+};
+
+export const isValidationErrorInstance = (error: unknown): error is ValidationError => {
+	return ValidationError.isError(error);
 };
 
 export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Array.isArray(value);

@@ -40,7 +40,7 @@ export interface CallApiPlugin {
 	/**
 	 * Defines additional options that can be passed to callApi
 	 */
-	createExtraOptions?: (...params: never[]) => unknown;
+	defineExtraOptions?: (...params: never[]) => unknown;
 
 	/**
 	 * A description for the plugin

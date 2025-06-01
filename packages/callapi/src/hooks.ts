@@ -1,7 +1,7 @@
 import {
 	type ErrorInfo,
 	type PossibleHTTPError,
-	type PossibleJavaScriptError,
+	type PossibleJavaScriptOrValidationError,
 	resolveErrorResult,
 } from "./result";
 import type { StreamProgressEvent } from "./stream";
@@ -14,6 +14,7 @@ import type {
 } from "./types/common";
 import type { DefaultDataType } from "./types/default-types";
 import type { AnyFunction, Awaitable, UnmaskType } from "./types/type-helpers";
+import type { ValidationError } from "./validation";
 
 export type PluginExtraOptions<TPluginOptions = unknown> = {
 	options: Partial<TPluginOptions>;
@@ -82,6 +83,13 @@ export type Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPlugin
 	 */
 	onSuccess?: (context: SuccessContext<TData> & PluginExtraOptions<TPluginOptions>) => Awaitable<unknown>;
 
+	/**
+	 * Hook that will be called when a validation error occurs.
+	 */
+	onValidationError?: (
+		context: ValidationErrorContext & PluginExtraOptions<TPluginOptions>
+	) => Awaitable<unknown>;
+
 	/* eslint-enable perfectionist/sort-intersection-types -- Plugin options should come last */
 };
 
@@ -123,17 +131,28 @@ export type ResponseContext<TData, TErrorData> = UnmaskType<
 	SharedHookContext
 		& (
 			| {
-					data: TData;
-					error: null;
-					response: Response;
-			  }
-			// eslint-disable-next-line perfectionist/sort-union-types -- I need the first one to be first
-			| {
 					data: null;
 					error: PossibleHTTPError<TErrorData>;
 					response: Response;
 			  }
+			| {
+					data: null;
+					error: PossibleJavaScriptOrValidationError;
+					response: Response | null;
+			  }
+			| {
+					data: TData;
+					error: null;
+					response: Response;
+			  }
 		)
+>;
+
+export type ValidationErrorContext = UnmaskType<
+	SharedHookContext & {
+		error: ValidationError;
+		response: Response | null;
+	}
 >;
 
 export type SuccessContext<TData> = UnmaskType<
@@ -145,7 +164,7 @@ export type SuccessContext<TData> = UnmaskType<
 
 export type RequestErrorContext = UnmaskType<
 	SharedHookContext & {
-		error: PossibleJavaScriptError;
+		error: PossibleJavaScriptOrValidationError;
 		response: null;
 	}
 >;
@@ -169,8 +188,8 @@ export type ErrorContext<TErrorData> = UnmaskType<
 					response: Response;
 			  }
 			| {
-					error: PossibleJavaScriptError;
-					response: null;
+					error: PossibleJavaScriptOrValidationError;
+					response: Response | null;
 			  }
 		)
 >;
@@ -189,9 +208,9 @@ export type ResponseStreamContext = UnmaskType<
 	}
 >;
 
-type HookRegistries = {
+type HookRegistries = Required<{
 	[Key in keyof Hooks]: Set<Hooks[Key]>;
-};
+}>;
 
 export const hookRegistries = {
 	onError: new Set(),
@@ -203,6 +222,7 @@ export const hookRegistries = {
 	onResponseStream: new Set(),
 	onRetry: new Set(),
 	onSuccess: new Set(),
+	onValidationError: new Set(),
 } satisfies HookRegistries;
 
 export const composeTwoHooks = (

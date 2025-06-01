@@ -1,5 +1,5 @@
 import { commonDefaults, requestOptionDefaults } from "./constants/default-options";
-import { type RequestInfoCache, createDedupeStrategy } from "./dedupe";
+import { type RequestInfoCache, createDedupeStrategy, getAbortErrorMessage } from "./dedupe";
 import { HTTPError } from "./error";
 import {
 	type ErrorContext,
@@ -41,12 +41,18 @@ import {
 	splitConfig,
 	waitFor,
 } from "./utils/common";
-import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/guards";
+import {
+	isFunction,
+	isHTTPErrorInstance,
+	isSerializable,
+	isValidationErrorInstance,
+} from "./utils/guards";
 import {
 	type BaseCallApiSchema,
 	type CallApiSchema,
 	type CallApiSchemaConfig,
 	type InferSchemaResult,
+	type SchemaShape,
 	handleValidation,
 } from "./validation";
 
@@ -56,8 +62,8 @@ export const createFetchClient = <
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
 	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	const TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 >(
 	initBaseConfig: BaseCallApiConfig<
 		TBaseData,
@@ -83,12 +89,13 @@ export const createFetchClient = <
 			TSchemaConfig,
 			TInitURL
 		>,
-		const TSchema extends CallApiSchema = NonNullable<TBaseSchema["routes"][TCurrentRouteKey]>,
+		TComputedRouteSchema extends SchemaShape = NonNullable<TBaseSchema["routes"][TCurrentRouteKey]>,
+		TSchema extends CallApiSchema = Omit<SchemaShape, keyof TComputedRouteSchema> & TComputedRouteSchema,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 	>(
 		...parameters: CallApiParameters<
-			TData,
-			TErrorData,
+			InferSchemaResult<TSchema["data"], TData>,
+			InferSchemaResult<TSchema["errorData"], TErrorData>,
 			TResultMode,
 			TThrowOnError,
 			TResponseType,
@@ -232,7 +239,7 @@ export const createFetchClient = <
 					options.responseParser
 				);
 
-				const validErrorData = await handleValidation(errorData, schema?.errorData);
+				const validErrorData = await handleValidation(schema?.errorData, errorData, response);
 
 				// == Push all error handling responsibilities to the catch block if not retrying
 				throw new HTTPError(
@@ -251,7 +258,7 @@ export const createFetchClient = <
 				options.responseParser
 			);
 
-			const validSuccessData = await handleValidation(successData, schema?.data);
+			const validSuccessData = await handleValidation(schema?.data, successData, response);
 
 			const successContext = {
 				baseConfig,
@@ -347,32 +354,40 @@ export const createFetchClient = <
 				const hookError = await executeHooksInCatchBlock(
 					[
 						options.onResponseError?.(errorContext),
-
 						options.onError?.(errorContext),
-
 						options.onResponse?.({ ...errorContext, data: null }),
 					],
 					hookInfo
 				);
 
-				// eslint-disable-next-line max-depth -- Ignore for now
-				if (hookError) {
-					return hookError as never;
-				}
-
-				return (await handleRetryOrGetErrorResult()) as never;
+				return (hookError ?? (await handleRetryOrGetErrorResult())) as never;
 			}
+
+			if (isValidationErrorInstance(error)) {
+				const hookError = await executeHooksInCatchBlock(
+					[
+						options.onValidationError?.(errorContext),
+						options.onRequestError?.(errorContext),
+						options.onError?.(errorContext),
+					],
+					hookInfo
+				);
+
+				return (hookError ?? (await handleRetryOrGetErrorResult())) as never;
+			}
+
+			let message: string | undefined = (error as Error | undefined)?.message;
 
 			if (error instanceof DOMException && error.name === "AbortError") {
-				!shouldThrowOnError && console.error(`${error.name}:`, error.message);
+				message = getAbortErrorMessage(options.dedupeKey, options.fullURL);
+
+				!shouldThrowOnError && console.error(`${error.name}:`, message);
 			}
 
-			let timeoutMessage: string | undefined;
-
 			if (error instanceof DOMException && error.name === "TimeoutError") {
-				timeoutMessage = `Request timed out after ${options.timeout}ms`;
+				message = `Request timed out after ${options.timeout}ms`;
 
-				!shouldThrowOnError && console.error(`${error.name}:`, timeoutMessage);
+				!shouldThrowOnError && console.error(`${error.name}:`, message);
 			}
 
 			const hookError = await executeHooksInCatchBlock(
@@ -380,17 +395,8 @@ export const createFetchClient = <
 				hookInfo
 			);
 
-			if (hookError) {
-				return hookError as never;
-			}
-
-			const errorResult = await handleRetryOrGetErrorResult();
-
-			return (
-				timeoutMessage
-					? getCustomizedErrorResult(errorResult, { message: timeoutMessage })
-					: errorResult
-			) as never;
+			return (hookError
+				?? getCustomizedErrorResult(await handleRetryOrGetErrorResult(), { message })) as never;
 
 			// == Removing the now unneeded AbortController from store
 		} finally {

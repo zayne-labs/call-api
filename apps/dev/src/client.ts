@@ -30,7 +30,7 @@ const newOptionSchema2 = z.object({
 type Plugin2Options = z.infer<typeof newOptionSchema2>;
 
 const plugin1 = definePlugin({
-	createExtraOptions: () => newOptionSchema1,
+	defineExtraOptions: () => newOptionSchema1,
 
 	hooks: {
 		onRequest: () => console.info("PLUGIN1-OnRequest"),
@@ -42,7 +42,7 @@ const plugin1 = definePlugin({
 });
 
 const plugin2 = definePlugin(() => ({
-	createExtraOptions: () => newOptionSchema2,
+	defineExtraOptions: () => newOptionSchema2,
 
 	hooks: {
 		onRequest: () => console.info("PLUGIN2-OnRequest"),
@@ -77,9 +77,7 @@ const baseSchemas = {
 
 	routes: {
 		"@delete/products/:food": {
-			data: z.object({
-				foo: z.number(),
-			}),
+			data: () => ({ name: "foo" }),
 		},
 		"/products/:id": {
 			data: z.object({
@@ -93,7 +91,7 @@ const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
 	onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
 	onUpload: (_progress) => {},
-	// onUploadSuccess: (_progress) => {},
+	onUploadSuccess: (_progress) => {},
 	plugins: [plugin1, plugin2(), loggerPlugin()],
 	schema: baseSchemas,
 });
@@ -119,7 +117,7 @@ const callMainApi = createFetchClient({
 // }).pipeThrough(new TextEncoderStream());
 
 const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
-	callMainApi<{ foo: string }, undefined>("/products/:id", {
+	callMainApi<{ foo: string }, false>("/products/:id", {
 		// onRequest: [() => console.info("Instance-OnRequest"), () => console.info("Instance-OnRequest2")],
 		params: [1],
 		resultMode: "onlySuccessWithException",

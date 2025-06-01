@@ -7,8 +7,8 @@ import type {
 	CallApiSchemaConfig,
 	InferSchemaResult,
 	RouteKeyMethods,
+	SchemaShape,
 } from "../validation";
-import type { StandardSchemaV1 } from "./standard-schema";
 import type {
 	AnyFunction,
 	AnyString,
@@ -23,7 +23,7 @@ import type {
 /**
  * @description Makes a type required if the output type of TSchema contains undefined, otherwise keeps it as is
  */
-type MakeSchemaOptionRequired<TSchema extends StandardSchemaV1 | undefined, TObject> =
+type MakeSchemaOptionRequired<TSchema extends SchemaShape[keyof SchemaShape], TObject> =
 	undefined extends InferSchemaResult<TSchema, undefined> ? TObject : Required<TObject>;
 
 export type ApplyURLBasedConfig<
@@ -232,7 +232,7 @@ type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => 
 export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
 	TPluginArray extends Array<infer TPlugin>
 		? TPlugin extends CallApiPlugin
-			? TPlugin["createExtraOptions"] extends AnyFunction<infer TResult>
+			? TPlugin["defineExtraOptions"] extends AnyFunction<infer TResult>
 				? InferSchemaResult<TResult>
 				: never
 			: never
