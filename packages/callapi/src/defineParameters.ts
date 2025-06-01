@@ -1,12 +1,7 @@
 import type { CallApiPlugin } from "./plugins";
 import type { ResponseTypeUnion, ResultModeUnion } from "./result";
 import type { CallApiParameters } from "./types";
-import type {
-	DefaultDataType,
-	DefaultMoreOptions,
-	DefaultPluginArray,
-	DefaultThrowOnError,
-} from "./types/default-types";
+import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
 import type { BaseCallApiSchemas, CallApiSchemas } from "./validation";
 
 const defineParameters = <
@@ -17,7 +12,7 @@ const defineParameters = <
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
+	TSchemas extends CallApiSchemas = CallApiSchemas,
 >(
 	...parameters: CallApiParameters<
 		TData,

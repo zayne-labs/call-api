@@ -1,5 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { CallApiExtraOptions } from "./types/common";
+import type { CallApiExtraOptions, ExtraOptions } from "./types/common";
 import type { UnmaskType } from "./types/type-helpers";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/guards";
@@ -80,8 +80,8 @@ const removeMethodFromURL = (url: string) => {
 
 export const getMainURL = (
 	url: string | undefined,
-	params: CallApiExtraOptions["params"],
-	query: CallApiExtraOptions["query"]
+	params: ExtraOptions["params"],
+	query: ExtraOptions["query"]
 ) => {
 	if (!url) return;
 
@@ -115,6 +115,8 @@ export interface UrlOptions {
 
 	/**
 	 * URL to be used in the request.
+	 *
+	 * This is the URL after method modifiers have been removed.
 	 */
 	readonly initURL?: string;
 
@@ -127,4 +129,11 @@ export interface UrlOptions {
 	 * Query parameters to append to the URL.
 	 */
 	query?: Query;
+
+	/**
+	 * URL to be used in the request.
+	 *
+	 * This is the URL before any method modifiers have been removed.
+	 */
+	readonly rawInitURL?: string;
 }

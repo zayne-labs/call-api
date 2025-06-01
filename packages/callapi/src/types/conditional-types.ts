@@ -13,7 +13,7 @@ import type {
 	CommonAuthorizationHeaders,
 	CommonContentTypes,
 	CommonRequestHeaders,
-	LiteralUnion,
+	Prettify,
 	UnmaskType,
 } from "./type-helpers";
 
@@ -25,34 +25,22 @@ type MakeSchemaOptionRequired<TSchema extends StandardSchemaV1 | undefined, TObj
 
 type ExtractString<TValue> = Extract<TValue, string>;
 
-export type InferKey<TBaseSchema extends BaseCallApiSchemas> =
-	// Get the config type with NonNullable to handle undefined
-	NonNullable<TBaseSchema["config"]>["strict"] extends true
-		? NonNullable<TBaseSchema["config"]>["baseURL"] extends string
-			? `${NonNullable<TBaseSchema["config"]>["baseURL"]}${keyof NonNullable<
-					TBaseSchema["routes"]
-				> extends string
-					? ExtractString<keyof NonNullable<TBaseSchema["routes"]>>
-					: never}`
-			: keyof NonNullable<TBaseSchema["routes"]> extends string
-				? keyof NonNullable<TBaseSchema["routes"]>
-				: never
-		: NonNullable<TBaseSchema["config"]>["baseURL"] extends string
-			? LiteralUnion<`${NonNullable<TBaseSchema["config"]>["baseURL"]}${keyof TBaseSchema["routes"] extends string
-					? keyof TBaseSchema["routes"]
-					: never}`>
-			: LiteralUnion<
-					keyof NonNullable<TBaseSchema["routes"]> extends string
-						? keyof NonNullable<TBaseSchema["routes"]>
-						: never
-				>;
-
-export type InferInitURL<TBaseSchema extends BaseCallApiSchemas> = InferKey<TBaseSchema> | URL;
-
-export type ExtractKey<TBaseSchema extends BaseCallApiSchemas, TPath> = NonNullable<
+export type InferRouteKeys<TBaseSchema extends BaseCallApiSchemas> = NonNullable<
 	TBaseSchema["config"]
 >["baseURL"] extends string
-	? TPath extends `${NonNullable<TBaseSchema["config"]>["baseURL"]}${infer TMainRoute}`
+	? `${NonNullable<TBaseSchema["config"]>["baseURL"]}${keyof TBaseSchema["routes"] extends string
+			? ExtractString<keyof TBaseSchema["routes"]>
+			: never}`
+	: keyof TBaseSchema["routes"] extends string
+		? keyof TBaseSchema["routes"]
+		: never;
+
+export type InferInitURL<TBaseSchema extends BaseCallApiSchemas> = InferRouteKeys<TBaseSchema> | URL;
+
+export type ExtractMainRouteKey<TBaseSchemas extends BaseCallApiSchemas, TPath> = NonNullable<
+	TBaseSchemas["config"]
+>["baseURL"] extends string
+	? TPath extends `${NonNullable<TBaseSchemas["config"]>["baseURL"]}${infer TMainRoute}`
 		? TMainRoute extends string
 			? TMainRoute
 			: string
@@ -72,12 +60,12 @@ export type SerializableArray =
 export type Body = UnmaskType<RequestInit["body"] | SerializableArray | SerializableObject>;
 
 export type InferBodyOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
-	TSchemas["body"],
+	TSchemas["currentRoute"]["body"],
 	{
 		/**
 		 * Body of the request, can be a object or any other supported body type.
 		 */
-		body?: InferSchemaResult<TSchemas["body"], Body>;
+		body?: InferSchemaResult<TSchemas["currentRoute"]["body"], Body>;
 	}
 >;
 
@@ -92,24 +80,24 @@ type InferMethodFromURL<TInitURL> =
 		? Uppercase<TMethod>
 		: Method;
 
-type MakeMethodOptionRequiredViaURL<TMethod, TObject> = TMethod extends RouteKeyMethods
-	? Required<TObject>
-	: TObject;
+type MakeMethodOptionRequired<TInitURL, TMakeMethodRequired, TObject> =
+	TInitURL extends `@${string}/${string}`
+		? TMakeMethodRequired extends true
+			? Required<TObject>
+			: TObject
+		: TObject;
 
-export type InferMethodOption<
-	TSchemas extends CallApiSchemas,
-	_IgnoredTBaseSchema extends BaseCallApiSchemas,
-	TInitURL,
-> = MakeSchemaOptionRequired<
-	TSchemas["method"],
-	MakeMethodOptionRequiredViaURL<
-		Lowercase<InferMethodFromURL<TInitURL>>,
+export type InferMethodOption<TSchemas extends CallApiSchemas, TInitURL> = MakeSchemaOptionRequired<
+	TSchemas["currentRoute"]["method"],
+	MakeMethodOptionRequired<
+		TInitURL,
+		NonNullable<TSchemas["config"]>["requireMethodFromRouteModifier"],
 		{
 			/**
 			 * HTTP method for the request.
 			 * @default "GET"
 			 */
-			method?: InferSchemaResult<TSchemas["method"], InferMethodFromURL<TInitURL>>;
+			method?: InferSchemaResult<TSchemas["currentRoute"]["method"], InferMethodFromURL<TInitURL>>;
 		}
 	>
 >;
@@ -123,22 +111,19 @@ export type Headers = UnmaskType<
 >;
 
 export type InferHeadersOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
-	TSchemas["headers"],
+	TSchemas["currentRoute"]["headers"],
 	{
 		/**
 		 * Headers to be used in the request.
 		 */
-		headers?: InferSchemaResult<TSchemas["headers"], Headers>;
+		headers?: InferSchemaResult<TSchemas["currentRoute"]["headers"], Headers>;
 	}
 >;
 
 export type InferRequestOptions<
 	TSchemas extends CallApiSchemas,
 	TInitURL extends InferInitURL<BaseCallApiSchemas>,
-	TBaseSchema extends BaseCallApiSchemas,
-> = InferBodyOption<TSchemas>
-	& InferHeadersOption<TSchemas>
-	& InferMethodOption<TSchemas, TBaseSchema, TInitURL>;
+> = InferBodyOption<TSchemas> & InferHeadersOption<TSchemas> & InferMethodOption<TSchemas, TInitURL>;
 
 // eslint-disable-next-line ts-eslint/no-empty-object-type -- This needs to be empty to allow users to register their own meta
 export interface Register {
@@ -150,49 +135,60 @@ export type GlobalMeta = Register extends { meta?: infer TMeta extends Record<st
 	: never;
 
 export type InferMetaOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
-	TSchemas["meta"],
-	{ meta?: InferSchemaResult<TSchemas["meta"], GlobalMeta> }
+	TSchemas["currentRoute"]["meta"],
+	{ meta?: InferSchemaResult<TSchemas["currentRoute"]["meta"], GlobalMeta> }
 >;
 
 export type InferQueryOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
-	TSchemas["query"],
+	TSchemas["currentRoute"]["query"],
 	{
 		/**
 		 * Parameters to be appended to the URL (i.e: /:id)
 		 */
-		query?: InferSchemaResult<TSchemas["query"], Query>;
+		query?: InferSchemaResult<TSchemas["currentRoute"]["query"], Query>;
 	}
 >;
 
 export type RemoveEmptyString<TString> = Exclude<TString, "">;
 
+/* eslint-disable perfectionist/sort-union-types -- I need to preserve the order of the types */
 export type InferParamFromPath<TPath> =
 	TPath extends `${infer IgnoredPrefix}:${infer TCurrentParam}/${infer TRemainingPath}`
-		? TRemainingPath extends `${string}:${string}`
-			?
-					| [AllowedQueryParamValues, ...Extract<InferParamFromPath<TRemainingPath>, unknown[]>]
-					| {
-							[Param in
+		? TCurrentParam extends ""
+			? InferParamFromPath<TRemainingPath>
+			:
+					| Prettify<
+							Record<
 								| TCurrentParam
-								| keyof Extract<
-										InferParamFromPath<TRemainingPath>,
-										Record<string, unknown>
-								  > as RemoveEmptyString<Param>]: AllowedQueryParamValues;
-					  }
-			: [AllowedQueryParamValues] | { [ParamKey in TCurrentParam]: AllowedQueryParamValues }
+								| (Params extends InferParamFromPath<TRemainingPath>
+										? never
+										: keyof Extract<
+												InferParamFromPath<TRemainingPath>,
+												Record<string, unknown>
+											>),
+								AllowedQueryParamValues
+							>
+					  >
+					| [
+							AllowedQueryParamValues,
+							...(Params extends InferParamFromPath<TRemainingPath>
+								? []
+								: Extract<InferParamFromPath<TRemainingPath>, unknown[]>),
+					  ]
 		: TPath extends `${infer IgnoredPrefix}:${infer TCurrentParam}`
-			? [AllowedQueryParamValues] | { [ParamKey in TCurrentParam]: AllowedQueryParamValues }
-			: TPath extends `${infer IgnoredPrefix}/${infer TRemainingPath}`
-				? InferParamFromPath<TRemainingPath>
-				: Params;
+			? TCurrentParam extends ""
+				? Params
+				: Prettify<Record<TCurrentParam, AllowedQueryParamValues>> | [AllowedQueryParamValues]
+			: Params;
+/* eslint-enable perfectionist/sort-union-types -- I need to preserve the order of the types */
 
 export type InferParamsOption<TPath, TSchemas extends CallApiSchemas> = MakeSchemaOptionRequired<
-	TSchemas["params"],
+	TSchemas["currentRoute"]["params"],
 	{
 		/**
 		 * Parameters to be appended to the URL (i.e: /:id)
 		 */
-		params?: InferSchemaResult<TSchemas["params"], InferParamFromPath<TPath>>;
+		params?: InferSchemaResult<TSchemas["currentRoute"]["params"], InferParamFromPath<TPath>>;
 	}
 >;
 

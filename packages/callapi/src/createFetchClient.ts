@@ -20,7 +20,7 @@ import {
 	resolveSuccessResult,
 } from "./result";
 import { createRetryStrategy } from "./retry";
-import type { ExtractKey, InferInitURL } from "./types";
+import type { ExtractMainRouteKey, InferInitURL } from "./types";
 import type {
 	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
@@ -32,6 +32,7 @@ import type {
 	CombinedCallApiExtraOptions,
 } from "./types/common";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
+import type { LiteralUnion } from "./types/type-helpers";
 import { getMainURL, getMethodFromURL } from "./url";
 import {
 	createCombinedSignal,
@@ -45,7 +46,6 @@ import { isFunction, isHTTPErrorInstance, isSerializable } from "./utils/guards"
 import {
 	type BaseCallApiSchemas,
 	type CallApiSchemas,
-	type CallApiValidators,
 	type InferSchemaResult,
 	handleValidation,
 } from "./validation";
@@ -78,8 +78,14 @@ export const createFetchClient = <
 		TThrowOnError extends boolean = TBaseThrowOnError,
 		TResponseType extends ResponseTypeUnion = TBaseResponseType,
 		TInitURL extends InferInitURL<TBaseSchemas> = InferInitURL<TBaseSchemas>,
-		TRouteKey extends ExtractKey<TBaseSchemas, TInitURL> = ExtractKey<TBaseSchemas, TInitURL>,
-		const TSchemas extends CallApiSchemas = NonNullable<NonNullable<TBaseSchemas["routes"]>[TRouteKey]>,
+		TRouteKey extends ExtractMainRouteKey<TBaseSchemas, TInitURL> = ExtractMainRouteKey<
+			TBaseSchemas,
+			TInitURL
+		>,
+		const TSchemas extends CallApiSchemas = {
+			config: TBaseSchemas["config"];
+			currentRoute: NonNullable<TBaseSchemas["routes"][TRouteKey]>;
+		},
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 	>(
 		...parameters: CallApiParameters<
@@ -91,12 +97,12 @@ export const createFetchClient = <
 			TPluginArray,
 			TBaseSchemas,
 			TSchemas,
-			TInitURL,
+			NonNullable<TSchemas["config"]>["strict"] extends true ? TInitURL : LiteralUnion<TInitURL>,
 			TRouteKey
 		>
 	): CallApiResult<
-		InferSchemaResult<TSchemas["data"], TData>,
-		InferSchemaResult<TSchemas["errorData"], TErrorData>,
+		InferSchemaResult<TSchemas["currentRoute"]["data"], TData>,
+		InferSchemaResult<TSchemas["currentRoute"]["errorData"], TErrorData>,
 		TResultMode,
 		TThrowOnError,
 		TResponseType
@@ -146,7 +152,8 @@ export const createFetchClient = <
 			...resolvedHooks,
 			fullURL,
 			initURL: url,
-		} satisfies CombinedCallApiExtraOptions as typeof mergedExtraOptions & typeof resolvedHooks;
+			rawInitURL: initURL.toString(),
+		} satisfies CombinedCallApiExtraOptions;
 
 		const newFetchController = new AbortController();
 
@@ -218,11 +225,9 @@ export const createFetchClient = <
 					options.schemas
 			) as CallApiSchemas | undefined;
 
-			const validators = (
-				isFunction(options.validators)
-					? options.validators({ baseValidators: baseExtraOptions.validators })
-					: options.validators
-			) as CallApiValidators | undefined;
+			const validators = isFunction(options.validators)
+				? options.validators({ baseValidators: baseExtraOptions.validators })
+				: options.validators;
 
 			if (!response.ok) {
 				const errorData = await resolveResponseData<TErrorData>(
@@ -233,7 +238,7 @@ export const createFetchClient = <
 
 				const validErrorData = await handleValidation(
 					errorData,
-					schemas?.errorData,
+					schemas?.currentRoute.errorData,
 					validators?.errorData
 				);
 
@@ -254,7 +259,11 @@ export const createFetchClient = <
 				options.responseParser
 			);
 
-			const validSuccessData = await handleValidation(successData, schemas?.data, validators?.data);
+			const validSuccessData = await handleValidation(
+				successData,
+				schemas?.currentRoute.data,
+				validators?.data
+			);
 
 			const successContext = {
 				baseConfig,

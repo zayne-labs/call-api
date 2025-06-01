@@ -38,7 +38,7 @@ export type LoggerOptions = {
 };
 
 /* eslint-disable ts-eslint/no-unsafe-argument -- Ignore for now */
-const defaultConsole: ConsoleLike = {
+export const defaultConsole: ConsoleLike = {
 	error: (...args) => consola.error("", ...args),
 	fail: (...args) => consola.fail("", ...args),
 	log: (...args) => consola.info("", ...args),

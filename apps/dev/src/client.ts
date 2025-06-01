@@ -70,34 +70,21 @@ const plugin2 = definePlugin(() => ({
 
 const baseSchemas = {
 	config: {
+		// requireMethodFromRouteModifier: true,
 		// baseURL: "http:localhost:3000",
 		// strict: true,
 	},
 
 	routes: {
 		"@delete/products/:food": {
-			// body: z.object({
-			// 	foo: z.number(),
-			// }),
 			data: z.object({
 				foo: z.number(),
 			}),
-			// method: z.optional(z.string()),
 		},
 		"/products/:id": {
-			// body: z
-			// 	.object({
-			// 		aron: z.number(),
-			// 		flow: z.string(),
-			// 	})
-			// 	.optional(),
-			// body: z.object({
-			// 	foo: z.number(),
-			// }),
 			data: z.object({
-				sonGoku: z.number(),
+				bar: z.string(),
 			}),
-			// params: z.tuple([z.literal(1)]),
 		},
 	},
 } satisfies BaseCallApiSchemas;
@@ -140,8 +127,7 @@ const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 	}),
 	callMainApi("@delete/products/:food", {
 		method: "DELETE",
-		params: [3],
-		// schemas: {},
+		params: ["beans"],
 	}),
 	callMainApi("/products/:id", {
 		params: [1302],

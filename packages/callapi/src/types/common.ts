@@ -17,12 +17,7 @@ import type {
 	ResultModeOption,
 	ThrowOnErrorOption,
 } from "./conditional-types";
-import type {
-	DefaultDataType,
-	DefaultMoreOptions,
-	DefaultPluginArray,
-	DefaultThrowOnError,
-} from "./default-types";
+import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./default-types";
 import { type Awaitable, type Prettify, type UnmaskType, defineEnum } from "./type-helpers";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
@@ -208,7 +203,6 @@ export type BaseCallApiExtraOptions<
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TBaseURL extends string = string,
 > = Omit<
 	Partial<
 		ExtraOptions<
@@ -222,7 +216,7 @@ export type BaseCallApiExtraOptions<
 	>,
 	(typeof optionsEnumToOmitFromBase)[number]
 > & {
-	baseURL?: TBaseURL;
+	baseURL?: string;
 
 	/**
 	 * Base schemas for the client.
@@ -260,14 +254,23 @@ export type CallApiExtraOptions<
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
+	TSchemas extends CallApiSchemas = CallApiSchemas,
 > = ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray> & {
+	/**
+	 * Plugins for the callapi instance
+	 */
 	plugins?:
 		| Plugins<TPluginArray>
 		| ((context: { basePlugins: Plugins<TPluginArray> }) => Plugins<TPluginArray>);
 
+	/**
+	 * Schemas for the callapi instance
+	 */
 	schemas?: TSchemas | ((context: { baseSchemas: TBaseSchemas }) => TSchemas);
 
+	/**
+	 * Validators for the callapi instance
+	 */
 	validators?:
 		| CallApiValidators<TData, TErrorData>
 		| ((context: {
@@ -275,10 +278,8 @@ export type CallApiExtraOptions<
 		  }) => CallApiValidators<TData, TErrorData>);
 };
 
-type CombinedExtraOptionsWithoutHooks = Omit<BaseCallApiExtraOptions & CallApiExtraOptions, keyof Hooks>;
-
 // eslint-disable-next-line ts-eslint/consistent-type-definitions -- Allow this to be an interface
-export interface CombinedCallApiExtraOptions extends CombinedExtraOptionsWithoutHooks, Hooks {}
+export interface CombinedCallApiExtraOptions extends Omit<CallApiExtraOptions, keyof Hooks>, Hooks {}
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
@@ -322,11 +323,11 @@ export type CallApiConfig<
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
+	TSchemas extends CallApiSchemas = CallApiSchemas,
 	TInitURL extends InferInitURL<BaseCallApiSchemas> = InferInitURL<BaseCallApiSchemas>,
 	TRouteKey extends string = string,
 > = InferExtraOptions<TSchemas, TRouteKey>
-	& InferRequestOptions<TSchemas, TInitURL, TBaseSchemas>
+	& InferRequestOptions<TSchemas, TInitURL>
 	& Omit<
 		CallApiExtraOptions<
 			TData,
@@ -338,9 +339,9 @@ export type CallApiConfig<
 			TBaseSchemas,
 			TSchemas
 		>,
-		keyof InferExtraOptions<TSchemas, TRouteKey>
+		keyof InferExtraOptions<CallApiSchemas, string>
 	>
-	& Omit<CallApiRequestOptions, keyof InferRequestOptions<TSchemas, TInitURL, TBaseSchemas>>;
+	& Omit<CallApiRequestOptions, keyof InferRequestOptions<CallApiSchemas, string>>;
 
 export type CallApiParameters<
 	TData = DefaultDataType,
@@ -350,7 +351,7 @@ export type CallApiParameters<
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TSchemas extends CallApiSchemas = DefaultMoreOptions,
+	TSchemas extends CallApiSchemas = CallApiSchemas,
 	TInitURL extends InferInitURL<BaseCallApiSchemas> = InferInitURL<BaseCallApiSchemas>,
 	TRouteKey extends string = string,
 > = [

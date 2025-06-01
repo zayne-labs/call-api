@@ -13,7 +13,6 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 } from "./types/common";
-import type { DefaultMoreOptions } from "./types/default-types";
 import type { AnyFunction, Awaitable, Prettify } from "./types/type-helpers";
 import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
 import type { InferSchemaResult } from "./validation";
@@ -24,20 +23,17 @@ type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => 
 	? TParam
 	: never;
 
-export type InferPluginOptions<
-	TPluginArray extends CallApiPlugin[],
-	// TCreateExtraOptions = ReturnType<NonNullable<TPluginArray[number]["createExtraOptions"]>>,
-> = UnionToIntersection<
+export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
 	TPluginArray extends Array<infer TPlugin>
 		? TPlugin extends CallApiPlugin
 			? TPlugin["createExtraOptions"] extends AnyFunction<infer TResult>
-				? InferSchemaResult<TResult, TResult>
-				: NonNullable<unknown>
-			: NonNullable<unknown>
-		: NonNullable<unknown>
+				? InferSchemaResult<TResult>
+				: never
+			: never
+		: never
 >;
 
-export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = Prettify<
+export type PluginInitContext<TMoreOptions = unknown> = Prettify<
 	SharedHookContext<TMoreOptions> & { initURL: string | URL | undefined }
 >;
 
@@ -45,17 +41,17 @@ export type PluginInitResult = Partial<
 	Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
 >;
 
-export type PluginHooksWithMoreOptions<TMoreOptions = DefaultMoreOptions> = HooksOrHooksArray<
+export type PluginHooksWithMoreOptions<TMoreOptions = unknown> = HooksOrHooksArray<
 	never,
 	never,
 	TMoreOptions
 >;
 
-export type PluginHooks<
-	TData = never,
-	TErrorData = never,
-	TMoreOptions = DefaultMoreOptions,
-> = HooksOrHooksArray<TData, TErrorData, TMoreOptions>;
+export type PluginHooks<TData = never, TErrorData = never, TMoreOptions = unknown> = HooksOrHooksArray<
+	TData,
+	TErrorData,
+	TMoreOptions
+>;
 
 export interface CallApiPlugin {
 	/**
