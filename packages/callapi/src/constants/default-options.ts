@@ -1,4 +1,4 @@
-import type { ExtraOptions } from "../types";
+import type { SharedExtraOptions } from "../types";
 import { defineEnum } from "../types/type-helpers";
 
 export const retryDefaults = defineEnum({
@@ -6,8 +6,8 @@ export const retryDefaults = defineEnum({
 	condition: () => true,
 	delay: 1000,
 	maxDelay: 10000,
-	methods: ["GET", "POST"] satisfies ExtraOptions["retryMethods"],
-	statusCodes: [] satisfies ExtraOptions["retryStatusCodes"],
+	methods: ["GET", "POST"] satisfies SharedExtraOptions["retryMethods"],
+	statusCodes: [] satisfies SharedExtraOptions["retryStatusCodes"],
 	strategy: "linear",
 });
 

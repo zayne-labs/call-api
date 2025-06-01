@@ -15,23 +15,6 @@ import type {
 } from "./types/common";
 import type { AnyFunction, Awaitable, Prettify } from "./types/type-helpers";
 import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
-import type { InferSchemaResult } from "./validation";
-
-type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => void : never) extends (
-	param: infer TParam
-) => void
-	? TParam
-	: never;
-
-export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
-	TPluginArray extends Array<infer TPlugin>
-		? TPlugin extends CallApiPlugin
-			? TPlugin["createExtraOptions"] extends AnyFunction<infer TResult>
-				? InferSchemaResult<TResult>
-				: never
-			: never
-		: never
->;
 
 export type PluginInitContext<TMoreOptions = unknown> = Prettify<
 	SharedHookContext<TMoreOptions> & { initURL: string | URL | undefined }
@@ -98,8 +81,6 @@ export const definePlugin = <
 ) => {
 	return plugin;
 };
-
-export type Plugins<TPluginArray extends CallApiPlugin[]> = TPluginArray;
 
 const resolvePluginArray = (
 	plugins: CallApiExtraOptions["plugins"] | undefined,

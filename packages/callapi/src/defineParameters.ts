@@ -1,8 +1,8 @@
 import type { CallApiPlugin } from "./plugins";
 import type { ResponseTypeUnion, ResultModeUnion } from "./result";
-import type { CallApiParameters } from "./types";
+import type { CallApiParameters, InferInitURL } from "./types";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
-import type { BaseCallApiSchemas, CallApiSchemas } from "./validation";
+import type { BaseCallApiSchema, CallApiSchema, CallApiSchemaConfig } from "./validation";
 
 const defineParameters = <
 	TData = DefaultDataType,
@@ -10,9 +10,16 @@ const defineParameters = <
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TSchemas extends CallApiSchemas = CallApiSchemas,
+	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TSchema extends CallApiSchema = CallApiSchema,
+	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
+	TInitURL extends InferInitURL<BaseCallApiSchema, TSchemaConfig> = InferInitURL<
+		BaseCallApiSchema,
+		TSchemaConfig
+	>,
+	TCurrentRouteKey extends string = string,
 >(
 	...parameters: CallApiParameters<
 		TData,
@@ -20,9 +27,13 @@ const defineParameters = <
 		TResultMode,
 		TThrowOnError,
 		TResponseType,
+		TBasePluginArray,
 		TPluginArray,
-		TBaseSchemas,
-		TSchemas
+		TBaseSchema,
+		TSchema,
+		TSchemaConfig,
+		TInitURL,
+		TCurrentRouteKey
 	>
 ) => {
 	return parameters;

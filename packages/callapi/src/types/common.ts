@@ -1,24 +1,25 @@
 import type { Auth } from "../auth";
 import type { fetchSpecificKeys } from "../constants/common";
 import type { ErrorContext, Hooks, HooksOrHooksArray } from "../hooks";
-import type { CallApiPlugin, InferPluginOptions, Plugins } from "../plugins";
+import type { CallApiPlugin } from "../plugins";
 import type { GetCallApiResult, ResponseTypeUnion, ResultModeUnion } from "../result";
 import type { RetryOptions } from "../retry";
 import type { UrlOptions } from "../url";
-import type { BaseCallApiSchemas, CallApiSchemas, CallApiValidators } from "../validation";
+import type { BaseCallApiSchema, CallApiSchema, CallApiSchemaConfig } from "../validation";
 import type {
 	Body,
 	GlobalMeta,
 	Headers,
 	InferExtraOptions,
 	InferInitURL,
+	InferPluginOptions,
 	InferRequestOptions,
 	MethodUnion,
 	ResultModeOption,
 	ThrowOnErrorOption,
 } from "./conditional-types";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./default-types";
-import { type Awaitable, type Prettify, type UnmaskType, defineEnum } from "./type-helpers";
+import type { Awaitable, Prettify, UnmaskType } from "./type-helpers";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
@@ -49,7 +50,7 @@ export type CallApiRequestOptionsForHooks = Omit<CallApiRequestOptions, "headers
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
-export type ExtraOptions<
+export type SharedExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
@@ -78,12 +79,6 @@ export type ExtraOptions<
 	 * Custom fetch implementation
 	 */
 	customFetchImpl?: FetchImpl;
-
-	/**
-	 * Custom request key to be used to identify a request in the fetch deduplication strategy.
-	 * @default the full request url + string formed from the request options
-	 */
-	dedupeKey?: string;
 
 	/**
 	 * Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
@@ -146,11 +141,6 @@ export type ExtraOptions<
 	meta?: GlobalMeta;
 
 	/**
-	 * An array of CallApi plugins. It allows you to extend the behavior of the library.
-	 */
-	plugins?: Plugins<TPluginArray>;
-
-	/**
 	 * Custom function to parse the response string
 	 */
 	responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
@@ -179,21 +169,13 @@ export type ExtraOptions<
 	 * Request timeout in milliseconds
 	 */
 	timeout?: number;
-
-	/**
-	 * Custom validation functions for response validation
-	 */
-	validators?: CallApiValidators<TData, TErrorData>;
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 } & HooksOrHooksArray<TData, TErrorData, Partial<InferPluginOptions<TPluginArray>>>
-	& Partial<InferPluginOptions<TPluginArray>>
 	& RetryOptions<TErrorData>
 	& ResultModeOption<TErrorData, TResultMode>
 	& ThrowOnErrorOption<TErrorData>
 	& UrlOptions;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
-
-export const optionsEnumToOmitFromBase = defineEnum(["dedupeKey"] satisfies Array<keyof ExtraOptions>);
 
 export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
@@ -202,49 +184,50 @@ export type BaseCallApiExtraOptions<
 	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchema extends BaseCallApiSchemas = BaseCallApiSchemas,
-> = Omit<
-	Partial<
-		ExtraOptions<
-			TBaseData,
-			TBaseErrorData,
-			TBaseResultMode,
-			TBaseThrowOnError,
-			TBaseResponseType,
-			TBasePluginArray
-		>
-	>,
-	(typeof optionsEnumToOmitFromBase)[number]
-> & {
-	baseURL?: string;
+	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+> = Partial<InferPluginOptions<TBasePluginArray>>
+	& SharedExtraOptions<
+		TBaseData,
+		TBaseErrorData,
+		TBaseResultMode,
+		TBaseThrowOnError,
+		TBaseResponseType,
+		TBasePluginArray
+	> & {
+		baseURL?: string;
 
-	/**
-	 * Base schemas for the client.
-	 */
-	schemas?: TBaseSchema;
+		/**
+		 * An array of base callApi plugins. It allows you to extend the behavior of the library.
+		 */
+		plugins?: TBasePluginArray;
 
-	/**
-	 * Specifies which configuration parts should skip automatic merging between base and main configs.
-	 * Use this when you need manual control over how configs are combined.
-	 *
-	 * @enum
-	 * - `"all"` - Disables automatic merging for both request and options
-	 * - `"options"` - Disables automatic merging of options only
-	 * - `"request"` - Disables automatic merging of request only
-	 *
-	 * **Example**
-	 *
-	 * ```ts
-	 * const client = createFetchClient((ctx) => ({
-	 *   skipAutoMergeFor: "options",
-	 *
-	 *   // Now you can manually merge options in your config function
-	 *   ...ctx.options,
-	 * }));
-	 * ```
-	 */
-	skipAutoMergeFor?: "all" | "options" | "request";
-};
+		/**
+		 * Base schemas for the client.
+		 */
+		schema?: TBaseSchema;
+
+		/**
+		 * Specifies which configuration parts should skip automatic merging between base and main configs.
+		 * Use this when you need manual control over how configs are combined.
+		 *
+		 * @enum
+		 * - `"all"` - Disables automatic merging for both request and options
+		 * - `"options"` - Disables automatic merging of options only
+		 * - `"request"` - Disables automatic merging of request only
+		 *
+		 * **Example**
+		 *
+		 * ```ts
+		 * const client = createFetchClient((ctx) => ({
+		 *   skipAutoMergeFor: "options",
+		 *
+		 *   // Now you can manually merge options in your config function
+		 *   ...ctx.options,
+		 * }));
+		 * ```
+		 */
+		skipAutoMergeFor?: "all" | "options" | "request";
+	};
 
 export type CallApiExtraOptions<
 	TData = DefaultDataType,
@@ -252,30 +235,40 @@ export type CallApiExtraOptions<
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TSchemas extends CallApiSchemas = CallApiSchemas,
-> = ExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray> & {
+	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TSchema extends CallApiSchema = CallApiSchema,
+	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
+	TCurrentRouteKey extends string = string,
+> = SharedExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray> & {
 	/**
-	 * Plugins for the callapi instance
+	 * Custom request key to be used to identify a request in the fetch deduplication strategy.
+	 * @default the full request url + string formed from the request options
 	 */
-	plugins?:
-		| Plugins<TPluginArray>
-		| ((context: { basePlugins: Plugins<TPluginArray> }) => Plugins<TPluginArray>);
+	dedupeKey?: string;
+
+	/**
+	 * An array of instance CallApi plugins. It allows you to extend the behavior of the library.
+	 */
+	plugins?: TPluginArray | ((context: { basePlugins: TBasePluginArray }) => TPluginArray);
 
 	/**
 	 * Schemas for the callapi instance
 	 */
-	schemas?: TSchemas | ((context: { baseSchemas: TBaseSchemas }) => TSchemas);
+	schema?:
+		| TSchema
+		| ((context: {
+				baseSchema: TBaseSchema;
+				routeSchema: TBaseSchema["routes"][TCurrentRouteKey];
+		  }) => TSchema);
 
 	/**
-	 * Validators for the callapi instance
+	 * Schema config for the callapi instance
 	 */
-	validators?:
-		| CallApiValidators<TData, TErrorData>
-		| ((context: {
-				baseValidators: CallApiValidators<TData, TErrorData> | undefined;
-		  }) => CallApiValidators<TData, TErrorData>);
+	schemaConfig?:
+		| TSchemaConfig
+		| ((context: { baseSchemaConfig: TBaseSchema["config"] }) => TSchemaConfig);
 };
 
 // eslint-disable-next-line ts-eslint/consistent-type-definitions -- Allow this to be an interface
@@ -288,7 +281,7 @@ export type BaseCallApiConfig<
 	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
+	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
 > =
 	| (CallApiRequestOptions // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
 			& BaseCallApiExtraOptions<
@@ -298,7 +291,7 @@ export type BaseCallApiConfig<
 				TBaseThrowOnError,
 				TBaseResponseType,
 				TBasePluginArray,
-				TBaseSchemas
+				TBaseSchema
 			>)
 	| ((context: {
 			initURL: string;
@@ -312,7 +305,7 @@ export type BaseCallApiConfig<
 				TBaseThrowOnError,
 				TBaseResponseType,
 				TBasePluginArray,
-				TBaseSchemas
+				TBaseSchema
 			>);
 
 export type CallApiConfig<
@@ -321,13 +314,18 @@ export type CallApiConfig<
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TSchemas extends CallApiSchemas = CallApiSchemas,
-	TInitURL extends InferInitURL<BaseCallApiSchemas> = InferInitURL<BaseCallApiSchemas>,
-	TRouteKey extends string = string,
-> = InferExtraOptions<TSchemas, TRouteKey>
-	& InferRequestOptions<TSchemas, TInitURL>
+	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TSchema extends CallApiSchema = CallApiSchema,
+	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
+	TInitURL extends InferInitURL<BaseCallApiSchema, TSchemaConfig> = InferInitURL<
+		BaseCallApiSchema,
+		TSchemaConfig
+	>,
+	TCurrentRouteKey extends string = string,
+> = InferExtraOptions<TSchema, TCurrentRouteKey>
+	& InferRequestOptions<TSchema, TSchemaConfig, TInitURL>
 	& Omit<
 		CallApiExtraOptions<
 			TData,
@@ -335,13 +333,16 @@ export type CallApiConfig<
 			TResultMode,
 			TThrowOnError,
 			TResponseType,
+			TBasePluginArray,
 			TPluginArray,
-			TBaseSchemas,
-			TSchemas
+			TBaseSchema,
+			TSchema,
+			TSchemaConfig,
+			TCurrentRouteKey
 		>,
-		keyof InferExtraOptions<CallApiSchemas, string>
+		keyof InferExtraOptions<CallApiSchema, string>
 	>
-	& Omit<CallApiRequestOptions, keyof InferRequestOptions<CallApiSchemas, string>>;
+	& Omit<CallApiRequestOptions, keyof InferRequestOptions<CallApiSchema, CallApiSchemaConfig, string>>;
 
 export type CallApiParameters<
 	TData = DefaultDataType,
@@ -349,11 +350,16 @@ export type CallApiParameters<
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TBaseSchemas extends BaseCallApiSchemas = BaseCallApiSchemas,
-	TSchemas extends CallApiSchemas = CallApiSchemas,
-	TInitURL extends InferInitURL<BaseCallApiSchemas> = InferInitURL<BaseCallApiSchemas>,
-	TRouteKey extends string = string,
+	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TSchema extends CallApiSchema = CallApiSchema,
+	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
+	TInitURL extends InferInitURL<BaseCallApiSchema, TSchemaConfig> = InferInitURL<
+		BaseCallApiSchema,
+		TSchemaConfig
+	>,
+	TCurrentRouteKey extends string = string,
 > = [
 	initURL: TInitURL,
 	config?: CallApiConfig<
@@ -362,11 +368,13 @@ export type CallApiParameters<
 		TResultMode,
 		TThrowOnError,
 		TResponseType,
+		TBasePluginArray,
 		TPluginArray,
-		TBaseSchemas,
-		TSchemas,
+		TBaseSchema,
+		TSchema,
+		TSchemaConfig,
 		TInitURL,
-		TRouteKey
+		TCurrentRouteKey
 	>,
 ];
 

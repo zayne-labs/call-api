@@ -1,5 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { CallApiExtraOptions, ExtraOptions } from "./types/common";
+import type { CallApiExtraOptions, SharedExtraOptions } from "./types/common";
 import type { UnmaskType } from "./types/type-helpers";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/guards";
@@ -80,8 +80,8 @@ const removeMethodFromURL = (url: string) => {
 
 export const getMainURL = (
 	url: string | undefined,
-	params: ExtraOptions["params"],
-	query: ExtraOptions["query"]
+	params: SharedExtraOptions["params"],
+	query: SharedExtraOptions["query"]
 ) => {
 	if (!url) return;
 

@@ -18,20 +18,22 @@ export const standardSchemaParser = async <TSchema extends StandardSchemaV1>(
 	return result.value;
 };
 
-export interface SchemaConfig {
+export interface CallApiSchemaConfig {
 	/**
 	 * The base url of the schema. By default it's the baseURL of the fetch instance.
 	 */
 	baseURL?: string;
 
 	/**
-	 * When true, requires the appropriate method option to be specified as obtained from the route modifiers (`@get/`, `@post/`, `@put/`, `@patch/`, `@delete/`).
+	 * Controls the inference of the method option based on the route modifiers (`@get/`, `@post/`, `@put/`, `@patch/`, `@delete/`).
 	 *
-	 * By default, the method option is automatically added to the request options.
+	 * - When `true`, the method option is made required on the type level.
+	 * - When `false` or `undefined`, the method option is not required on the type level.
 	 *
-	 * @default false
+	 * By default, the method modifier is automatically added to the request options.
+	 *
 	 */
-	requireMethodFromRouteModifier?: boolean;
+	requireMethodOption?: boolean;
 
 	/**
 	 * Controls the strictness of API route validation.
@@ -56,7 +58,7 @@ export type RouteKeyMethods = (typeof routeKeyMethods)[number];
 
 type RouteKey = `@${RouteKeyMethods}/${AnyString}` | AnyString;
 
-type SchemaShape = {
+export interface CallApiSchema {
 	/**
 	 *  The schema to use for validating the request body.
 	 */
@@ -96,27 +98,22 @@ type SchemaShape = {
 	 *  The schema to use for validating the request url queries.
 	 */
 	query?: StandardSchemaV1<Query | undefined>;
-};
+}
 
 type BaseSchemaRoutes = {
-	[key in RouteKey]?: SchemaShape;
+	[key in RouteKey]?: CallApiSchema;
 };
 
-export interface BaseCallApiSchemas {
+export interface BaseCallApiSchema {
 	/**
 	 * Base schema configuration options
 	 */
-	config?: SchemaConfig;
+	config?: CallApiSchemaConfig;
 
 	/**
 	 * Schema routes
 	 */
 	routes: BaseSchemaRoutes;
-}
-
-export interface CallApiSchemas {
-	config?: SchemaConfig;
-	currentRoute: SchemaShape;
 }
 
 export interface CallApiValidators<TData = unknown, TErrorData = unknown> {
@@ -136,18 +133,13 @@ export type InferSchemaResult<TSchema, TData = NonNullable<unknown>> = TSchema e
 	? StandardSchemaV1.InferOutput<TSchema>
 	: TData;
 
-const identity = <T>(value: T) => value;
-
 export const handleValidation = async (
 	responseData: unknown,
-	schema: CallApiSchemas["currentRoute"][keyof NonNullable<CallApiSchemas>["currentRoute"]],
-	validator: CallApiValidators[keyof NonNullable<CallApiValidators>] = identity
+	schema: CallApiSchema[keyof NonNullable<CallApiSchema>]
 ) => {
-	const validResponseData = validator(responseData);
-
 	const schemaValidResponseData = schema
-		? await standardSchemaParser(schema, validResponseData)
-		: validResponseData;
+		? await standardSchemaParser(schema, responseData)
+		: responseData;
 
 	return schemaValidResponseData;
 };

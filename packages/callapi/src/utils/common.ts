@@ -1,11 +1,6 @@
 import { getAuthHeader } from "../auth";
 import { fetchSpecificKeys } from "../constants/common";
-import {
-	type BaseCallApiExtraOptions,
-	type CallApiExtraOptions,
-	type CallApiRequestOptions,
-	optionsEnumToOmitFromBase,
-} from "../types/common";
+import type { BaseCallApiExtraOptions, CallApiExtraOptions, CallApiRequestOptions } from "../types/common";
 import { isFunction, isJsonString, isPlainObject, isQueryString, isSerializable } from "./guards";
 
 export const omitKeys = <
@@ -52,10 +47,7 @@ export const pickKeys = <
 export const splitBaseConfig = (baseConfig: Record<string, any>) =>
 	[
 		pickKeys(baseConfig, fetchSpecificKeys) as CallApiRequestOptions,
-		omitKeys(baseConfig, [
-			...fetchSpecificKeys,
-			...optionsEnumToOmitFromBase,
-		]) as BaseCallApiExtraOptions,
+		omitKeys(baseConfig, fetchSpecificKeys) as BaseCallApiExtraOptions,
 	] as const;
 
 // eslint-disable-next-line ts-eslint/no-explicit-any -- Any is required here so that one can pass custom function type without type errors

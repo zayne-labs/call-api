@@ -88,9 +88,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 				return fetchApi(requestInstance.clone());
 			}
 
-			const modifiedRequest = { ...request } as RequestInit;
-
-			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, modifiedRequest);
+			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, request as RequestInit);
 		};
 
 		const responsePromise = shouldUsePromiseFromCache

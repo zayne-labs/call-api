@@ -1,6 +1,6 @@
 /* eslint-disable perfectionist/sort-object-types -- Avoid Sorting for now */
 
-import type { ExtraOptions } from "./types/common";
+import type { SharedExtraOptions } from "./types/common";
 import type { Awaitable } from "./types/type-helpers";
 import { isFunction, isString } from "./utils/guards";
 
@@ -71,7 +71,7 @@ type AuthorizationHeader = {
 };
 
 export const getAuthHeader = async (
-	auth: ExtraOptions["auth"]
+	auth: SharedExtraOptions["auth"]
 ): Promise<false | AuthorizationHeader | undefined> => {
 	if (auth === undefined) return;
 

@@ -1,5 +1,5 @@
 import {
-	type BaseCallApiSchemas,
+	type BaseCallApiSchema,
 	type PluginHooksWithMoreOptions,
 	type PluginInitContext,
 	type SuccessContext,
@@ -70,8 +70,8 @@ const plugin2 = definePlugin(() => ({
 
 const baseSchemas = {
 	config: {
-		// requireMethodFromRouteModifier: true,
 		// baseURL: "http:localhost:3000",
+		// requireMethodOption: true,
 		// strict: true,
 	},
 
@@ -87,15 +87,15 @@ const baseSchemas = {
 			}),
 		},
 	},
-} satisfies BaseCallApiSchemas;
+} as const satisfies BaseCallApiSchema;
 
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
 	onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
 	onUpload: (_progress) => {},
-	onUploadSuccess: (_progress) => {},
+	// onUploadSuccess: (_progress) => {},
 	plugins: [plugin1, plugin2(), loggerPlugin()],
-	schemas: baseSchemas,
+	schema: baseSchemas,
 });
 
 // function wait(milliseconds: number) {
@@ -125,6 +125,7 @@ const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
 		resultMode: "onlySuccessWithException",
 		throwOnError: true,
 	}),
+
 	callMainApi("@delete/products/:food", {
 		method: "DELETE",
 		params: ["beans"],
