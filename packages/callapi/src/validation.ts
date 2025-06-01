@@ -1,5 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { Body, GlobalMeta, Headers, Method } from "./types";
+import type { Body, GlobalMeta, Headers, MethodUnion } from "./types";
 import type { StandardSchemaV1 } from "./types/standard-schema";
 import { type AnyString, defineEnum } from "./types/type-helpers";
 import type { Params, Query } from "./url";
@@ -37,12 +37,12 @@ export interface SchemaConfig {
 	 * Controls the strictness of API route validation.
 	 *
 	 * When true:
-	 * - Only routes explicitly defined in the schema will be considered valid
-	 * - Attempting to call undefined routes will result in validation errors
+	 * - Only routes explicitly defined in the schema will be considered valid to typescript
+	 * - Attempting to call undefined routes will result in type errors
 	 * - Useful for ensuring API calls conform exactly to your schema definition
 	 *
-	 * When false (default):
-	 * - Routes not defined in the schema will be allowed
+	 * When false or undefined (default):
+	 * - All routes will be allowed, whether they are defined in the schema or not
 	 * - Provides more flexibility but less type safety
 	 *
 	 * @default false
@@ -85,15 +85,15 @@ type SchemaShape = {
 	/**
 	 *  The schema to use for validating the request method.
 	 */
-	method?: StandardSchemaV1<Method | undefined>;
+	method?: StandardSchemaV1<MethodUnion | undefined>;
 
 	/**
-	 *  The schema to use for validating the request url parameter.
+	 *  The schema to use for validating the request url parameters.
 	 */
 	params?: StandardSchemaV1<Params | undefined>;
 
 	/**
-	 *  The schema to use for validating the request url querys.
+	 *  The schema to use for validating the request url queries.
 	 */
 	query?: StandardSchemaV1<Query | undefined>;
 };

@@ -69,16 +69,14 @@ export type InferBodyOption<TSchemas extends CallApiSchemas> = MakeSchemaOptionR
 	}
 >;
 
-type AllMethods = UnmaskType<
-	"CONNECT" | "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "TRACE"
+export type MethodUnion = UnmaskType<
+	"CONNECT" | "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "TRACE" | AnyString
 >;
-
-export type Method = UnmaskType<AllMethods | AnyString>;
 
 type InferMethodFromURL<TInitURL> =
 	TInitURL extends `@${infer TMethod extends Lowercase<RouteKeyMethods>}/${string}`
 		? Uppercase<TMethod>
-		: Method;
+		: MethodUnion;
 
 type MakeMethodOptionRequired<TInitURL, TMakeMethodRequired, TObject> =
 	TInitURL extends `@${string}/${string}`

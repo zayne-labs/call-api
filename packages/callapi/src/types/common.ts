@@ -13,7 +13,7 @@ import type {
 	InferExtraOptions,
 	InferInitURL,
 	InferRequestOptions,
-	Method,
+	MethodUnion,
 	ResultModeOption,
 	ThrowOnErrorOption,
 } from "./conditional-types";
@@ -38,7 +38,7 @@ export type CallApiRequestOptions = Prettify<
 		 * HTTP method for the request.
 		 * @default "GET"
 		 */
-		method?: Method;
+		method?: MethodUnion;
 		// eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
 	} & Pick<ModifiedRequestInit, FetchSpecificKeysUnion>
 >;
