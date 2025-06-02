@@ -1,4 +1,3 @@
-import { commonDefaults, requestOptionDefaults } from "./constants/default-options";
 import { type RequestInfoCache, createDedupeStrategy, getAbortErrorMessage } from "./dedupe";
 import { HTTPError } from "./error";
 import {
@@ -32,27 +31,25 @@ import type {
 	CombinedCallApiExtraOptions,
 } from "./types/common";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
-import { getMainURL, getMethodFromURL } from "./url";
+import { getCurrentRouteKey, getMainURL, getMethod, removeMethodFromURL } from "./url";
 import {
 	createCombinedSignal,
 	createTimeoutSignal,
+	getBody,
 	getHeaders,
 	splitBaseConfig,
 	splitConfig,
 	waitFor,
 } from "./utils/common";
-import {
-	isFunction,
-	isHTTPErrorInstance,
-	isSerializable,
-	isValidationErrorInstance,
-} from "./utils/guards";
+import { isFunction, isHTTPErrorInstance, isValidationErrorInstance } from "./utils/guards";
 import {
 	type BaseCallApiSchema,
 	type CallApiSchema,
 	type CallApiSchemaConfig,
 	type InferSchemaResult,
 	type SchemaShape,
+	handleExtraOptionsValidation,
+	handleRequestOptionsValidation,
 	handleValidation,
 } from "./validation";
 
@@ -151,15 +148,37 @@ export const createFetchClient = <
 			request: mergedRequestOptions as CallApiRequestOptionsForHooks,
 		});
 
-		const fullURL = `${resolvedOptions.baseURL ?? ""}${getMainURL(url, resolvedOptions.params, resolvedOptions.query)}`;
+		const fullURL = getMainURL(
+			url,
+			resolvedOptions.baseURL,
+			resolvedOptions.params,
+			resolvedOptions.query
+		);
 
-		// FIXME -  Consider adding an option for refetching a callApi request
-		const options = {
+		const schemaConfig = extraOptions.schemaConfig ?? baseExtraOptions.schema?.config;
+
+		const resolvedSchemaConfig = isFunction(schemaConfig)
+			? schemaConfig({ baseSchemaConfig: baseExtraOptions.schema?.config ?? ({} as never) })
+			: schemaConfig;
+
+		const currentRouteKey = getCurrentRouteKey(url, resolvedSchemaConfig);
+
+		const schema = extraOptions.schema ?? baseExtraOptions.schema?.routes[currentRouteKey];
+
+		const resolvedSchema = isFunction(schema)
+			? schema({
+					baseSchema: baseExtraOptions.schema ?? ({} as never),
+					routeSchema: baseExtraOptions.schema?.routes[currentRouteKey] ?? ({} as never),
+				})
+			: schema;
+
+		let options = {
 			...resolvedOptions,
 			...resolvedHooks,
+
 			fullURL,
-			initURL: url,
-			rawInitURL: initURL.toString(),
+			initURL: removeMethodFromURL(url),
+			rawInitURL: url,
 		} satisfies CombinedCallApiExtraOptions;
 
 		const newFetchController = new AbortController();
@@ -172,24 +191,8 @@ export const createFetchClient = <
 			newFetchController.signal
 		);
 
-		const bodySerializer = options.bodySerializer ?? commonDefaults.bodySerializer;
-
-		const request = {
+		let request = {
 			...resolvedRequestOptions,
-
-			body: isSerializable(resolvedRequestOptions.body)
-				? bodySerializer(resolvedRequestOptions.body)
-				: resolvedRequestOptions.body,
-
-			headers: await getHeaders({
-				auth: options.auth,
-				baseHeaders: baseFetchOptions.headers,
-				body: resolvedRequestOptions.body,
-				headers: fetchOptions.headers,
-			}),
-
-			method: resolvedRequestOptions.method ?? getMethodFromURL(url) ?? requestOptionDefaults.method,
-
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
 
@@ -207,30 +210,60 @@ export const createFetchClient = <
 			request,
 		});
 
-		await handleRequestCancelStrategy();
-
 		try {
-			await executeHooksInTryBlock(options.onRequest?.({ baseConfig, config, options, request }));
+			await handleRequestCancelStrategy();
 
-			// == Apply determined headers again after onRequest incase they were modified
-			request.headers = await getHeaders({
-				auth: options.auth,
+			await executeHooksInTryBlock(options.onBeforeRequest?.({ baseConfig, config, options, request }));
+
+			const [requestOptionsValidationResult, extraOptionsValidationResult] = await Promise.all([
+				handleRequestOptionsValidation({
+					requestOptions: request,
+					schema: resolvedSchema,
+					schemaConfig: resolvedSchemaConfig,
+				}),
+				handleExtraOptionsValidation({
+					extraOptions: options,
+					schema: resolvedSchema,
+					schemaConfig: resolvedSchemaConfig,
+				}),
+			]);
+
+			const validBody = getBody({
 				body: request.body,
+				bodySerializer: options.bodySerializer,
+			});
+
+			const validHeaders = await getHeaders({
+				auth: options.auth,
+				baseHeaders: request.headers,
+				body: validBody,
 				headers: request.headers,
 			});
 
-			const response = await handleRequestDeferStrategy();
+			const validMethod = getMethod({
+				method: requestOptionsValidationResult.method,
+				schemaConfig: resolvedSchemaConfig,
+				url,
+			});
+
+			request = {
+				...request,
+				...(Boolean(validBody) && { body: validBody }),
+				...(Boolean(validHeaders) && { headers: validHeaders }),
+				...(Boolean(validMethod) && { method: validMethod }),
+			};
+
+			options = {
+				...options,
+				...extraOptionsValidationResult,
+			};
+
+			await executeHooksInTryBlock(options.onRequest?.({ baseConfig, config, options, request }));
+
+			const response = await handleRequestDeferStrategy(options, request);
 
 			// == Also clone response when dedupeStrategy is set to "defer" or when onRequestStream is set, to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = dedupeStrategy === "defer" || options.cloneResponse;
-
-			// FIXME - Utilize a better way of handling this
-			// prettier-ignore
-			const schema = (
-				// isFunction(options.schema)
-					// ? options.schema({ baseSchema: baseExtraOptions.schema, routeSchema: baseExtraOptions.schema?.routes?.["."] })
-					options.schema
-			) as CallApiSchema | undefined;
 
 			if (!response.ok) {
 				const errorData = await resolveResponseData<TErrorData>(
@@ -239,7 +272,11 @@ export const createFetchClient = <
 					options.responseParser
 				);
 
-				const validErrorData = await handleValidation(schema?.errorData, errorData, response);
+				const validErrorData = await handleValidation(resolvedSchema?.errorData, {
+					inputValue: errorData,
+					response,
+					schemaConfig: resolvedSchemaConfig,
+				});
 
 				// == Push all error handling responsibilities to the catch block if not retrying
 				throw new HTTPError(
@@ -258,7 +295,11 @@ export const createFetchClient = <
 				options.responseParser
 			);
 
-			const validSuccessData = await handleValidation(schema?.data, successData, response);
+			const validSuccessData = await handleValidation(resolvedSchema?.data, {
+				inputValue: successData,
+				response,
+				schemaConfig: resolvedSchemaConfig,
+			});
 
 			const successContext = {
 				baseConfig,

@@ -9,7 +9,7 @@ import type { BaseCallApiSchema, CallApiSchema, CallApiSchemaConfig } from "../v
 import type {
 	Body,
 	GlobalMeta,
-	Headers,
+	HeadersOption,
 	InferExtraOptions,
 	InferInitURL,
 	InferPluginOptions,
@@ -34,7 +34,7 @@ export type CallApiRequestOptions = Prettify<
 		/**
 		 * Headers to be used in the request.
 		 */
-		headers?: Headers;
+		headers?: HeadersOption;
 		/**
 		 * HTTP method for the request.
 		 * @default "GET"
@@ -260,7 +260,7 @@ export type CallApiExtraOptions<
 		| TSchema
 		| ((context: {
 				baseSchema: TBaseSchema;
-				routeSchema: TBaseSchema["routes"][TCurrentRouteKey];
+				routeSchema: NonNullable<TBaseSchema["routes"][TCurrentRouteKey]>;
 		  }) => TSchema);
 
 	/**
@@ -268,7 +268,7 @@ export type CallApiExtraOptions<
 	 */
 	schemaConfig?:
 		| TSchemaConfig
-		| ((context: { baseSchemaConfig: TBaseSchema["config"] }) => TSchemaConfig);
+		| ((context: { baseSchemaConfig: NonNullable<TBaseSchema["config"]> }) => TSchemaConfig);
 };
 
 // eslint-disable-next-line ts-eslint/consistent-type-definitions -- Allow this to be an interface

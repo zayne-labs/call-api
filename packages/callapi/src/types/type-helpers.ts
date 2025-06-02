@@ -47,6 +47,12 @@ export type Writeable<TObject, TLevel extends WriteableLevel = "shallow"> = TObj
 
 export const defineEnum = <const TValue extends object>(value: TValue) => value as Writeable<TValue>;
 
+export type UnionToIntersection<TUnion> = (
+	TUnion extends unknown ? (param: TUnion) => void : never
+) extends (param: infer TParam) => void
+	? TParam
+	: never;
+
 // == Using this Immediately Indexed Mapped type helper to help show computed type of anything passed to it instead of just the type name
 export type UnmaskType<TValue> = { _: TValue }["_"];
 

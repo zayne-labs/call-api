@@ -20,7 +20,13 @@ export type PluginExtraOptions<TPluginOptions = unknown> = {
 	options: Partial<TPluginOptions>;
 };
 
+/* eslint-disable perfectionist/sort-intersection-types -- Plugin options should come last */
 export type Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPluginOptions = unknown> = {
+	/**
+	 * Hook that will be called before the request is made, and before any internal transformations are applied to the options.
+	 */
+	onBeforeRequest?: (context: RequestContext & PluginExtraOptions<TPluginOptions>) => Awaitable<unknown>;
+
 	/**
 	 * Hook that will be called when any error occurs within the request/response lifecycle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` hooks
@@ -29,10 +35,8 @@ export type Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPlugin
 		context: ErrorContext<TErrorData> & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 
-	/* eslint-disable perfectionist/sort-intersection-types -- Plugin options should come last */
-
 	/**
-	 * Hook that will be called just before the request is made, allowing for modifications or additional operations.
+	 * Hook that will be called just before the request is being made.
 	 */
 	onRequest?: (context: RequestContext & PluginExtraOptions<TPluginOptions>) => Awaitable<unknown>;
 
@@ -89,9 +93,8 @@ export type Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPlugin
 	onValidationError?: (
 		context: ValidationErrorContext & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
-
-	/* eslint-enable perfectionist/sort-intersection-types -- Plugin options should come last */
 };
+/* eslint-enable perfectionist/sort-intersection-types -- Plugin options should come last */
 
 export type HooksOrHooksArray<
 	TData = DefaultDataType,
@@ -213,6 +216,7 @@ type HookRegistries = Required<{
 }>;
 
 export const hookRegistries = {
+	onBeforeRequest: new Set(),
 	onError: new Set(),
 	onRequest: new Set(),
 	onRequestError: new Set(),

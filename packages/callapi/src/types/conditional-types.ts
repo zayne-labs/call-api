@@ -17,6 +17,7 @@ import type {
 	CommonRequestHeaders,
 	LiteralUnion,
 	Prettify,
+	UnionToIntersection,
 	UnmaskType,
 } from "./type-helpers";
 
@@ -99,7 +100,7 @@ type InferMethodFromURL<TInitURL> = TInitURL extends `@${infer TMethod extends R
 
 type MakeMethodOptionRequired<
 	TInitURL,
-	TRequireMethodOption extends CallApiSchemaConfig["requireMethodOption"],
+	TRequireMethodOption extends CallApiSchemaConfig["requireHttpMethodProvision"],
 	TObject,
 > = TInitURL extends `@${string}/${string}`
 	? TRequireMethodOption extends true
@@ -115,7 +116,7 @@ export type InferMethodOption<
 	TSchema["method"],
 	MakeMethodOptionRequired<
 		TInitURL,
-		TSchemaConfig["requireMethodOption"],
+		TSchemaConfig["requireHttpMethodProvision"],
 		{
 			/**
 			 * HTTP method for the request.
@@ -126,7 +127,7 @@ export type InferMethodOption<
 	>
 >;
 
-export type Headers = UnmaskType<
+export type HeadersOption = UnmaskType<
 	| Record<"Authorization", CommonAuthorizationHeaders>
 	| Record<"Content-Type", CommonContentTypes>
 	| Record<CommonRequestHeaders, string | undefined>
@@ -140,7 +141,11 @@ export type InferHeadersOption<TSchema extends CallApiSchema> = MakeSchemaOption
 		/**
 		 * Headers to be used in the request.
 		 */
-		headers?: InferSchemaResult<TSchema["headers"], Headers>;
+		headers?:
+			| InferSchemaResult<TSchema["headers"], HeadersOption>
+			| ((context: {
+					baseHeaders: HeadersOption;
+			  }) => InferSchemaResult<TSchema["headers"], HeadersOption>);
 	}
 >;
 
@@ -163,7 +168,9 @@ export type GlobalMeta = Register extends { meta?: infer TMeta extends Record<st
 
 export type InferMetaOption<TSchema extends CallApiSchema> = MakeSchemaOptionRequired<
 	TSchema["meta"],
-	{ meta?: InferSchemaResult<TSchema["meta"], GlobalMeta> }
+	{
+		meta?: InferSchemaResult<TSchema["meta"], GlobalMeta>;
+	}
 >;
 
 export type InferQueryOption<TSchema extends CallApiSchema> = MakeSchemaOptionRequired<
@@ -222,12 +229,6 @@ export type InferParamsOption<TPath, TSchema extends CallApiSchema> = MakeSchema
 export type InferExtraOptions<TSchema extends CallApiSchema, TPath> = InferMetaOption<TSchema>
 	& InferParamsOption<TPath, TSchema>
 	& InferQueryOption<TSchema>;
-
-type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => void : never) extends (
-	param: infer TParam
-) => void
-	? TParam
-	: never;
 
 export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
 	TPluginArray extends Array<infer TPlugin>

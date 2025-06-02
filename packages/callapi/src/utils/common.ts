@@ -1,6 +1,10 @@
 import { getAuthHeader } from "../auth";
 import { fetchSpecificKeys } from "../constants/common";
+import { commonDefaults } from "../constants/default-options";
+import type { InferHeadersOption } from "../types";
 import type { BaseCallApiExtraOptions, CallApiExtraOptions, CallApiRequestOptions } from "../types/common";
+import type { AnyFunction } from "../types/type-helpers";
+import type { CallApiSchema } from "../validation";
 import { isFunction, isJsonString, isPlainObject, isQueryString, isSerializable } from "./guards";
 
 export const omitKeys = <
@@ -80,18 +84,26 @@ export const objectifyHeaders = (headers: CallApiRequestOptions["headers"]) => {
 	return Object.fromEntries(headers);
 };
 
-type MergeAndResolveHeadersOptions = {
+export type GetHeadersOptions = {
 	auth: CallApiExtraOptions["auth"];
-	baseHeaders?: CallApiRequestOptions["headers"];
+	baseHeaders: CallApiRequestOptions["headers"];
 	body: CallApiRequestOptions["body"];
 	headers: CallApiRequestOptions["headers"];
 };
 
-export const getHeaders = async (options: MergeAndResolveHeadersOptions) => {
+export const getHeaders = async (options: GetHeadersOptions) => {
 	const { auth, baseHeaders, body, headers } = options;
 
+	const selectedHeaders = headers ?? baseHeaders;
+
+	type HeaderFn = Extract<InferHeadersOption<CallApiSchema>["headers"], AnyFunction>;
+
+	const resolvedHeaders = isFunction<HeaderFn>(selectedHeaders)
+		? selectedHeaders({ baseHeaders })
+		: selectedHeaders;
+
 	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing -- Nullish coalescing makes no sense in this boolean context
-	const shouldResolveHeaders = Boolean(baseHeaders || headers || body || auth);
+	const shouldResolveHeaders = Boolean(resolvedHeaders || body || auth);
 
 	// == Return early if any of the following conditions are not met (so that native fetch would auto set the correct headers):
 	// == - headers are provided
@@ -101,8 +113,7 @@ export const getHeaders = async (options: MergeAndResolveHeadersOptions) => {
 
 	const headersObject: Record<string, string | undefined> = {
 		...(await getAuthHeader(auth)),
-		...objectifyHeaders(baseHeaders),
-		...objectifyHeaders(headers),
+		...objectifyHeaders(resolvedHeaders),
 	};
 
 	if (isQueryString(body)) {
@@ -117,6 +128,23 @@ export const getHeaders = async (options: MergeAndResolveHeadersOptions) => {
 	}
 
 	return headersObject;
+};
+
+export type GetBodyOptions = {
+	body: CallApiRequestOptions["body"];
+	bodySerializer: CallApiExtraOptions["bodySerializer"];
+};
+
+export const getBody = (options: GetBodyOptions) => {
+	const { body, bodySerializer } = options;
+
+	if (isSerializable(body)) {
+		const selectedBodySerializer = bodySerializer ?? commonDefaults.bodySerializer;
+
+		return selectedBodySerializer(body);
+	}
+
+	return body;
 };
 
 export const getFetchImpl = (customFetchImpl: CallApiExtraOptions["customFetchImpl"]) => {

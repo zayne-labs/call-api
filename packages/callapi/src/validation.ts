@@ -1,7 +1,21 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { Body, GlobalMeta, Headers, MethodUnion } from "./types";
+import type {
+	Body,
+	CallApiExtraOptions,
+	CallApiRequestOptions,
+	GlobalMeta,
+	HeadersOption,
+	MethodUnion,
+} from "./types";
 import type { StandardSchemaV1 } from "./types/standard-schema";
-import { type AnyFunction, type AnyString, type Awaitable, defineEnum } from "./types/type-helpers";
+import {
+	type AnyFunction,
+	type AnyString,
+	type Awaitable,
+	type Prettify,
+	type UnionToIntersection,
+	defineEnum,
+} from "./types/type-helpers";
 import type { Params, Query } from "./url";
 import { isFunction, isObject } from "./utils/guards";
 
@@ -19,24 +33,25 @@ export type InferSchemaResult<TSchema, TFallbackResult = NonNullable<unknown>> =
 			? TResult
 			: TFallbackResult;
 
-const handleValidatorFunction = async <TInput>(
-	validator: Extract<SchemaShape[keyof SchemaShape], AnyFunction>,
-	inputData: TInput
-): Promise<StandardSchemaV1.Result<TInput>> => {
-	try {
-		const result = await validator(inputData as never);
-
-		return { issues: undefined, value: result as never };
-	} catch (error) {
-		return { issues: error as never, value: undefined };
-	}
-};
-
 const validationErrorSymbol = Symbol("validationErrorSymbol");
 
 type ValidationErrorDetails = {
 	issues: readonly StandardSchemaV1.Issue[];
 	response: Response | null;
+};
+
+const formatPath = (path: StandardSchemaV1.Issue["path"]) => {
+	if (!path?.length) {
+		return "";
+	}
+
+	return ` → at ${path
+		.map((segment) => (typeof segment === "object" && "key" in segment ? segment.key : String(segment)))
+		.join(".")}`;
+};
+
+const formatValidationIssues = (issues: ValidationError["issues"]): string => {
+	return issues.map((issue) => `✖ ${issue.message}${formatPath(issue.path)}`).join(" | ");
 };
 
 export class ValidationError extends Error {
@@ -51,7 +66,9 @@ export class ValidationError extends Error {
 	constructor(details: ValidationErrorDetails, errorOptions?: ErrorOptions) {
 		const { issues, response } = details;
 
-		super(`Validation failed: ${JSON.stringify(issues, null, 2)}`, errorOptions);
+		const message = formatValidationIssues(issues);
+
+		super(message, errorOptions);
 
 		this.issues = issues;
 		this.response = response;
@@ -76,6 +93,19 @@ export class ValidationError extends Error {
 		return error.validationErrorSymbol === validationErrorSymbol && error.name === "ValidationError";
 	}
 }
+
+const handleValidatorFunction = async <TInput>(
+	validator: Extract<SchemaShape[keyof SchemaShape], AnyFunction>,
+	inputData: TInput
+): Promise<StandardSchemaV1.Result<TInput>> => {
+	try {
+		const result = await validator(inputData as never);
+
+		return { issues: undefined, value: result as never };
+	} catch (error) {
+		return { issues: error as never, value: undefined };
+	}
+};
 
 export const standardSchemaParser = async <TSchema extends NonNullable<SchemaShape[keyof SchemaShape]>>(
 	schema: TSchema,
@@ -104,15 +134,18 @@ export interface CallApiSchemaConfig {
 	baseURL?: string;
 
 	/**
+	 * Disables runtime validation for the schema.
+	 */
+	disableRuntimeValidation?: boolean;
+
+	/**
 	 * Controls the inference of the method option based on the route modifiers (`@get/`, `@post/`, `@put/`, `@patch/`, `@delete/`).
 	 *
-	 * - When `true`, the method option is made required on the type level.
-	 * - When `false` or `undefined`, the method option is not required on the type level.
-	 *
-	 * By default, the method modifier is automatically added to the request options.
+	 * - When `true`, the method option is made required on the type level and is not automatically added to the request options.
+	 * - When `false` or `undefined` (default), the method option is not required on the type level, and is automatically added to the request options.
 	 *
 	 */
-	requireMethodOption?: boolean;
+	requireHttpMethodProvision?: boolean;
 
 	/**
 	 * Controls the strictness of API route validation.
@@ -156,7 +189,9 @@ export interface SchemaShape {
 	/**
 	 *  The schema to use for validating the request headers.
 	 */
-	headers?: StandardSchemaV1<Headers | undefined> | ((headers: Headers) => Awaitable<Headers>);
+	headers?:
+		| StandardSchemaV1<HeadersOption | undefined>
+		| ((headers: HeadersOption) => Awaitable<HeadersOption>);
 
 	/**
 	 *  The schema to use for validating the meta option.
@@ -197,12 +232,119 @@ export interface BaseCallApiSchema {
 
 export type CallApiSchema = SchemaShape;
 
+type ValidationOptions<TSchema extends SchemaShape[keyof SchemaShape] = SchemaShape[keyof SchemaShape]> = {
+	inputValue: InferSchemaInput<TSchema>;
+	response?: Response | null;
+	schemaConfig: CallApiSchemaConfig | undefined;
+};
+
 export const handleValidation = async <TSchema extends SchemaShape[keyof SchemaShape]>(
 	schema: TSchema | undefined,
-	inputValue: InferSchemaInput<TSchema>,
-	response?: Response | null
-) => {
-	const validResult = schema ? await standardSchemaParser(schema, inputValue, response) : inputValue;
+	validationOptions: ValidationOptions<TSchema>
+): Promise<InferSchemaResult<TSchema>> => {
+	const { inputValue, response, schemaConfig } = validationOptions;
 
-	return validResult as InferSchemaResult<TSchema>;
+	if (!schema || schemaConfig?.disableRuntimeValidation) {
+		return inputValue as never;
+	}
+
+	const validResult = await standardSchemaParser(schema, inputValue, response);
+
+	return validResult as never;
+};
+
+type LastOf<TValue> =
+	UnionToIntersection<TValue extends unknown ? () => TValue : never> extends () => infer R ? R : never;
+
+type Push<TArray extends unknown[], TArrayItem> = [...TArray, TArrayItem];
+
+type UnionToTuple<
+	TUnion,
+	TComputedLastUnion = LastOf<TUnion>,
+	TComputedIsUnionEqualToNever = [TUnion] extends [never] ? true : false,
+> = true extends TComputedIsUnionEqualToNever
+	? []
+	: Push<UnionToTuple<Exclude<TUnion, TComputedLastUnion>>, TComputedLastUnion>;
+
+export type Tuple<
+	TTuple,
+	TArray extends TTuple[] = [],
+> = UnionToTuple<TTuple>["length"] extends TArray["length"]
+	? [...TArray]
+	: Tuple<TTuple, [TTuple, ...TArray]>;
+
+const extraOptionsToBeValidated = defineEnum(["meta", "params", "query"] satisfies Tuple<
+	Extract<keyof SchemaShape, keyof CallApiExtraOptions>
+>);
+
+type ExtraOptionsValidationOptions = {
+	extraOptions: CallApiExtraOptions;
+	schema: SchemaShape | undefined;
+	schemaConfig: CallApiSchemaConfig | undefined;
+};
+
+export const handleExtraOptionsValidation = async (validationOptions: ExtraOptionsValidationOptions) => {
+	const { extraOptions, schema, schemaConfig } = validationOptions;
+
+	const validationResultArray = await Promise.all(
+		extraOptionsToBeValidated.map((propertyKey) =>
+			handleValidation(schema?.[propertyKey], {
+				inputValue: extraOptions[propertyKey],
+				schemaConfig,
+			})
+		)
+	);
+
+	const validatedResultObject: Prettify<
+		Pick<CallApiExtraOptions, (typeof extraOptionsToBeValidated)[number]>
+	> = {};
+
+	for (const [index, propertyKey] of extraOptionsToBeValidated.entries()) {
+		const validationResult = validationResultArray[index];
+
+		if (validationResult === undefined) continue;
+
+		validatedResultObject[propertyKey] = validationResult as never;
+	}
+
+	return validatedResultObject;
+};
+
+const requestOptionsToBeValidated = defineEnum(["body", "headers", "method"] satisfies Tuple<
+	Extract<keyof SchemaShape, keyof CallApiRequestOptions>
+>);
+
+type RequestOptionsValidationOptions = {
+	requestOptions: CallApiRequestOptions;
+	schema: SchemaShape | undefined;
+	schemaConfig: CallApiSchemaConfig | undefined;
+};
+
+export const handleRequestOptionsValidation = async (
+	validationOptions: RequestOptionsValidationOptions
+) => {
+	const { requestOptions, schema, schemaConfig } = validationOptions;
+
+	const validationResultArray = await Promise.all(
+		requestOptionsToBeValidated.map((propertyKey) =>
+			handleValidation(schema?.[propertyKey], {
+				inputValue: requestOptions[propertyKey],
+				schemaConfig,
+			})
+		)
+	);
+
+	const validatedResultObject: Prettify<
+		Pick<CallApiRequestOptions, (typeof requestOptionsToBeValidated)[number]>
+	> = {};
+
+	for (const [index, propertyKey] of requestOptionsToBeValidated.entries()) {
+		const validationResult = validationResultArray[index];
+
+		if (validationResult === undefined) continue;
+
+		validatedResultObject[propertyKey] = validationResult as never;
+	}
+
+	return validatedResultObject;
 };

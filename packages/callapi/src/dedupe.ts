@@ -26,9 +26,16 @@ export const getAbortErrorMessage = (
 };
 
 export const createDedupeStrategy = async (context: DedupeContext) => {
-	const { $RequestInfoCache, baseConfig, config, newFetchController, options, request } = context;
+	const {
+		$RequestInfoCache,
+		baseConfig,
+		config,
+		newFetchController,
+		options: globalOptions,
+		request: globalRequest,
+	} = context;
 
-	const dedupeStrategy = options.dedupeStrategy ?? dedupeDefaults.dedupeStrategy;
+	const dedupeStrategy = globalOptions.dedupeStrategy ?? dedupeDefaults.dedupeStrategy;
 
 	const generateDedupeKey = () => {
 		const shouldHaveDedupeKey = dedupeStrategy === "cancel" || dedupeStrategy === "defer";
@@ -37,10 +44,10 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 			return null;
 		}
 
-		return `${options.fullURL}-${JSON.stringify({ options, request })}`;
+		return `${globalOptions.fullURL}-${JSON.stringify({ options: globalOptions, request: globalRequest })}`;
 	};
 
-	const dedupeKey = options.dedupeKey ?? generateDedupeKey();
+	const dedupeKey = globalOptions.dedupeKey ?? generateDedupeKey();
 
 	// == This is to ensure cache operations only occur when key is available
 	const $RequestInfoCacheOrNull = dedupeKey !== null ? $RequestInfoCache : null;
@@ -60,7 +67,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 
 		if (!shouldCancelRequest) return;
 
-		const message = getAbortErrorMessage(options.dedupeKey, options.fullURL);
+		const message = getAbortErrorMessage(globalOptions.dedupeKey, globalOptions.fullURL);
 
 		const reason = new DOMException(message, "AbortError");
 
@@ -70,16 +77,21 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 		return Promise.resolve();
 	};
 
-	const handleRequestDeferStrategy = async () => {
+	const handleRequestDeferStrategy = async (
+		options: DedupeContext["options"],
+		request: DedupeContext["request"]
+	) => {
 		const fetchApi = getFetchImpl(options.customFetchImpl);
 
 		const shouldUsePromiseFromCache = prevRequestInfo && dedupeStrategy === "defer";
 
+		const requestObjectForStream = isReadableStream(request.body)
+			? { ...request, duplex: request.duplex ?? "half" }
+			: request;
+
 		const requestInstance = new Request(
 			options.fullURL as NonNullable<typeof options.fullURL>,
-			(isReadableStream(request.body) && !request.duplex
-				? { ...request, duplex: "half" }
-				: request) as RequestInit
+			requestObjectForStream as RequestInit
 		);
 
 		await toStreamableRequest({

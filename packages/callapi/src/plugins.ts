@@ -138,7 +138,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 	const resolvedPlugins = resolvePluginArray(options.plugins, baseConfig.plugins);
 
-	let resolvedUrl = initURL;
+	let resolvedUrl = initURL as NonNullable<typeof initURL>;
 	let resolvedOptions = options;
 	let resolvedRequestOptions = request;
 
@@ -198,6 +198,6 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		resolvedHooks,
 		resolvedOptions,
 		resolvedRequestOptions,
-		url: resolvedUrl?.toString(),
+		url: resolvedUrl.toString(),
 	};
 };

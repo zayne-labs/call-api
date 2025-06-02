@@ -1,9 +1,10 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { CallApiExtraOptions, SharedExtraOptions } from "./types/common";
+import { requestOptionDefaults } from "./constants/default-options";
+import type { CallApiExtraOptions, CallApiRequestOptions, SharedExtraOptions } from "./types/common";
 import type { UnmaskType } from "./types/type-helpers";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/guards";
-import { routeKeyMethods } from "./validation";
+import { type CallApiSchemaConfig, routeKeyMethods } from "./validation";
 
 const slash = "/";
 const column = ":";
@@ -56,6 +57,23 @@ const mergeUrlWithQuery = (url: string, query: CallApiExtraOptions["query"]): st
 	return `${url}${questionMark}${queryString}`;
 };
 
+export const getCurrentRouteKey = (url: string, schemaConfig: CallApiSchemaConfig | undefined) => {
+	let currentRouteKey = url;
+
+	if (schemaConfig?.baseURL && currentRouteKey.startsWith(schemaConfig.baseURL)) {
+		currentRouteKey = currentRouteKey.replace(schemaConfig.baseURL, "");
+	}
+
+	return currentRouteKey;
+};
+
+/**
+ * @description
+ * Extracts the method from the URL if it is a schema modifier.
+ *
+ * @param url - The URL to extract the method from.
+ * @returns The method if it is a schema modifier, otherwise undefined.
+ */
 export const getMethodFromURL = (url: string | undefined) => {
 	if (!url?.startsWith("@")) return;
 
@@ -66,31 +84,52 @@ export const getMethodFromURL = (url: string | undefined) => {
 	return method;
 };
 
-const removeMethodFromURL = (url: string) => {
-	const method = getMethodFromURL(url);
+export type GetMethodOptions = {
+	method: CallApiRequestOptions["method"];
+	schemaConfig?: CallApiSchemaConfig;
+	url: string | undefined;
+};
 
-	if (method) {
-		const actualUrl = url.replace(`@${method}/`, "/");
+export const getMethod = (options: GetMethodOptions) => {
+	const { method, schemaConfig, url } = options;
 
-		return actualUrl;
+	if (schemaConfig?.requireHttpMethodProvision === true) {
+		return method?.toUpperCase() ?? requestOptionDefaults.method;
 	}
 
-	return url;
+	return method?.toUpperCase() ?? getMethodFromURL(url)?.toUpperCase() ?? requestOptionDefaults.method;
+};
+
+export const removeMethodFromURL = (url: string) => {
+	const methodFromURL = getMethodFromURL(url);
+
+	if (!methodFromURL) {
+		return url;
+	}
+
+	const actualUrl = url.replace(`@${methodFromURL}/`, "/");
+
+	return actualUrl;
 };
 
 export const getMainURL = (
-	url: string | undefined,
+	url: string,
+	baseURL: string | undefined,
 	params: SharedExtraOptions["params"],
 	query: SharedExtraOptions["query"]
 ) => {
-	if (!url) return;
-
 	// == Remove method modifiers
 	const actualUrl = removeMethodFromURL(url);
 
 	const urlWithMergedParams = mergeUrlWithParams(actualUrl, params);
 
-	return mergeUrlWithQuery(urlWithMergedParams, query);
+	const urlWithMergedQueryAndParams = mergeUrlWithQuery(urlWithMergedParams, query);
+
+	if (urlWithMergedQueryAndParams.startsWith("http") || !baseURL) {
+		return urlWithMergedQueryAndParams;
+	}
+
+	return `${baseURL}${urlWithMergedQueryAndParams}`;
 };
 
 export type AllowedQueryParamValues = UnmaskType<boolean | number | string>;
