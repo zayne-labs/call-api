@@ -1,13 +1,13 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { CallApiPlugin, CallApiSchema } from "..";
+import type { CallApiPlugin } from "../plugins";
 import type { ResultModeUnion } from "../result";
 import type { AllowedQueryParamValues, Params, Query } from "../url";
 import type {
 	BaseCallApiSchema,
+	CallApiSchema,
 	CallApiSchemaConfig,
 	InferSchemaResult,
 	RouteKeyMethods,
-	SchemaShape,
 } from "../validation";
 import type {
 	AnyFunction,
@@ -24,7 +24,7 @@ import type {
 /**
  * @description Makes a type required if the output type of TSchema contains undefined, otherwise keeps it as is
  */
-type MakeSchemaOptionRequired<TSchema extends SchemaShape[keyof SchemaShape], TObject> =
+type MakeSchemaOptionRequired<TSchema extends CallApiSchema[keyof CallApiSchema], TObject> =
 	undefined extends InferSchemaResult<TSchema, undefined> ? TObject : Required<TObject>;
 
 export type ApplyURLBasedConfig<
@@ -47,10 +47,7 @@ export type ApplySchemaConfiguration<
 export type InferAllRouteKeys<
 	TBaseSchema extends BaseCallApiSchema,
 	TSchemaConfig extends CallApiSchemaConfig,
-> = ApplySchemaConfiguration<
-	TSchemaConfig,
-	keyof TBaseSchema["schemasPerRoute"] extends string ? keyof TBaseSchema["schemasPerRoute"] : never
->;
+> = ApplySchemaConfiguration<TSchemaConfig, keyof TBaseSchema extends string ? keyof TBaseSchema : never>;
 
 export type InferInitURL<
 	TBaseSchema extends BaseCallApiSchema,

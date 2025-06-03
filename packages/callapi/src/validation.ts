@@ -20,11 +20,12 @@ import {
 import type { Params, Query } from "./url";
 import { isFunction, isObject } from "./utils/guards";
 
-type InferSchemaInput<TSchema extends SchemaShape[keyof SchemaShape]> = TSchema extends StandardSchemaV1
-	? StandardSchemaV1.InferInput<TSchema>
-	: TSchema extends (value: infer TInput) => unknown
-		? TInput
-		: never;
+type InferSchemaInput<TSchema extends CallApiSchema[keyof CallApiSchema]> =
+	TSchema extends StandardSchemaV1
+		? StandardSchemaV1.InferInput<TSchema>
+		: TSchema extends (value: infer TInput) => unknown
+			? TInput
+			: never;
 
 export type InferSchemaResult<TSchema, TFallbackResult = NonNullable<unknown>> = undefined extends TSchema
 	? TFallbackResult
@@ -96,7 +97,7 @@ export class ValidationError extends Error {
 }
 
 const handleValidatorFunction = async <TInput>(
-	validator: Extract<SchemaShape[keyof SchemaShape], AnyFunction>,
+	validator: Extract<CallApiSchema[keyof CallApiSchema], AnyFunction>,
 	inputData: TInput
 ): Promise<StandardSchemaV1.Result<TInput>> => {
 	try {
@@ -108,7 +109,9 @@ const handleValidatorFunction = async <TInput>(
 	}
 };
 
-export const standardSchemaParser = async <TSchema extends NonNullable<SchemaShape[keyof SchemaShape]>>(
+export const standardSchemaParser = async <
+	TSchema extends NonNullable<CallApiSchema[keyof CallApiSchema]>,
+>(
 	schema: TSchema,
 	inputData: InferSchemaInput<TSchema>,
 	response?: Response | null
@@ -179,7 +182,7 @@ export type RouteKeyMethods = (typeof routeKeyMethods)[number];
 
 type RouteKey = `@${RouteKeyMethods}/${AnyString}` | AnyString;
 
-export interface SchemaShape {
+export interface CallApiSchema {
 	/**
 	 *  The schema to use for validating the request body.
 	 */
@@ -223,47 +226,23 @@ export interface SchemaShape {
 	query?: StandardSchemaV1<Query | undefined> | ((query: Query) => Awaitable<Query>);
 }
 
-export type BaseSchemasPerRoute = {
-	[key in RouteKey]?: SchemaShape;
+export type BaseCallApiSchema = {
+	[key in RouteKey]?: CallApiSchema;
 };
 
-export interface BaseCallApiSchema {
-	/**
-	 * Base schema configuration options
-	 */
-	config?: CallApiSchemaConfig;
-
-	/**
-	 * Schemas for each route
-	 */
-	schemasPerRoute: BaseSchemasPerRoute;
-}
-
-export const defineBaseSchema = <
-	const TBaseSchemaPerRoute extends BaseSchemasPerRoute,
-	const TConfig extends CallApiSchemaConfig,
->(
-	schemasPerRoute: TBaseSchemaPerRoute,
-	config: TConfig = {} as never
-) => {
-	const baseSchema = {
-		schemasPerRoute,
-		// eslint-disable-next-line perfectionist/sort-objects -- First one first
-		config,
-	} satisfies BaseCallApiSchema;
-
+export const defineSchema = <const TBaseSchema extends BaseCallApiSchema>(baseSchema: TBaseSchema) => {
 	return baseSchema as Writeable<typeof baseSchema, "deep">;
 };
 
-export type CallApiSchema = SchemaShape;
-
-type ValidationOptions<TSchema extends SchemaShape[keyof SchemaShape] = SchemaShape[keyof SchemaShape]> = {
+type ValidationOptions<
+	TSchema extends CallApiSchema[keyof CallApiSchema] = CallApiSchema[keyof CallApiSchema],
+> = {
 	inputValue: InferSchemaInput<TSchema>;
 	response?: Response | null;
 	schemaConfig: CallApiSchemaConfig | undefined;
 };
 
-export const handleValidation = async <TSchema extends SchemaShape[keyof SchemaShape]>(
+export const handleValidation = async <TSchema extends CallApiSchema[keyof CallApiSchema]>(
 	schema: TSchema | undefined,
 	validationOptions: ValidationOptions<TSchema>
 ): Promise<InferSchemaResult<TSchema>> => {
@@ -298,13 +277,13 @@ export type Tuple<
 	? [...TArray]
 	: Tuple<TTuple, [TTuple, ...TArray]>;
 
-const extraOptionsToBeValidated = defineEnum(["meta", "params", "query"] satisfies Tuple<
-	Extract<keyof SchemaShape, keyof CallApiExtraOptions>
->);
+const extraOptionsToBeValidated = ["meta", "params", "query"] satisfies Tuple<
+	Extract<keyof CallApiSchema, keyof CallApiExtraOptions>
+>;
 
 type ExtraOptionsValidationOptions = {
 	extraOptions: CallApiExtraOptions;
-	schema: SchemaShape | undefined;
+	schema: CallApiSchema | undefined;
 	schemaConfig: CallApiSchemaConfig | undefined;
 };
 
@@ -335,13 +314,13 @@ const handleExtraOptionsValidation = async (validationOptions: ExtraOptionsValid
 	return validatedResultObject;
 };
 
-const requestOptionsToBeValidated = defineEnum(["body", "headers", "method"] satisfies Tuple<
-	Extract<keyof SchemaShape, keyof CallApiRequestOptions>
->);
+const requestOptionsToBeValidated = ["body", "headers", "method"] satisfies Tuple<
+	Extract<keyof CallApiSchema, keyof CallApiRequestOptions>
+>;
 
 type RequestOptionsValidationOptions = {
 	requestOptions: CallApiRequestOptions;
-	schema: SchemaShape | undefined;
+	schema: CallApiSchema | undefined;
 	schemaConfig: CallApiSchemaConfig | undefined;
 };
 
@@ -389,8 +368,5 @@ export const handleOptionsValidation = async (
 		handleRequestOptionsValidation({ requestOptions, schema, schemaConfig }),
 	]);
 
-	return {
-		extraOptionsValidationResult,
-		requestOptionsValidationResult,
-	};
+	return { extraOptionsValidationResult, requestOptionsValidationResult };
 };

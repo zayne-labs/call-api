@@ -1,10 +1,10 @@
 import {
-	type BaseCallApiSchema,
 	type PluginHooksWithMoreOptions,
 	type PluginInitContext,
 	type SuccessContext,
 	createFetchClient,
 	definePlugin,
+	defineSchema,
 } from "@zayne-labs/callapi";
 import { loggerPlugin } from "@zayne-labs/callapi-plugins";
 import z from "zod";
@@ -68,29 +68,20 @@ const plugin2 = definePlugin(() => ({
 	name: "plugin",
 }));
 
-const baseSchemas = {
-	config: {
-		// disableRuntimeValidation: true,
-		// baseURL: "local",
-		// requireMethodOption: true,
-		// strict: true,
+const baseSchemas = defineSchema({
+	"@delete/products/:food": {
+		data: z.object({
+			id: z.number(),
+		}),
 	},
-
-	routes: {
-		"@delete/products/:food": {
-			data: z.object({
-				id: z.number(),
-			}),
-		},
-		"/products/:id": {
-			data: z.object({
-				id: z.number(),
-				price: z.number(),
-				title: z.string(),
-			}),
-		},
+	"/products/:id": {
+		data: z.object({
+			id: z.number(),
+			price: z.number(),
+			title: z.string(),
+		}),
 	},
-} as const satisfies BaseCallApiSchema;
+});
 
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
@@ -99,6 +90,9 @@ const callMainApi = createFetchClient({
 	onUploadSuccess: (_progress) => {},
 	plugins: [plugin1, plugin2(), loggerPlugin()],
 	schema: baseSchemas,
+	schemaConfig: {
+		baseURL: "loclc",
+	},
 });
 
 // function wait(milliseconds: number) {
@@ -122,7 +116,7 @@ const callMainApi = createFetchClient({
 // }).pipeThrough(new TextEncoderStream());
 
 const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
-	callMainApi<{ foo: string }>("/products/:id", {
+	callMainApi("/products/:id", {
 		onRequest: () => console.info("OnRequest - INSTANCE"),
 		params: [1],
 	}),

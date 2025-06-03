@@ -13,6 +13,7 @@ const defineParameters = <
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TBaseSchemaConfig extends CallApiSchemaConfig = BaseCallApiSchema,
 	TSchema extends CallApiSchema = CallApiSchema,
 	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TInitURL extends InferInitURL<BaseCallApiSchema, TSchemaConfig> = InferInitURL<
@@ -30,6 +31,7 @@ const defineParameters = <
 		TBasePluginArray,
 		TPluginArray,
 		TBaseSchema,
+		TBaseSchemaConfig,
 		TSchema,
 		TSchemaConfig,
 		TInitURL,

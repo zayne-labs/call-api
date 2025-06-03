@@ -186,6 +186,7 @@ export type BaseCallApiExtraOptions<
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 > = SharedExtraOptions<
 	TBaseData,
 	TBaseErrorData,
@@ -205,6 +206,11 @@ export type BaseCallApiExtraOptions<
 	 * Base schemas for the client.
 	 */
 	schema?: TBaseSchema;
+
+	/**
+	 * Schema Configuration
+	 */
+	schemaConfig?: TBaseSchemaConfig;
 
 	/**
 	 * Specifies which configuration parts should skip automatic merging between base and main configs.
@@ -238,6 +244,7 @@ export type CallApiExtraOptions<
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TSchema extends CallApiSchema = CallApiSchema,
 	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TCurrentRouteKey extends string = string,
@@ -260,7 +267,7 @@ export type CallApiExtraOptions<
 		| TSchema
 		| ((context: {
 				baseSchema: TBaseSchema;
-				routeSchema: NonNullable<TBaseSchema["schemasPerRoute"][TCurrentRouteKey]>;
+				routeSchema: NonNullable<TBaseSchema[TCurrentRouteKey]>;
 		  }) => TSchema);
 
 	/**
@@ -268,7 +275,7 @@ export type CallApiExtraOptions<
 	 */
 	schemaConfig?:
 		| TSchemaConfig
-		| ((context: { baseSchemaConfig: NonNullable<TBaseSchema["config"]> }) => TSchemaConfig);
+		| ((context: { baseSchemaConfig: NonNullable<TBaseSchemaConfig> }) => TSchemaConfig);
 };
 
 // eslint-disable-next-line ts-eslint/consistent-type-definitions -- Allow this to be an interface
@@ -282,6 +289,7 @@ export type BaseCallApiConfig<
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 > =
 	| (CallApiRequestOptions // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
 			& BaseCallApiExtraOptions<
@@ -291,7 +299,8 @@ export type BaseCallApiConfig<
 				TBaseThrowOnError,
 				TBaseResponseType,
 				TBasePluginArray,
-				TBaseSchema
+				TBaseSchema,
+				TBaseSchemaConfig
 			>)
 	| ((context: {
 			initURL: string;
@@ -305,7 +314,8 @@ export type BaseCallApiConfig<
 				TBaseThrowOnError,
 				TBaseResponseType,
 				TBasePluginArray,
-				TBaseSchema
+				TBaseSchema,
+				TBaseSchemaConfig
 			>);
 
 export type CallApiConfig<
@@ -317,6 +327,7 @@ export type CallApiConfig<
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TSchema extends CallApiSchema = CallApiSchema,
 	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TInitURL extends InferInitURL<BaseCallApiSchema, TSchemaConfig> = InferInitURL<
@@ -336,6 +347,7 @@ export type CallApiConfig<
 			TBasePluginArray,
 			TPluginArray,
 			TBaseSchema,
+			TBaseSchemaConfig,
 			TSchema,
 			TSchemaConfig,
 			TCurrentRouteKey
@@ -353,6 +365,7 @@ export type CallApiParameters<
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TSchema extends CallApiSchema = CallApiSchema,
 	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TInitURL extends InferInitURL<BaseCallApiSchema, TSchemaConfig> = InferInitURL<
@@ -371,6 +384,7 @@ export type CallApiParameters<
 		TBasePluginArray,
 		TPluginArray,
 		TBaseSchema,
+		TBaseSchemaConfig,
 		TSchema,
 		TSchemaConfig,
 		TInitURL,

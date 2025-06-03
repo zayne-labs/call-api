@@ -47,7 +47,6 @@ import {
 	type CallApiSchema,
 	type CallApiSchemaConfig,
 	type InferSchemaResult,
-	type SchemaShape,
 	handleOptionsValidation,
 	handleValidation,
 } from "./validation";
@@ -59,6 +58,7 @@ export const createFetchClient = <
 	TBaseThrowOnError extends boolean = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	const TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
+	const TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 >(
 	initBaseConfig: BaseCallApiConfig<
@@ -68,7 +68,8 @@ export const createFetchClient = <
 		TBaseThrowOnError,
 		TBaseResponseType,
 		TBasePluginArray,
-		TBaseSchema
+		TBaseSchema,
+		TBaseSchemaConfig
 	> = {} as never
 ) => {
 	const $RequestInfoCache: RequestInfoCache = new Map();
@@ -79,16 +80,16 @@ export const createFetchClient = <
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 		TThrowOnError extends boolean = TBaseThrowOnError,
 		TResponseType extends ResponseTypeUnion = TBaseResponseType,
-		const TSchemaConfig extends CallApiSchemaConfig = NonNullable<TBaseSchema["config"]>,
+		TSchemaConfig extends CallApiSchemaConfig = Omit<CallApiSchemaConfig, keyof TBaseSchemaConfig>
+			& TBaseSchemaConfig,
 		TInitURL extends InferInitURL<TBaseSchema, TSchemaConfig> = InferInitURL<TBaseSchema, TSchemaConfig>,
 		TCurrentRouteKey extends GetCurrentRouteKey<TSchemaConfig, TInitURL> = GetCurrentRouteKey<
 			TSchemaConfig,
 			TInitURL
 		>,
-		TComputedRouteSchema extends SchemaShape = NonNullable<
-			TBaseSchema["schemasPerRoute"][TCurrentRouteKey]
-		>,
-		TSchema extends CallApiSchema = Omit<SchemaShape, keyof TComputedRouteSchema> & TComputedRouteSchema,
+		TComputedRouteSchema extends CallApiSchema = NonNullable<TBaseSchema[TCurrentRouteKey]>,
+		TSchema extends CallApiSchema = Omit<CallApiSchema, keyof TComputedRouteSchema>
+			& TComputedRouteSchema,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 	>(
 		...parameters: CallApiParameters<
@@ -100,6 +101,7 @@ export const createFetchClient = <
 			TBasePluginArray,
 			TPluginArray,
 			TBaseSchema,
+			TBaseSchemaConfig,
 			TSchema,
 			TSchemaConfig,
 			TInitURL,
@@ -156,20 +158,22 @@ export const createFetchClient = <
 			resolvedOptions.query
 		);
 
-		const schemaConfig = extraOptions.schemaConfig ?? baseExtraOptions.schema?.config;
+		const schemaConfig = extraOptions.schemaConfig ?? baseExtraOptions.schemaConfig;
 
 		const resolvedSchemaConfig = isFunction(schemaConfig)
-			? schemaConfig({ baseSchemaConfig: baseExtraOptions.schema?.config ?? ({} as never) })
+			? schemaConfig({
+					baseSchemaConfig: baseExtraOptions.schemaConfig ?? ({} as never),
+				})
 			: schemaConfig;
 
 		const currentRouteKey = getCurrentRouteKey(url, resolvedSchemaConfig);
 
-		const schema = extraOptions.schema ?? baseExtraOptions.schema?.schemasPerRoute[currentRouteKey];
+		const schema = extraOptions.schema ?? baseExtraOptions.schema?.[currentRouteKey];
 
 		const resolvedSchema = isFunction(schema)
 			? schema({
 					baseSchema: baseExtraOptions.schema ?? ({} as never),
-					routeSchema: baseExtraOptions.schema?.schemasPerRoute[currentRouteKey] ?? ({} as never),
+					routeSchema: baseExtraOptions.schema?.[currentRouteKey] ?? ({} as never),
 				})
 			: schema;
 
@@ -384,7 +388,7 @@ export const createFetchClient = <
 						"~retryAttemptCount": currentAttemptCount + 1,
 					} satisfies typeof config;
 
-					return callApi(initURL, updatedOptions as never) as never;
+					return callApi(initURL as never, updatedOptions as never) as never;
 				}
 
 				if (shouldThrowOnError) {
