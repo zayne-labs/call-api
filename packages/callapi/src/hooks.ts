@@ -23,11 +23,6 @@ export type PluginExtraOptions<TPluginOptions = unknown> = {
 /* eslint-disable perfectionist/sort-intersection-types -- Plugin options should come last */
 export type Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPluginOptions = unknown> = {
 	/**
-	 * Hook that will be called before the request is made, and before any internal transformations are applied to the options.
-	 */
-	onBeforeRequest?: (context: RequestContext & PluginExtraOptions<TPluginOptions>) => Awaitable<unknown>;
-
-	/**
 	 * Hook that will be called when any error occurs within the request/response lifecycle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` hooks
 	 */
@@ -216,7 +211,6 @@ type HookRegistries = Required<{
 }>;
 
 export const hookRegistries = {
-	onBeforeRequest: new Set(),
 	onError: new Set(),
 	onRequest: new Set(),
 	onRequestError: new Set(),

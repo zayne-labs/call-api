@@ -180,12 +180,12 @@ export type InferQueryOption<TSchema extends CallApiSchema> = MakeSchemaOptionRe
 	}
 >;
 
-export type RemoveEmptyString<TString> = Exclude<TString, "">;
+type EmptyString = "";
 
 /* eslint-disable perfectionist/sort-union-types -- I need to preserve the order of the types */
 export type InferParamFromPath<TPath> =
 	TPath extends `${infer IgnoredPrefix}:${infer TCurrentParam}/${infer TRemainingPath}`
-		? TCurrentParam extends ""
+		? TCurrentParam extends EmptyString
 			? InferParamFromPath<TRemainingPath>
 			:
 					| Prettify<
@@ -207,7 +207,7 @@ export type InferParamFromPath<TPath> =
 								: Extract<InferParamFromPath<TRemainingPath>, unknown[]>),
 					  ]
 		: TPath extends `${infer IgnoredPrefix}:${infer TCurrentParam}`
-			? TCurrentParam extends ""
+			? TCurrentParam extends EmptyString
 				? Params
 				: Prettify<Record<TCurrentParam, AllowedQueryParamValues>> | [AllowedQueryParamValues]
 			: Params;

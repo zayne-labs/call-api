@@ -216,7 +216,7 @@ export const createFetchClient = <
 		try {
 			await handleRequestCancelStrategy();
 
-			await executeHooksInTryBlock(options.onBeforeRequest?.({ baseConfig, config, options, request }));
+			await executeHooksInTryBlock(options.onRequest?.({ baseConfig, config, options, request }));
 
 			const { extraOptionsValidationResult, requestOptionsValidationResult } =
 				await handleOptionsValidation({
@@ -236,34 +236,32 @@ export const createFetchClient = <
 					...options,
 					...extraOptionsValidationResult,
 				};
-
-				const validBody = getBody({
-					body: request.body,
-					bodySerializer: options.bodySerializer,
-				});
-
-				const validHeaders = await getHeaders({
-					auth: options.auth,
-					baseHeaders: request.headers,
-					body: validBody,
-					headers: request.headers,
-				});
-
-				const validMethod = getMethod({
-					method: requestOptionsValidationResult?.method,
-					schemaConfig: resolvedSchemaConfig,
-					url,
-				});
-
-				request = {
-					...request,
-					...(Boolean(validBody) && { body: validBody }),
-					...(Boolean(validHeaders) && { headers: validHeaders }),
-					...(Boolean(validMethod) && { method: validMethod }),
-				};
 			}
 
-			await executeHooksInTryBlock(options.onRequest?.({ baseConfig, config, options, request }));
+			const validBody = getBody({
+				body: shouldApplySchemaOutput ? requestOptionsValidationResult?.body : request.body,
+				bodySerializer: options.bodySerializer,
+			});
+
+			const validHeaders = await getHeaders({
+				auth: options.auth,
+				baseHeaders: request.headers,
+				body: request.body,
+				headers: shouldApplySchemaOutput ? requestOptionsValidationResult?.headers : request.headers,
+			});
+
+			const validMethod = getMethod({
+				method: shouldApplySchemaOutput ? requestOptionsValidationResult?.method : request.method,
+				schemaConfig: resolvedSchemaConfig,
+				url,
+			});
+
+			request = {
+				...request,
+				...(Boolean(validBody) && { body: validBody }),
+				...(Boolean(validHeaders) && { headers: validHeaders }),
+				...(Boolean(validMethod) && { method: validMethod }),
+			};
 
 			const response = await handleRequestDeferStrategy(options, request);
 

@@ -19,7 +19,7 @@ export default zayne(
 	{
 		files: ["packages/callapi/src/createFetchClient.ts"],
 		rules: {
-			complexity: ["warn", { max: 62 }],
+			complexity: ["warn", { max: 65 }],
 		},
 	}
 );
