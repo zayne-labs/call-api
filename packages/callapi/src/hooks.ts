@@ -1,3 +1,4 @@
+/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces */
 import {
 	type ErrorInfo,
 	type PossibleHTTPError,
@@ -16,12 +17,12 @@ import type { DefaultDataType } from "./types/default-types";
 import type { AnyFunction, Awaitable, UnmaskType } from "./types/type-helpers";
 import type { ValidationError } from "./validation";
 
-export type PluginExtraOptions<TPluginOptions = unknown> = {
+export interface PluginExtraOptions<TPluginOptions = unknown> {
 	options: Partial<TPluginOptions>;
-};
+}
 
 /* eslint-disable perfectionist/sort-intersection-types -- Plugin options should come last */
-export type Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPluginOptions = unknown> = {
+export interface Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPluginOptions = unknown> {
 	/**
 	 * Hook that will be called when any error occurs within the request/response lifecycle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` hooks
@@ -88,7 +89,7 @@ export type Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPlugin
 	onValidationError?: (
 		context: ValidationErrorContext & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
-};
+}
 /* eslint-enable perfectionist/sort-intersection-types -- Plugin options should come last */
 
 export type HooksOrHooksArray<
@@ -102,7 +103,6 @@ export type HooksOrHooksArray<
 		| Array<Hooks<TData, TErrorData, TMoreOptions>[Key]>;
 };
 
-// eslint-disable-next-line ts-eslint/consistent-type-definitions -- I need this to be an interface
 export interface SharedHookContext<TMoreOptions = unknown> {
 	/**
 	 * Config object passed to createFetchClient
