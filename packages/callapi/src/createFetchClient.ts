@@ -80,16 +80,14 @@ export const createFetchClient = <
 		TResultMode extends ResultModeUnion = TBaseResultMode,
 		TThrowOnError extends boolean = TBaseThrowOnError,
 		TResponseType extends ResponseTypeUnion = TBaseResponseType,
-		TSchemaConfig extends CallApiSchemaConfig = Omit<CallApiSchemaConfig, keyof TBaseSchemaConfig>
-			& TBaseSchemaConfig,
+		TSchemaConfig extends CallApiSchemaConfig = TBaseSchemaConfig,
 		TInitURL extends InferInitURL<TBaseSchema, TSchemaConfig> = InferInitURL<TBaseSchema, TSchemaConfig>,
 		TCurrentRouteKey extends GetCurrentRouteKey<TSchemaConfig, TInitURL> = GetCurrentRouteKey<
 			TSchemaConfig,
 			TInitURL
 		>,
 		TComputedRouteSchema extends CallApiSchema = NonNullable<TBaseSchema[TCurrentRouteKey]>,
-		TSchema extends CallApiSchema = Omit<CallApiSchema, keyof TComputedRouteSchema>
-			& TComputedRouteSchema,
+		TSchema extends CallApiSchema = TComputedRouteSchema,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 	>(
 		...parameters: CallApiParameters<

@@ -19,7 +19,7 @@ import type {
 	ThrowOnErrorOption,
 } from "./conditional-types";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./default-types";
-import type { Awaitable, Prettify, UnmaskType } from "./type-helpers";
+import type { Awaitable, Prettify, UnmaskType, Writeable } from "./type-helpers";
 
 type FetchSpecificKeysUnion = Exclude<(typeof fetchSpecificKeys)[number], "body" | "headers" | "method">;
 
@@ -205,12 +205,12 @@ export type BaseCallApiExtraOptions<
 	/**
 	 * Base schemas for the client.
 	 */
-	schema?: TBaseSchema;
+	schema?: Writeable<TBaseSchema, "deep">;
 
 	/**
 	 * Schema Configuration
 	 */
-	schemaConfig?: TBaseSchemaConfig;
+	schemaConfig?: Writeable<TBaseSchemaConfig, "deep">;
 
 	/**
 	 * Specifies which configuration parts should skip automatic merging between base and main configs.
@@ -264,18 +264,20 @@ export type CallApiExtraOptions<
 	 * Schemas for the callapi instance
 	 */
 	schema?:
-		| TSchema
+		| Writeable<TSchema, "deep">
 		| ((context: {
-				baseSchema: TBaseSchema;
-				routeSchema: NonNullable<TBaseSchema[TCurrentRouteKey]>;
-		  }) => TSchema);
+				baseSchema: Writeable<TBaseSchema, "deep">;
+				routeSchema: NonNullable<Writeable<TBaseSchema[TCurrentRouteKey], "deep">>;
+		  }) => Writeable<TSchema, "deep">);
 
 	/**
 	 * Schema config for the callapi instance
 	 */
 	schemaConfig?:
-		| TSchemaConfig
-		| ((context: { baseSchemaConfig: NonNullable<TBaseSchemaConfig> }) => TSchemaConfig);
+		| Writeable<TSchemaConfig, "deep">
+		| ((context: {
+				baseSchemaConfig: NonNullable<Writeable<TBaseSchemaConfig, "deep">>;
+		  }) => Writeable<TSchemaConfig, "deep">);
 };
 
 // eslint-disable-next-line ts-eslint/consistent-type-definitions -- Allow this to be an interface
