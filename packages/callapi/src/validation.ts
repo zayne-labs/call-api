@@ -14,6 +14,7 @@ import {
 	type Awaitable,
 	type Prettify,
 	type UnionToIntersection,
+	type Writeable,
 	defineEnum,
 } from "./types/type-helpers";
 import type { Params, Query } from "./url";
@@ -139,6 +140,14 @@ export interface CallApiSchemaConfig {
 	disableRuntimeValidation?: boolean;
 
 	/**
+	 * If `true`, the original input value will be used instead of the transformed/validated output.
+	 *
+	 * This is useful when you want to validate the input but don't want any transformations
+	 * applied by the validation schema (e.g., type coercion, default values, etc).
+	 */
+	disableValidationOutputApplication?: boolean;
+
+	/**
 	 * Controls the inference of the method option based on the route modifiers (`@get/`, `@post/`, `@put/`, `@patch/`, `@delete/`).
 	 *
 	 * - When `true`, the method option is made required on the type level and is not automatically added to the request options.
@@ -214,7 +223,7 @@ export interface SchemaShape {
 	query?: StandardSchemaV1<Query | undefined> | ((query: Query) => Awaitable<Query>);
 }
 
-type BaseSchemaRoutes = {
+export type BaseSchemasPerRoute = {
 	[key in RouteKey]?: SchemaShape;
 };
 
@@ -225,10 +234,26 @@ export interface BaseCallApiSchema {
 	config?: CallApiSchemaConfig;
 
 	/**
-	 * Schema routes
+	 * Schemas for each route
 	 */
-	routes: BaseSchemaRoutes;
+	schemasPerRoute: BaseSchemasPerRoute;
 }
+
+export const defineBaseSchema = <
+	const TBaseSchemaPerRoute extends BaseSchemasPerRoute,
+	const TConfig extends CallApiSchemaConfig,
+>(
+	schemasPerRoute: TBaseSchemaPerRoute,
+	config: TConfig = {} as never
+) => {
+	const baseSchema = {
+		schemasPerRoute,
+		// eslint-disable-next-line perfectionist/sort-objects -- First one first
+		config,
+	} satisfies BaseCallApiSchema;
+
+	return baseSchema as Writeable<typeof baseSchema, "deep">;
+};
 
 export type CallApiSchema = SchemaShape;
 
@@ -283,7 +308,7 @@ type ExtraOptionsValidationOptions = {
 	schemaConfig: CallApiSchemaConfig | undefined;
 };
 
-export const handleExtraOptionsValidation = async (validationOptions: ExtraOptionsValidationOptions) => {
+const handleExtraOptionsValidation = async (validationOptions: ExtraOptionsValidationOptions) => {
 	const { extraOptions, schema, schemaConfig } = validationOptions;
 
 	const validationResultArray = await Promise.all(
@@ -320,9 +345,7 @@ type RequestOptionsValidationOptions = {
 	schemaConfig: CallApiSchemaConfig | undefined;
 };
 
-export const handleRequestOptionsValidation = async (
-	validationOptions: RequestOptionsValidationOptions
-) => {
+const handleRequestOptionsValidation = async (validationOptions: RequestOptionsValidationOptions) => {
 	const { requestOptions, schema, schemaConfig } = validationOptions;
 
 	const validationResultArray = await Promise.all(
@@ -347,4 +370,27 @@ export const handleRequestOptionsValidation = async (
 	}
 
 	return validatedResultObject;
+};
+
+export const handleOptionsValidation = async (
+	validationOptions: ExtraOptionsValidationOptions & RequestOptionsValidationOptions
+) => {
+	const { extraOptions, requestOptions, schema, schemaConfig } = validationOptions;
+
+	if (schemaConfig?.disableRuntimeValidation) {
+		return {
+			extraOptionsValidationResult: null,
+			requestOptionsValidationResult: null,
+		};
+	}
+
+	const [extraOptionsValidationResult, requestOptionsValidationResult] = await Promise.all([
+		handleExtraOptionsValidation({ extraOptions, schema, schemaConfig }),
+		handleRequestOptionsValidation({ requestOptions, schema, schemaConfig }),
+	]);
+
+	return {
+		extraOptionsValidationResult,
+		requestOptionsValidationResult,
+	};
 };

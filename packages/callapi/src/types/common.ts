@@ -260,7 +260,7 @@ export type CallApiExtraOptions<
 		| TSchema
 		| ((context: {
 				baseSchema: TBaseSchema;
-				routeSchema: NonNullable<TBaseSchema["routes"][TCurrentRouteKey]>;
+				routeSchema: NonNullable<TBaseSchema["schemasPerRoute"][TCurrentRouteKey]>;
 		  }) => TSchema);
 
 	/**

@@ -15,6 +15,9 @@ export {
 	type BaseCallApiSchema,
 	type InferSchemaResult,
 	ValidationError,
+	type CallApiSchemaConfig,
+	type BaseSchemasPerRoute,
+	defineBaseSchema,
 } from "./validation";
 
 export type { RetryOptions } from "./retry";

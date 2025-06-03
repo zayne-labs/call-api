@@ -49,7 +49,7 @@ export type InferAllRouteKeys<
 	TSchemaConfig extends CallApiSchemaConfig,
 > = ApplySchemaConfiguration<
 	TSchemaConfig,
-	keyof TBaseSchema["routes"] extends string ? keyof TBaseSchema["routes"] : never
+	keyof TBaseSchema["schemasPerRoute"] extends string ? keyof TBaseSchema["schemasPerRoute"] : never
 >;
 
 export type InferInitURL<

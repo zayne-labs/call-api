@@ -48,8 +48,7 @@ import {
 	type CallApiSchemaConfig,
 	type InferSchemaResult,
 	type SchemaShape,
-	handleExtraOptionsValidation,
-	handleRequestOptionsValidation,
+	handleOptionsValidation,
 	handleValidation,
 } from "./validation";
 
@@ -86,7 +85,9 @@ export const createFetchClient = <
 			TSchemaConfig,
 			TInitURL
 		>,
-		TComputedRouteSchema extends SchemaShape = NonNullable<TBaseSchema["routes"][TCurrentRouteKey]>,
+		TComputedRouteSchema extends SchemaShape = NonNullable<
+			TBaseSchema["schemasPerRoute"][TCurrentRouteKey]
+		>,
 		TSchema extends CallApiSchema = Omit<SchemaShape, keyof TComputedRouteSchema> & TComputedRouteSchema,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 	>(
@@ -163,12 +164,12 @@ export const createFetchClient = <
 
 		const currentRouteKey = getCurrentRouteKey(url, resolvedSchemaConfig);
 
-		const schema = extraOptions.schema ?? baseExtraOptions.schema?.routes[currentRouteKey];
+		const schema = extraOptions.schema ?? baseExtraOptions.schema?.schemasPerRoute[currentRouteKey];
 
 		const resolvedSchema = isFunction(schema)
 			? schema({
 					baseSchema: baseExtraOptions.schema ?? ({} as never),
-					routeSchema: baseExtraOptions.schema?.routes[currentRouteKey] ?? ({} as never),
+					routeSchema: baseExtraOptions.schema?.schemasPerRoute[currentRouteKey] ?? ({} as never),
 				})
 			: schema;
 
@@ -215,48 +216,50 @@ export const createFetchClient = <
 
 			await executeHooksInTryBlock(options.onBeforeRequest?.({ baseConfig, config, options, request }));
 
-			const [requestOptionsValidationResult, extraOptionsValidationResult] = await Promise.all([
-				handleRequestOptionsValidation({
+			const { extraOptionsValidationResult, requestOptionsValidationResult } =
+				await handleOptionsValidation({
+					extraOptions: options,
 					requestOptions: request,
 					schema: resolvedSchema,
 					schemaConfig: resolvedSchemaConfig,
-				}),
-				handleExtraOptionsValidation({
-					extraOptions: options,
-					schema: resolvedSchema,
+				});
+
+			const shouldApplySchemaOutput =
+				Boolean(extraOptionsValidationResult)
+				|| Boolean(requestOptionsValidationResult)
+				|| !resolvedSchemaConfig?.disableValidationOutputApplication;
+
+			if (shouldApplySchemaOutput) {
+				options = {
+					...options,
+					...extraOptionsValidationResult,
+				};
+
+				const validBody = getBody({
+					body: request.body,
+					bodySerializer: options.bodySerializer,
+				});
+
+				const validHeaders = await getHeaders({
+					auth: options.auth,
+					baseHeaders: request.headers,
+					body: validBody,
+					headers: request.headers,
+				});
+
+				const validMethod = getMethod({
+					method: requestOptionsValidationResult?.method,
 					schemaConfig: resolvedSchemaConfig,
-				}),
-			]);
+					url,
+				});
 
-			const validBody = getBody({
-				body: request.body,
-				bodySerializer: options.bodySerializer,
-			});
-
-			const validHeaders = await getHeaders({
-				auth: options.auth,
-				baseHeaders: request.headers,
-				body: validBody,
-				headers: request.headers,
-			});
-
-			const validMethod = getMethod({
-				method: requestOptionsValidationResult.method,
-				schemaConfig: resolvedSchemaConfig,
-				url,
-			});
-
-			request = {
-				...request,
-				...(Boolean(validBody) && { body: validBody }),
-				...(Boolean(validHeaders) && { headers: validHeaders }),
-				...(Boolean(validMethod) && { method: validMethod }),
-			};
-
-			options = {
-				...options,
-				...extraOptionsValidationResult,
-			};
+				request = {
+					...request,
+					...(Boolean(validBody) && { body: validBody }),
+					...(Boolean(validHeaders) && { headers: validHeaders }),
+					...(Boolean(validMethod) && { method: validMethod }),
+				};
+			}
 
 			await executeHooksInTryBlock(options.onRequest?.({ baseConfig, config, options, request }));
 
