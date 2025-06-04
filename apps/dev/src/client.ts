@@ -68,31 +68,26 @@ const plugin2 = definePlugin(() => ({
 	name: "plugin",
 }));
 
-const baseSchemas = defineSchema({
-	"@delete/products/:food": {
-		data: z.object({
-			id: z.number(),
-		}),
-	},
-	"/products/:id": {
-		data: z.object({
-			id: z.number(),
-			price: z.number(),
-			title: z.string(),
-		}),
-	},
-});
-
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
 	onRequest: [() => console.info("OnRequest1 - BASE"), () => console.info("OnRequest2 - BASE")],
 	onUpload: (_progress) => {},
 	onUploadSuccess: (_progress) => {},
 	plugins: [plugin1, plugin2(), loggerPlugin()],
-	schema: baseSchemas,
-	schemaConfig: {
-		baseURL: "loclc",
-	},
+	schema: defineSchema({
+		"@delete/products/:food": {
+			data: z.object({
+				id: z.number(),
+			}),
+		},
+		"/products/:id": {
+			data: z.object({
+				id: z.number(),
+				price: z.number(),
+				title: z.string(),
+			}),
+		},
+	}),
 });
 
 // function wait(milliseconds: number) {
