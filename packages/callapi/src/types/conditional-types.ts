@@ -15,7 +15,6 @@ import type {
 	CommonAuthorizationHeaders,
 	CommonContentTypes,
 	CommonRequestHeaders,
-	LiteralUnion,
 	Prettify,
 	UnionToIntersection,
 	UnmaskType,
@@ -37,7 +36,8 @@ export type ApplyURLBasedConfig<
 export type ApplyStrictConfig<
 	TSchemaConfig extends CallApiSchemaConfig,
 	TCurrentRouteKeys extends string,
-> = TSchemaConfig["strict"] extends true ? TCurrentRouteKeys : LiteralUnion<TCurrentRouteKeys>;
+	// eslint-disable-next-line perfectionist/sort-union-types -- Don't sort union
+> = TSchemaConfig["strict"] extends true ? TCurrentRouteKeys : TCurrentRouteKeys | AnyString;
 
 export type ApplySchemaConfiguration<
 	TSchemaConfig extends CallApiSchemaConfig,
@@ -141,7 +141,7 @@ export type InferHeadersOption<TSchema extends CallApiSchema> = MakeSchemaOption
 		headers?:
 			| InferSchemaResult<TSchema["headers"], HeadersOption>
 			| ((context: {
-					baseHeaders: HeadersOption;
+					baseHeaders: NonNullable<HeadersOption>;
 			  }) => InferSchemaResult<TSchema["headers"], HeadersOption>);
 	}
 >;

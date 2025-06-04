@@ -94,21 +94,18 @@ export type GetHeadersOptions = {
 export const getHeaders = async (options: GetHeadersOptions) => {
 	const { auth, baseHeaders, body, headers } = options;
 
-	const selectedHeaders = headers ?? baseHeaders;
-
 	type HeaderFn = Extract<InferHeadersOption<CallApiSchema>["headers"], AnyFunction>;
 
-	const resolvedHeaders = isFunction<HeaderFn>(selectedHeaders)
-		? selectedHeaders({ baseHeaders })
-		: selectedHeaders;
+	const resolvedHeaders = isFunction<HeaderFn>(headers)
+		? headers({ baseHeaders: baseHeaders ?? {} })
+		: (headers ?? baseHeaders);
 
-	// eslint-disable-next-line ts-eslint/prefer-nullish-coalescing -- Nullish coalescing makes no sense in this boolean context
-	const shouldResolveHeaders = Boolean(resolvedHeaders || body || auth);
+	// == Return early if any of the following conditions are met (so that native fetch would auto set the correct headers):
+	// == - The headers are not provided
+	// == - The body is not provided
+	// == - The auth option is not provided
+	const shouldResolveHeaders = Boolean(resolvedHeaders) || Boolean(body) || Boolean(auth);
 
-	// == Return early if any of the following conditions are not met (so that native fetch would auto set the correct headers):
-	// == - headers are provided
-	// == - The body is an object
-	// == - The auth option is provided
 	if (!shouldResolveHeaders) return;
 
 	const headersObject: Record<string, string | undefined> = {

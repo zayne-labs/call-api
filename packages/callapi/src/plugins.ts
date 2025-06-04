@@ -14,14 +14,20 @@ import type {
 	CallApiRequestOptionsForHooks,
 } from "./types/common";
 import type { AnyFunction, Awaitable, Prettify } from "./types/type-helpers";
+import type { InitURLOrURLObject } from "./url";
 import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
 
 export type PluginInitContext<TMoreOptions = unknown> = Prettify<
-	SharedHookContext<TMoreOptions> & { initURL: string | URL | undefined }
+	SharedHookContext<TMoreOptions> & {
+		initURL: string;
+	}
 >;
 
 export type PluginInitResult = Partial<
-	Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
+	Omit<PluginInitContext, "initURL" | "request"> & {
+		initURL: InitURLOrURLObject;
+		request: CallApiRequestOptions;
+	}
 >;
 
 export type PluginHooksWithMoreOptions<TMoreOptions = unknown> = HooksOrHooksArray<
@@ -138,7 +144,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 	const resolvedPlugins = resolvePluginArray(options.plugins, baseConfig.plugins);
 
-	let resolvedUrl = initURL as NonNullable<typeof initURL>;
+	let resolvedInitURL = initURL;
 	let resolvedOptions = options;
 	let resolvedRequestOptions = request;
 
@@ -155,8 +161,10 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 		if (!isPlainObject(initResult)) return;
 
-		if (isString(initResult.initURL)) {
-			resolvedUrl = initResult.initURL;
+		const urlString = initResult.initURL?.toString();
+
+		if (isString(urlString)) {
+			resolvedInitURL = urlString;
 		}
 
 		if (isPlainObject(initResult.request)) {
@@ -196,8 +204,8 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 	return {
 		resolvedHooks,
+		resolvedInitURL: resolvedInitURL.toString(),
 		resolvedOptions,
 		resolvedRequestOptions,
-		url: resolvedUrl.toString(),
 	};
 };

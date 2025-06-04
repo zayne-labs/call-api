@@ -71,13 +71,13 @@ export const getCurrentRouteKey = (url: string, schemaConfig: CallApiSchemaConfi
  * @description
  * Extracts the method from the URL if it is a schema modifier.
  *
- * @param url - The URL to extract the method from.
+ * @param initURL - The URL to extract the method from.
  * @returns The method if it is a schema modifier, otherwise undefined.
  */
-export const getMethodFromURL = (url: string | undefined) => {
-	if (!url?.startsWith("@")) return;
+export const extractMethodFromURL = (initURL: string | undefined) => {
+	if (!initURL?.startsWith("@")) return;
 
-	const method = url.split("@")[1]?.split("/")[0];
+	const method = initURL.split("@")[1]?.split("/")[0];
 
 	if (!method || !routeKeyMethods.includes(method)) return;
 
@@ -85,43 +85,48 @@ export const getMethodFromURL = (url: string | undefined) => {
 };
 
 export type GetMethodOptions = {
+	initURL: string | undefined;
 	method: CallApiRequestOptions["method"];
 	schemaConfig?: CallApiSchemaConfig;
-	url: string | undefined;
 };
 
 export const getMethod = (options: GetMethodOptions) => {
-	const { method, schemaConfig, url } = options;
+	const { initURL, method, schemaConfig } = options;
 
 	if (schemaConfig?.requireHttpMethodProvision === true) {
 		return method?.toUpperCase() ?? requestOptionDefaults.method;
 	}
 
-	return method?.toUpperCase() ?? getMethodFromURL(url)?.toUpperCase() ?? requestOptionDefaults.method;
+	return (
+		method?.toUpperCase() ?? extractMethodFromURL(initURL)?.toUpperCase() ?? requestOptionDefaults.method
+	);
 };
 
-export const removeMethodFromURL = (url: string) => {
-	const methodFromURL = getMethodFromURL(url);
+export const normalizeURL = (initURL: string) => {
+	const methodFromURL = extractMethodFromURL(initURL);
 
 	if (!methodFromURL) {
-		return url;
+		return initURL;
 	}
 
-	const actualUrl = url.replace(`@${methodFromURL}/`, "/");
+	const normalizedURL = initURL.replace(`@${methodFromURL}/`, "/");
 
-	return actualUrl;
+	return normalizedURL;
 };
 
-export const getMainURL = (
-	url: string,
-	baseURL: string | undefined,
-	params: SharedExtraOptions["params"],
-	query: SharedExtraOptions["query"]
-) => {
-	// == Remove method modifiers
-	const actualUrl = removeMethodFromURL(url);
+type GetFullURLOptions = {
+	baseURL: string | undefined;
+	initURL: string;
+	params: SharedExtraOptions["params"];
+	query: SharedExtraOptions["query"];
+};
 
-	const urlWithMergedParams = mergeUrlWithParams(actualUrl, params);
+export const getFullURL = (options: GetFullURLOptions) => {
+	const { baseURL, initURL, params, query } = options;
+
+	const normalizedURL = normalizeURL(initURL);
+
+	const urlWithMergedParams = mergeUrlWithParams(normalizedURL, params);
 
 	const urlWithMergedQueryAndParams = mergeUrlWithQuery(urlWithMergedParams, query);
 
@@ -141,6 +146,8 @@ export type Params = UnmaskType<
 
 export type Query = UnmaskType<Record<string, AllowedQueryParamValues>>;
 
+export type InitURLOrURLObject = string | URL;
+
 export interface UrlOptions {
 	/**
 	 * Base URL to be prepended to all request URLs
@@ -153,11 +160,14 @@ export interface UrlOptions {
 	readonly fullURL?: string;
 
 	/**
-	 * URL to be used in the request.
-	 *
-	 * This is the URL after method modifiers have been removed.
+	 * The url string passed to the callApi instance
 	 */
 	readonly initURL?: string;
+
+	/**
+	 * The URL string passed to the callApi instance, but normalized (removed any method modifiers etc)
+	 */
+	readonly initURLNormalized?: string;
 
 	/**
 	 * Parameters to be appended to the URL (i.e: /:id)
@@ -168,11 +178,4 @@ export interface UrlOptions {
 	 * Query parameters to append to the URL.
 	 */
 	query?: Query;
-
-	/**
-	 * URL to be used in the request.
-	 *
-	 * This is the URL before any method modifiers have been removed.
-	 */
-	readonly rawInitURL?: string;
 }

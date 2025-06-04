@@ -31,7 +31,7 @@ import type {
 	CombinedCallApiExtraOptions,
 } from "./types/common";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
-import { getCurrentRouteKey, getMainURL, getMethod, removeMethodFromURL } from "./url";
+import { getCurrentRouteKey, getFullURL, getMethod, normalizeURL } from "./url";
 import {
 	createCombinedSignal,
 	createTimeoutSignal,
@@ -112,12 +112,16 @@ export const createFetchClient = <
 		TThrowOnError,
 		TResponseType
 	> => {
-		const [initURL, initConfig = {}] = parameters;
+		const [initURLOrURLObject, initConfig = {}] = parameters;
 
 		const [fetchOptions, extraOptions] = splitConfig(initConfig);
 
 		const resolvedBaseConfig = isFunction(initBaseConfig)
-			? initBaseConfig({ initURL: initURL.toString(), options: extraOptions, request: fetchOptions })
+			? initBaseConfig({
+					initURL: initURLOrURLObject.toString(),
+					options: extraOptions,
+					request: fetchOptions,
+				})
 			: initBaseConfig;
 
 		const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(resolvedBaseConfig);
@@ -141,47 +145,44 @@ export const createFetchClient = <
 		const baseConfig = resolvedBaseConfig as BaseCallApiExtraOptions & CallApiRequestOptions;
 		const config = initConfig as CallApiExtraOptions & CallApiRequestOptions;
 
-		const { resolvedHooks, resolvedOptions, resolvedRequestOptions, url } = await initializePlugins({
-			baseConfig,
-			config,
-			initURL,
-			options: mergedExtraOptions as CombinedCallApiExtraOptions,
-			request: mergedRequestOptions as CallApiRequestOptionsForHooks,
+		const { resolvedHooks, resolvedInitURL, resolvedOptions, resolvedRequestOptions } =
+			await initializePlugins({
+				baseConfig,
+				config,
+				initURL: initURLOrURLObject.toString(),
+				options: mergedExtraOptions as CombinedCallApiExtraOptions,
+				request: mergedRequestOptions as CallApiRequestOptionsForHooks,
+			});
+
+		const fullURL = getFullURL({
+			baseURL: resolvedOptions.baseURL,
+			initURL: resolvedInitURL,
+			params: resolvedOptions.params,
+			query: resolvedOptions.query,
 		});
 
-		const fullURL = getMainURL(
-			url,
-			resolvedOptions.baseURL,
-			resolvedOptions.params,
-			resolvedOptions.query
-		);
+		const resolvedSchemaConfig = isFunction(extraOptions.schemaConfig)
+			? extraOptions.schemaConfig({ baseSchemaConfig: baseExtraOptions.schemaConfig ?? {} })
+			: (extraOptions.schemaConfig ?? baseExtraOptions.schemaConfig);
 
-		const schemaConfig = extraOptions.schemaConfig ?? baseExtraOptions.schemaConfig;
+		const currentRouteKey = getCurrentRouteKey(resolvedInitURL, resolvedSchemaConfig);
 
-		const resolvedSchemaConfig = isFunction(schemaConfig)
-			? schemaConfig({
-					baseSchemaConfig: baseExtraOptions.schemaConfig ?? ({} as never),
+		const routeSchema = baseExtraOptions.schema?.[currentRouteKey];
+
+		const resolvedSchema = isFunction(extraOptions.schema)
+			? extraOptions.schema({
+					baseSchema: baseExtraOptions.schema ?? {},
+					routeSchema: routeSchema ?? {},
 				})
-			: schemaConfig;
-
-		const currentRouteKey = getCurrentRouteKey(url, resolvedSchemaConfig);
-
-		const schema = extraOptions.schema ?? baseExtraOptions.schema?.[currentRouteKey];
-
-		const resolvedSchema = isFunction(schema)
-			? schema({
-					baseSchema: baseExtraOptions.schema ?? ({} as never),
-					routeSchema: baseExtraOptions.schema?.[currentRouteKey] ?? ({} as never),
-				})
-			: schema;
+			: (extraOptions.schema ?? routeSchema);
 
 		let options = {
 			...resolvedOptions,
 			...resolvedHooks,
 
 			fullURL,
-			initURL: removeMethodFromURL(url),
-			rawInitURL: url,
+			initURL: resolvedInitURL,
+			initURLNormalized: normalizeURL(resolvedInitURL),
 		} satisfies CombinedCallApiExtraOptions;
 
 		const newFetchController = new AbortController();
@@ -251,9 +252,9 @@ export const createFetchClient = <
 			});
 
 			const validMethod = getMethod({
+				initURL: resolvedInitURL,
 				method: shouldApplySchemaOutput ? requestOptionsValidationResult?.method : request.method,
 				schemaConfig: resolvedSchemaConfig,
-				url,
 			});
 
 			request = {
@@ -384,7 +385,7 @@ export const createFetchClient = <
 						"~retryAttemptCount": currentAttemptCount + 1,
 					} satisfies typeof config;
 
-					return callApi(initURL as never, updatedOptions as never) as never;
+					return callApi(initURLOrURLObject as never, updatedOptions as never) as never;
 				}
 
 				if (shouldThrowOnError) {

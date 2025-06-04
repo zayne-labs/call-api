@@ -3,9 +3,6 @@
 export type AnyString = string & NonNullable<unknown>;
 export type AnyNumber = number & NonNullable<unknown>;
 
-// eslint-disable-next-line perfectionist/sort-union-types -- Allow
-export type LiteralUnion<TUnion> = TUnion | AnyString;
-
 // eslint-disable-next-line ts-eslint/no-explicit-any -- Any is fine here
 export type AnyObject = Record<keyof any, any>;
 
