@@ -111,11 +111,9 @@ const callMainApi = createFetchClient({
 // }).pipeThrough(new TextEncoderStream());
 
 const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
-	callMainApi("/products/:id", {
+	callMainApi<{ foo: string }>("/products/:id", {
 		onRequest: () => console.info("OnRequest - INSTANCE"),
 		params: [1],
-		schema: {},
-		schemaConfig: {},
 	}),
 
 	callMainApi("/products/:id", {
@@ -123,8 +121,9 @@ const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
 	}),
 
 	callMainApi("@delete/products/:food", {
-		params: { food: "beans" },
-		// method: "FOO",
+		params: {
+			food: "beans",
+		},
 	}),
 
 	callMainApi("/products/:id", {
