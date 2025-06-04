@@ -17,7 +17,7 @@ type DedupeContext = SharedHookContext & {
 };
 
 export const getAbortErrorMessage = (
-	dedupeKey: DedupeContext["options"]["dedupeKey"],
+	dedupeKey: DedupeOptions["dedupeKey"],
 	fullURL: DedupeContext["options"]["fullURL"]
 ) => {
 	return dedupeKey
@@ -137,4 +137,21 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 		handleRequestDeferStrategy,
 		removeDedupeKeyFromCache,
 	};
+};
+
+export type DedupeOptions = {
+	/**
+	 * Custom request key to be used to identify a request in the fetch deduplication strategy.
+	 * @default the full request url + string formed from the request options
+	 */
+	dedupeKey?: string;
+
+	/**
+	 * Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
+	 * - If set to "cancel", the previous pending request with the same request key will be cancelled and lets the new request through.
+	 * - If set to "defer", all new request with the same request key will be share the same response, until the previous one is completed.
+	 * - If set to "none", deduplication is disabled.
+	 * @default "cancel"
+	 */
+	dedupeStrategy?: "cancel" | "defer" | "none";
 };

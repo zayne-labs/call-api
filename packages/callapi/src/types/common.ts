@@ -1,5 +1,6 @@
 import type { Auth } from "../auth";
 import type { fetchSpecificKeys } from "../constants/common";
+import type { DedupeOptions } from "../dedupe";
 import type { ErrorContext, Hooks, HooksOrHooksArray } from "../hooks";
 import type { CallApiPlugin } from "../plugins";
 import type { GetCallApiResult, ResponseTypeUnion, ResultModeUnion } from "../result";
@@ -79,15 +80,6 @@ export type SharedExtraOptions<
 	 * Custom fetch implementation
 	 */
 	customFetchImpl?: FetchImpl;
-
-	/**
-	 * Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
-	 * - If set to "cancel", the previous pending request with the same request key will be cancelled and lets the new request through.
-	 * - If set to "defer", all new request with the same request key will be share the same response, until the previous one is completed.
-	 * - If set to "none", deduplication is disabled.
-	 * @default "cancel"
-	 */
-	dedupeStrategy?: "cancel" | "defer" | "none";
 
 	/**
 	 * Default error message to use if none is provided from a response.
@@ -170,7 +162,8 @@ export type SharedExtraOptions<
 	 */
 	timeout?: number;
 	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
-} & HooksOrHooksArray<TData, TErrorData, Partial<InferPluginOptions<TPluginArray>>>
+} & DedupeOptions
+	& HooksOrHooksArray<TData, TErrorData, Partial<InferPluginOptions<TPluginArray>>>
 	& Partial<InferPluginOptions<TPluginArray>>
 	& RetryOptions<TErrorData>
 	& ResultModeOption<TErrorData, TResultMode>
@@ -249,12 +242,6 @@ export type CallApiExtraOptions<
 	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TCurrentRouteKey extends string = string,
 > = SharedExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray> & {
-	/**
-	 * Custom request key to be used to identify a request in the fetch deduplication strategy.
-	 * @default the full request url + string formed from the request options
-	 */
-	dedupeKey?: string;
-
 	/**
 	 * An array of instance CallApi plugins. It allows you to extend the behavior of the library.
 	 */
