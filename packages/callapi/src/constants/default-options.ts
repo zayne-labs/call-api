@@ -1,13 +1,13 @@
-import type { BaseCallApiExtraOptions } from "../types";
-import { defineEnum } from "../utils/type-helpers";
+import type { SharedExtraOptions } from "../types";
+import { defineEnum } from "../types/type-helpers";
 
 export const retryDefaults = defineEnum({
 	attempts: 0,
 	condition: () => true,
 	delay: 1000,
 	maxDelay: 10000,
-	methods: ["GET", "POST"] satisfies BaseCallApiExtraOptions["retryMethods"],
-	statusCodes: [] satisfies BaseCallApiExtraOptions["retryStatusCodes"],
+	methods: ["GET", "POST"] satisfies SharedExtraOptions["retryMethods"],
+	statusCodes: [] satisfies SharedExtraOptions["retryStatusCodes"],
 	strategy: "linear",
 });
 

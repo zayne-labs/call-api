@@ -13,56 +13,40 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 } from "./types/common";
-import type { DefaultMoreOptions } from "./types/default-types";
-import type { InitURL } from "./url";
+import type { AnyFunction, Awaitable, Prettify } from "./types/type-helpers";
+import type { InitURLOrURLObject } from "./url";
 import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
-import type { AnyFunction, Awaitable, Prettify } from "./utils/type-helpers";
-import type { InferSchemaResult } from "./validation";
 
-type UnionToIntersection<TUnion> = (TUnion extends unknown ? (param: TUnion) => void : never) extends (
-	param: infer TParam
-) => void
-	? TParam
-	: never;
-
-export type InferPluginOptions<
-	TPluginArray extends CallApiPlugin[],
-	// TCreateExtraOptions = ReturnType<NonNullable<TPluginArray[number]["createExtraOptions"]>>,
-> = UnionToIntersection<
-	TPluginArray extends Array<infer TPlugin>
-		? TPlugin extends CallApiPlugin
-			? TPlugin["createExtraOptions"] extends AnyFunction<infer TResult>
-				? InferSchemaResult<TResult, TResult>
-				: NonNullable<unknown>
-			: NonNullable<unknown>
-		: NonNullable<unknown>
->;
-
-export type PluginInitContext<TMoreOptions = DefaultMoreOptions> = Prettify<
-	SharedHookContext<TMoreOptions> & { initURL: InitURL | undefined }
+export type PluginInitContext<TMoreOptions = unknown> = Prettify<
+	SharedHookContext<TMoreOptions> & {
+		initURL: string;
+	}
 >;
 
 export type PluginInitResult = Partial<
-	Omit<PluginInitContext, "request"> & { request: CallApiRequestOptions }
+	Omit<PluginInitContext, "initURL" | "request"> & {
+		initURL: InitURLOrURLObject;
+		request: CallApiRequestOptions;
+	}
 >;
 
-export type PluginHooksWithMoreOptions<TMoreOptions = DefaultMoreOptions> = HooksOrHooksArray<
+export type PluginHooksWithMoreOptions<TMoreOptions = unknown> = HooksOrHooksArray<
 	never,
 	never,
 	TMoreOptions
 >;
 
-export type PluginHooks<
-	TData = never,
-	TErrorData = never,
-	TMoreOptions = DefaultMoreOptions,
-> = HooksOrHooksArray<TData, TErrorData, TMoreOptions>;
+export type PluginHooks<TData = never, TErrorData = never, TMoreOptions = unknown> = HooksOrHooksArray<
+	TData,
+	TErrorData,
+	TMoreOptions
+>;
 
 export interface CallApiPlugin {
 	/**
 	 * Defines additional options that can be passed to callApi
 	 */
-	createExtraOptions?: (...params: never[]) => unknown;
+	defineExtraOptions?: (...params: never[]) => unknown;
 
 	/**
 	 * A description for the plugin
@@ -103,8 +87,6 @@ export const definePlugin = <
 ) => {
 	return plugin;
 };
-
-export type Plugins<TPluginArray extends CallApiPlugin[]> = TPluginArray;
 
 const resolvePluginArray = (
 	plugins: CallApiExtraOptions["plugins"] | undefined,
@@ -162,7 +144,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 	const resolvedPlugins = resolvePluginArray(options.plugins, baseConfig.plugins);
 
-	let resolvedUrl = initURL;
+	let resolvedInitURL = initURL;
 	let resolvedOptions = options;
 	let resolvedRequestOptions = request;
 
@@ -179,8 +161,10 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 		if (!isPlainObject(initResult)) return;
 
-		if (isString(initResult.initURL)) {
-			resolvedUrl = initResult.initURL;
+		const urlString = initResult.initURL?.toString();
+
+		if (isString(urlString)) {
+			resolvedInitURL = urlString;
 		}
 
 		if (isPlainObject(initResult.request)) {
@@ -220,8 +204,8 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 	return {
 		resolvedHooks,
+		resolvedInitURL: resolvedInitURL.toString(),
 		resolvedOptions,
 		resolvedRequestOptions,
-		url: resolvedUrl?.toString(),
 	};
 };

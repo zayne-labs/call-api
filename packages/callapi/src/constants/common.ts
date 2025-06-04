@@ -1,5 +1,5 @@
 import type { ModifiedRequestInit } from "../types";
-import { defineEnum } from "../utils/type-helpers";
+import { defineEnum } from "../types/type-helpers";
 
 export const fetchSpecificKeys = defineEnum([
 	"body",

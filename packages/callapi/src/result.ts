@@ -2,8 +2,9 @@ import { commonDefaults, responseDefaults } from "./constants/default-options";
 import type { HTTPError } from "./error";
 import type { CallApiExtraOptions } from "./types";
 import type { DefaultDataType } from "./types/default-types";
-import { isHTTPErrorInstance } from "./utils/guards";
-import type { Awaitable, Prettify, UnmaskType } from "./utils/type-helpers";
+import type { Awaitable, Prettify, UnmaskType } from "./types/type-helpers";
+import { isHTTPErrorInstance, isValidationErrorInstance } from "./utils/guards";
+import type { ValidationError } from "./validation";
 
 type Parser = (responseString: string) => Awaitable<Record<string, unknown>>;
 
@@ -76,6 +77,19 @@ export type PossibleHTTPError<TErrorData> = Prettify<
 	}>
 >;
 
+export type PossibleValidationError = Prettify<
+	UnmaskType<{
+		errorData: ValidationError["issues"];
+		message: string;
+		name: "ValidationError";
+		originalError: ValidationError;
+	}>
+>;
+
+export type PossibleJavaScriptOrValidationError = UnmaskType<
+	PossibleJavaScriptError | PossibleValidationError
+>;
+
 export type CallApiResultErrorVariant<TErrorData> =
 	| {
 			data: null;
@@ -84,8 +98,8 @@ export type CallApiResultErrorVariant<TErrorData> =
 	  }
 	| {
 			data: null;
-			error: PossibleJavaScriptError;
-			response: null;
+			error: PossibleJavaScriptOrValidationError;
+			response: Response | null;
 	  };
 
 export type ResultModeMap<
@@ -230,6 +244,21 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 		response: null,
 	} satisfies CallApiResultErrorVariant<unknown> as CallApiResultErrorVariant<unknown>;
 
+	if (isValidationErrorInstance(error)) {
+		const { issues, message, response } = error;
+
+		details = {
+			data: null,
+			error: {
+				errorData: issues,
+				message,
+				name: "ValidationError",
+				originalError: error,
+			},
+			response,
+		};
+	}
+
 	if (isHTTPErrorInstance<never>(error)) {
 		const selectedDefaultErrorMessage = defaultErrorMessage ?? commonDefaults.defaultErrorMessage;
 
@@ -256,7 +285,7 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 
 export const getCustomizedErrorResult = (
 	errorResult: ErrorResult,
-	customErrorInfo: { message: string }
+	customErrorInfo: { message: string | undefined }
 ): ErrorResult => {
 	if (!errorResult) {
 		return null;

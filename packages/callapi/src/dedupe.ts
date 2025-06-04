@@ -1,4 +1,4 @@
-import { dedupeDefaults, requestOptionDefaults } from "./constants/default-options";
+import { dedupeDefaults } from "./constants/default-options";
 import type { SharedHookContext } from "./hooks";
 import { toStreamableRequest, toStreamableResponse } from "./stream";
 import { getFetchImpl, waitFor } from "./utils/common";
@@ -16,10 +16,26 @@ type DedupeContext = SharedHookContext & {
 	newFetchController: AbortController;
 };
 
-export const createDedupeStrategy = async (context: DedupeContext) => {
-	const { $RequestInfoCache, baseConfig, config, newFetchController, options, request } = context;
+export const getAbortErrorMessage = (
+	dedupeKey: DedupeOptions["dedupeKey"],
+	fullURL: DedupeContext["options"]["fullURL"]
+) => {
+	return dedupeKey
+		? `Duplicate request detected - Aborting previous request with key '${dedupeKey}' as a new request was initiated`
+		: `Duplicate request detected - Aborting previous request to '${fullURL}' as a new request with identical options was initiated`;
+};
 
-	const dedupeStrategy = options.dedupeStrategy ?? dedupeDefaults.dedupeStrategy;
+export const createDedupeStrategy = async (context: DedupeContext) => {
+	const {
+		$RequestInfoCache,
+		baseConfig,
+		config,
+		newFetchController,
+		options: globalOptions,
+		request: globalRequest,
+	} = context;
+
+	const dedupeStrategy = globalOptions.dedupeStrategy ?? dedupeDefaults.dedupeStrategy;
 
 	const generateDedupeKey = () => {
 		const shouldHaveDedupeKey = dedupeStrategy === "cancel" || dedupeStrategy === "defer";
@@ -28,10 +44,10 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 			return null;
 		}
 
-		return `${options.fullURL}-${JSON.stringify({ options, request })}`;
+		return `${globalOptions.fullURL}-${JSON.stringify({ options: globalOptions, request: globalRequest })}`;
 	};
 
-	const dedupeKey = options.dedupeKey ?? generateDedupeKey();
+	const dedupeKey = globalOptions.dedupeKey ?? generateDedupeKey();
 
 	// == This is to ensure cache operations only occur when key is available
 	const $RequestInfoCacheOrNull = dedupeKey !== null ? $RequestInfoCache : null;
@@ -51,9 +67,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 
 		if (!shouldCancelRequest) return;
 
-		const message = options.dedupeKey
-			? `Duplicate request detected - Aborting previous request with key '${options.dedupeKey}' as a new request was initiated`
-			: `Duplicate request detected - Aborting previous request to '${options.fullURL}' as a new request with identical options was initiated`;
+		const message = getAbortErrorMessage(globalOptions.dedupeKey, globalOptions.fullURL);
 
 		const reason = new DOMException(message, "AbortError");
 
@@ -63,16 +77,21 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 		return Promise.resolve();
 	};
 
-	const handleRequestDeferStrategy = async () => {
+	const handleRequestDeferStrategy = async (
+		options: DedupeContext["options"],
+		request: DedupeContext["request"]
+	) => {
 		const fetchApi = getFetchImpl(options.customFetchImpl);
 
 		const shouldUsePromiseFromCache = prevRequestInfo && dedupeStrategy === "defer";
 
+		const requestObjectForStream = isReadableStream(request.body)
+			? { ...request, duplex: request.duplex ?? "half" }
+			: request;
+
 		const requestInstance = new Request(
 			options.fullURL as NonNullable<typeof options.fullURL>,
-			(isReadableStream(request.body) && !request.duplex
-				? { ...request, duplex: "half" }
-				: request) as RequestInit
+			requestObjectForStream as RequestInit
 		);
 
 		await toStreamableRequest({
@@ -88,11 +107,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 				return fetchApi(requestInstance.clone());
 			}
 
-			const method = request.method ?? requestOptionDefaults.method;
-
-			const modifiedRequest = { ...request, method } as RequestInit;
-
-			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, modifiedRequest);
+			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, request as RequestInit);
 		};
 
 		const responsePromise = shouldUsePromiseFromCache
@@ -122,4 +137,21 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 		handleRequestDeferStrategy,
 		removeDedupeKeyFromCache,
 	};
+};
+
+export type DedupeOptions = {
+	/**
+	 * Custom request key to be used to identify a request in the fetch deduplication strategy.
+	 * @default the full request url + string formed from the request options
+	 */
+	dedupeKey?: string;
+
+	/**
+	 * Defines the deduplication strategy for the request, can be set to "none" | "defer" | "cancel".
+	 * - If set to "cancel", the previous pending request with the same request key will be cancelled and lets the new request through.
+	 * - If set to "defer", all new request with the same request key will be share the same response, until the previous one is completed.
+	 * - If set to "none", deduplication is disabled.
+	 * @default "cancel"
+	 */
+	dedupeStrategy?: "cancel" | "defer" | "none";
 };

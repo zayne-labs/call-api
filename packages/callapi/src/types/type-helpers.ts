@@ -1,7 +1,7 @@
 // == These two types allows for adding arbitrary literal types, while still provided autocomplete for defaults.
 // == Usually intersection with "{}" or "NonNullable<unknown>" would make it work fine, but the placeholder with never type is added to make the AnyWhatever type appear last in a given union.
-export type AnyString = string & { z_placeholder?: never };
-export type AnyNumber = number & { z_placeholder?: never };
+export type AnyString = string & NonNullable<unknown>;
+export type AnyNumber = number & NonNullable<unknown>;
 
 // eslint-disable-next-line ts-eslint/no-explicit-any -- Any is fine here
 export type AnyObject = Record<keyof any, any>;
@@ -13,7 +13,7 @@ export type CallbackFn<in TParams, out TResult = void> = (...params: TParams[]) 
 
 export type Prettify<TObject> = NonNullable<unknown> & { [Key in keyof TObject]: TObject[Key] };
 
-export type WriteableVariantUnion = "deep" | "shallow";
+export type WriteableLevel = "deep" | "shallow";
 
 /**
  * Makes all properties in an object type writeable (removes readonly modifiers).
@@ -24,36 +24,31 @@ export type WriteableVariantUnion = "deep" | "shallow";
 
 type ArrayOrObject = Record<number | string | symbol, unknown> | unknown[];
 
-export type Writeable<
-	TObject,
-	TVariant extends WriteableVariantUnion = "shallow",
-> = TObject extends readonly [...infer TTupleItems]
-	? TVariant extends "deep"
-		? [
-				...{
-					[Key in keyof TTupleItems]: TTupleItems[Key] extends ArrayOrObject
-						? Writeable<TTupleItems[Key], TVariant>
-						: TTupleItems[Key];
-				},
-			]
-		: [...TTupleItems]
-	: TObject extends ReadonlyArray<infer TArrayItem>
-		? TVariant extends "deep"
-			? Array<TArrayItem extends ArrayOrObject ? Writeable<TArrayItem, TVariant> : TArrayItem>
-			: TArrayItem[]
-		: TObject extends ArrayOrObject
-			? {
-					-readonly [Key in keyof TObject]: TVariant extends "shallow"
-						? TObject[Key]
-						: TVariant extends "deep"
-							? TObject[Key] extends ArrayOrObject
-								? Writeable<TObject[Key], TVariant>
-								: TObject[Key]
-							: never;
-				}
-			: TObject;
+export type Writeable<TObject, TLevel extends WriteableLevel = "shallow"> = TObject extends readonly [
+	...infer TTupleItems,
+]
+	? [
+			...{
+				[Index in keyof TTupleItems]: TLevel extends "deep"
+					? Writeable<TTupleItems[Index], "deep">
+					: TTupleItems[Index];
+			},
+		]
+	: TObject extends ArrayOrObject
+		? {
+				-readonly [Key in keyof TObject]: TLevel extends "deep"
+					? Writeable<TObject[Key], "deep">
+					: TObject[Key];
+			}
+		: TObject;
 
-export const defineEnum = <const TValue>(value: TValue) => value as Prettify<Writeable<TValue, "deep">>;
+export const defineEnum = <const TValue extends object>(value: TValue) => value as Writeable<TValue>;
+
+export type UnionToIntersection<TUnion> = (
+	TUnion extends unknown ? (param: TUnion) => void : never
+) extends (param: infer TParam) => void
+	? TParam
+	: never;
 
 // == Using this Immediately Indexed Mapped type helper to help show computed type of anything passed to it instead of just the type name
 export type UnmaskType<TValue> = { _: TValue }["_"];

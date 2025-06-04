@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"incremental": true,
-		"tsBuildInfoFile": ".tsbuildinfo"
+		// "incremental": true,
+		// "tsBuildInfoFile": ".tsbuildinfo"
 	}
 }

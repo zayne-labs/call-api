@@ -1,9 +1,10 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
-import type { CallApiExtraOptions } from "./types/common";
+import { requestOptionDefaults } from "./constants/default-options";
+import type { CallApiExtraOptions, CallApiRequestOptions, SharedExtraOptions } from "./types/common";
+import type { UnmaskType } from "./types/type-helpers";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/guards";
-import type { UnmaskType } from "./utils/type-helpers";
-import type { CallApiSchemas, InferSchemaResult } from "./validation";
+import { type CallApiSchemaConfig, routeKeyMethods } from "./validation";
 
 const slash = "/";
 const column = ":";
@@ -56,40 +57,125 @@ const mergeUrlWithQuery = (url: string, query: CallApiExtraOptions["query"]): st
 	return `${url}${questionMark}${queryString}`;
 };
 
-export const mergeUrlWithParamsAndQuery = (
-	url: string | undefined,
-	params: CallApiExtraOptions["params"],
-	query: CallApiExtraOptions["query"]
-) => {
-	if (!url) return;
+export const getCurrentRouteKey = (url: string, schemaConfig: CallApiSchemaConfig | undefined) => {
+	let currentRouteKey = url;
 
-	const urlWithMergedParams = mergeUrlWithParams(url, params);
+	if (schemaConfig?.baseURL && currentRouteKey.startsWith(schemaConfig.baseURL)) {
+		currentRouteKey = currentRouteKey.replace(schemaConfig.baseURL, "");
+	}
 
-	return mergeUrlWithQuery(urlWithMergedParams, query);
+	return currentRouteKey;
 };
+
+/**
+ * @description
+ * Extracts the method from the URL if it is a schema modifier.
+ *
+ * @param initURL - The URL to extract the method from.
+ * @returns The method if it is a schema modifier, otherwise undefined.
+ */
+export const extractMethodFromURL = (initURL: string | undefined) => {
+	if (!initURL?.startsWith("@")) return;
+
+	const method = initURL.split("@")[1]?.split("/")[0];
+
+	if (!method || !routeKeyMethods.includes(method)) return;
+
+	return method;
+};
+
+export type GetMethodOptions = {
+	initURL: string | undefined;
+	method: CallApiRequestOptions["method"];
+	schemaConfig?: CallApiSchemaConfig;
+};
+
+export const getMethod = (options: GetMethodOptions) => {
+	const { initURL, method, schemaConfig } = options;
+
+	if (schemaConfig?.requireHttpMethodProvision === true) {
+		return method?.toUpperCase() ?? requestOptionDefaults.method;
+	}
+
+	return (
+		method?.toUpperCase() ?? extractMethodFromURL(initURL)?.toUpperCase() ?? requestOptionDefaults.method
+	);
+};
+
+export const normalizeURL = (initURL: string) => {
+	const methodFromURL = extractMethodFromURL(initURL);
+
+	if (!methodFromURL) {
+		return initURL;
+	}
+
+	const normalizedURL = initURL.replace(`@${methodFromURL}/`, "/");
+
+	return normalizedURL;
+};
+
+type GetFullURLOptions = {
+	baseURL: string | undefined;
+	initURL: string;
+	params: SharedExtraOptions["params"];
+	query: SharedExtraOptions["query"];
+};
+
+export const getFullURL = (options: GetFullURLOptions) => {
+	const { baseURL, initURL, params, query } = options;
+
+	const normalizedURL = normalizeURL(initURL);
+
+	const urlWithMergedParams = mergeUrlWithParams(normalizedURL, params);
+
+	const urlWithMergedQueryAndParams = mergeUrlWithQuery(urlWithMergedParams, query);
+
+	if (urlWithMergedQueryAndParams.startsWith("http") || !baseURL) {
+		return urlWithMergedQueryAndParams;
+	}
+
+	return `${baseURL}${urlWithMergedQueryAndParams}`;
+};
+
+export type AllowedQueryParamValues = UnmaskType<boolean | number | string>;
 
 export type Params = UnmaskType<
 	// eslint-disable-next-line perfectionist/sort-union-types -- I need the Record to be first
-	Record<string, boolean | number | string> | Array<boolean | number | string>
+	Record<string, AllowedQueryParamValues> | AllowedQueryParamValues[]
 >;
 
-export type Query = UnmaskType<Record<string, boolean | number | string>>;
+export type Query = UnmaskType<Record<string, AllowedQueryParamValues>>;
 
-export type InitURL = UnmaskType<string | URL>;
+export type InitURLOrURLObject = string | URL;
 
-export interface UrlOptions<TSchemas extends CallApiSchemas> {
+export interface UrlOptions {
 	/**
-	 * URL to be used in the request.
+	 * Base URL to be prepended to all request URLs
+	 */
+	baseURL?: string;
+
+	/**
+	 * Resolved request URL
+	 */
+	readonly fullURL?: string;
+
+	/**
+	 * The url string passed to the callApi instance
 	 */
 	readonly initURL?: string;
 
 	/**
+	 * The URL string passed to the callApi instance, but normalized (removed any method modifiers etc)
+	 */
+	readonly initURLNormalized?: string;
+
+	/**
 	 * Parameters to be appended to the URL (i.e: /:id)
 	 */
-	params?: InferSchemaResult<TSchemas["params"], Params>;
+	params?: Params;
 
 	/**
 	 * Query parameters to append to the URL.
 	 */
-	query?: InferSchemaResult<TSchemas["query"], Query>;
+	query?: Query;
 }

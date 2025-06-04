@@ -1,13 +1,13 @@
 import {
-	type CallApiSchemas,
 	type PluginHooksWithMoreOptions,
 	type PluginInitContext,
 	type SuccessContext,
 	createFetchClient,
 	definePlugin,
+	defineSchema,
 } from "@zayne-labs/callapi";
 import { loggerPlugin } from "@zayne-labs/callapi-plugins";
-import { z } from "zod";
+import z from "zod";
 
 const newOptionSchema1 = z.object({
 	onUpload: z.function().args(
@@ -30,10 +30,10 @@ const newOptionSchema2 = z.object({
 type Plugin2Options = z.infer<typeof newOptionSchema2>;
 
 const plugin1 = definePlugin({
-	createExtraOptions: () => newOptionSchema1,
+	defineExtraOptions: () => newOptionSchema1,
 
 	hooks: {
-		onRequest: () => console.info("PLUGIN1-OnRequest"),
+		onRequest: () => console.info("OnRequest - PLUGIN1"),
 	},
 
 	id: "1",
@@ -42,11 +42,11 @@ const plugin1 = definePlugin({
 });
 
 const plugin2 = definePlugin(() => ({
-	createExtraOptions: () => newOptionSchema2,
+	defineExtraOptions: () => newOptionSchema2,
 
 	hooks: {
-		onRequest: () => console.info("PLUGIN2-OnRequest"),
-		onSuccess: (_ctx: SuccessContext<{ foo: string }>) => console.info("PLUGIN2-OnSuccess"),
+		onRequest: () => console.info("OnRequest - PLUGIN2"),
+		onSuccess: (_ctx: SuccessContext<{ foo: string }>) => console.info("OnSuccess - PLUGIN2"),
 	} satisfies PluginHooksWithMoreOptions<Plugin2Options>,
 
 	id: "2",
@@ -68,33 +68,31 @@ const plugin2 = definePlugin(() => ({
 	name: "plugin",
 }));
 
-const baseSchemas = {
-	// body: z.object({
-	// 	foo: z.number(),
-	// }),
-	// data: z.object({
-	// 	foo: z.number(),
-	// }),
-	// initURL: z.literal("/products/:id"),
-	// method: z.enum(["GET"]),
-	// errorData: z.object({
-	// 	message: z.string(),
-	// }),
-	// headers: z.object({
-	// 	"X-Environment": z.string(),
-	// }),
-	// query: z.object({
-	// 	id: z.string(),
-	// }),
-} satisfies CallApiSchemas;
+const baseSchemas = defineSchema({
+	"@delete/products/:food": {
+		data: z.object({
+			id: z.number(),
+		}),
+	},
+	"/products/:id": {
+		data: z.object({
+			id: z.number(),
+			price: z.number(),
+			title: z.string(),
+		}),
+	},
+});
 
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
-	// onRequest: [() => console.info("Base-OnRequest"), () => console.info("Base-OnRequest2")],
+	onRequest: [() => console.info("OnRequest1 - BASE"), () => console.info("OnRequest2 - BASE")],
 	onUpload: (_progress) => {},
 	onUploadSuccess: (_progress) => {},
 	plugins: [plugin1, plugin2(), loggerPlugin()],
-	schemas: baseSchemas,
+	schema: baseSchemas,
+	schemaConfig: {
+		baseURL: "loclc",
+	},
 });
 
 // function wait(milliseconds: number) {
@@ -117,34 +115,40 @@ const callMainApi = createFetchClient({
 // 	},
 // }).pipeThrough(new TextEncoderStream());
 
-const [foo1, foo2, foo3, foo4, foo5] = await Promise.all([
-	callMainApi<{ foo: string }, undefined>("/products/:id", {
-		// onRequest: [() => console.info("Instance-OnRequest"), () => console.info("Instance-OnRequest2")],
+const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
+	callMainApi("/products/:id", {
+		onRequest: () => console.info("OnRequest - INSTANCE"),
 		params: [1],
-		resultMode: "onlySuccessWithException",
-		throwOnError: true,
+		schema: {},
+		schemaConfig: {},
 	}),
+
 	callMainApi("/products/:id", {
 		params: [1],
 	}),
+
+	callMainApi("@delete/products/:food", {
+		params: { food: "beans" },
+		// method: "FOO",
+	}),
+
 	callMainApi("/products/:id", {
 		params: [1302],
-		retryAttempts: 2,
-		throwOnError: true,
 	}),
+
 	callMainApi("/products/:id", {
 		body: ["dev"],
 		method: "POST",
 		params: [1],
 	}),
+
 	callMainApi("https://api.github.com/repos/zayne-labs/ui/commits?per_page=50", {
-		baseURL: "",
 		onRequestStream: (ctx) => console.info("OnRequestStream", { event: ctx.event }),
 		onResponseStream: (ctx) => console.info("OnResponseStream", { event: ctx.event }),
 	}),
 ]);
 
-console.info(foo1, foo2, foo3, foo4, foo5);
+console.info(foo1, foo2, foo3, foo4, foo5, foo6);
 
 // const foo1 = void callApi("/products/:id", {
 // 	method: "GET",
