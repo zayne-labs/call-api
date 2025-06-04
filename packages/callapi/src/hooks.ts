@@ -17,9 +17,9 @@ import type { DefaultDataType } from "./types/default-types";
 import type { AnyFunction, Awaitable, UnmaskType } from "./types/type-helpers";
 import type { ValidationError } from "./validation";
 
-export interface PluginExtraOptions<TPluginOptions = unknown> {
+export type PluginExtraOptions<TPluginOptions = unknown> = {
 	options: Partial<TPluginOptions>;
-}
+};
 
 /* eslint-disable perfectionist/sort-intersection-types -- Plugin options should come last */
 export interface Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPluginOptions = unknown> {
