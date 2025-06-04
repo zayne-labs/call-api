@@ -1,5 +1,14 @@
 # @zayne-labs/callapi
 
+## 1.8.0
+
+### Minor Changes
+
+- 7da7707: - Implementation of standard schema validation, both in runtime and at the type level
+   - Ability to override any of the schemas and configs at the instance level
+   - Handle errors specifically for validation failures
+   - Setting up the stage for open api spec generation and usage
+
 ## 1.7.18
 
 ### Patch Changes
