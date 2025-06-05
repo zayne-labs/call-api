@@ -43,21 +43,19 @@ type ValidationErrorDetails = {
 };
 
 const formatPath = (path: StandardSchemaV1.Issue["path"]) => {
-	if (!path?.length) {
+	if (!path || path.length === 0) {
 		return "";
 	}
 
-	return ` → at ${path
-		.map((segment) => (typeof segment === "object" && "key" in segment ? segment.key : String(segment)))
-		.join(".")}`;
+	return ` → at ${path.map((segment) => (isObject(segment) ? segment.key : String(segment))).join(".")}`;
 };
 
-const formatValidationIssues = (issues: ValidationError["issues"]): string => {
+const formatValidationIssues = (issues: ValidationError["errorData"]) => {
 	return issues.map((issue) => `✖ ${issue.message}${formatPath(issue.path)}`).join(" | ");
 };
 
 export class ValidationError extends Error {
-	issues: readonly StandardSchemaV1.Issue[];
+	errorData: readonly StandardSchemaV1.Issue[];
 
 	override name = "ValidationError";
 
@@ -72,7 +70,7 @@ export class ValidationError extends Error {
 
 		super(message, errorOptions);
 
-		this.issues = issues;
+		this.errorData = issues;
 		this.response = response;
 
 		Error.captureStackTrace(this, this.constructor);
@@ -176,12 +174,6 @@ export interface CallApiSchemaConfig {
 	strict?: boolean;
 }
 
-export const routeKeyMethods = defineEnum(["delete", "get", "patch", "post", "put"]);
-
-export type RouteKeyMethods = (typeof routeKeyMethods)[number];
-
-type RouteKey = `@${RouteKeyMethods}/${AnyString}` | AnyString;
-
 export interface CallApiSchema {
 	/**
 	 *  The schema to use for validating the request body.
@@ -226,8 +218,14 @@ export interface CallApiSchema {
 	query?: StandardSchemaV1<Query | undefined> | ((query: Query) => Awaitable<Query>);
 }
 
+export const routeKeyMethods = defineEnum(["delete", "get", "patch", "post", "put"]);
+
+export type RouteKeyMethods = (typeof routeKeyMethods)[number];
+
+type PossibleRouteKey = `@${RouteKeyMethods}/` | AnyString;
+
 export type BaseCallApiSchema = {
-	[key in RouteKey]?: CallApiSchema;
+	[Key in PossibleRouteKey]?: CallApiSchema;
 };
 
 export const defineSchema = <const TBaseSchema extends BaseCallApiSchema>(baseSchema: TBaseSchema) => {

@@ -1,5 +1,5 @@
 import { dedupeDefaults } from "./constants/default-options";
-import type { SharedHookContext } from "./hooks";
+import type { RequestContext } from "./hooks";
 import { toStreamableRequest, toStreamableResponse } from "./stream";
 import { getFetchImpl, waitFor } from "./utils/common";
 import { isReadableStream } from "./utils/guards";
@@ -11,7 +11,7 @@ type RequestInfo = {
 
 export type RequestInfoCache = Map<string | null, RequestInfo>;
 
-type DedupeContext = SharedHookContext & {
+type DedupeContext = RequestContext & {
 	$RequestInfoCache: RequestInfoCache;
 	newFetchController: AbortController;
 };

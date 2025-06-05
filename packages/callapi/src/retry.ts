@@ -23,7 +23,7 @@ export interface RetryOptions<TErrorData> {
 	/**
 	 * Keeps track of the number of times the request has already been retried
 	 *
-	 * **NOTE**: This property is used internally to track retries. Please abstain from modifying it.
+	 * @deprecated **NOTE**: This property is used internally to track retries. Please abstain from modifying it.
 	 */
 	readonly ["~retryAttemptCount"]?: number;
 
@@ -102,6 +102,7 @@ const getExponentialDelay = <TErrorData>(
 export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) => {
 	const { options } = ctx;
 
+	// eslint-disable-next-line ts-eslint/no-deprecated -- Allowed for internal use
 	const currentAttemptCount = options["~retryAttemptCount"] ?? 1;
 
 	const retryStrategy = options.retryStrategy ?? options.retry?.strategy ?? retryDefaults.strategy;

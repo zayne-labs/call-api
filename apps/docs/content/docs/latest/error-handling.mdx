@@ -8,7 +8,7 @@ icon: ShieldAlert
 
 CallApi by default returns request and response errors as a value, wrapped in a single `error` object. This error object has three properties:
 
-1. **name**: The name of the error (e.g., `'HTTPError'`, `'TypeError'`, `'SyntaxError'`)
+1. **name**: The name of the error (e.g., `'HTTPError'`, `'ValidationError'`, `'TypeError'`, `'SyntaxError'`)
 
 2. **message**: A brief description of what went wrong:
 
@@ -17,6 +17,7 @@ CallApi by default returns request and response errors as a value, wrapped in a 
 
 3. **errorData**: The detailed error information:
    - For HTTP errors: The parsed response from the API
+   - For validation errors: The validation issues array
    - For non-HTTP errors: The JavaScript error object that caused the error
 
 ```ts twoslash title="api.ts"
@@ -42,41 +43,6 @@ const { error } = await callApi<unknown, ErrorData>("/api/endpoint");
 
 if (error) {
 	console.log(error.errorData); // Type is ErrorData
-}
-```
-
-## Validating Error Response
-
-While the [Getting Started](/docs/v1/getting-started#validating-response-data) guide covers validation in detail, here's how it specifically applies to error handling:
-
-```ts twoslash title="api.ts"
-import { callApi } from "@zayne-labs/callapi";
-import { isHTTPError } from "@zayne-labs/callapi/utils";
-import { z } from "zod";
-
-const errorSchema = z.object({
-	message: z.string(),
-	errors: z.array(z.string().or(z.array(z.string()))),
-});
-
-// Using schemas
-const { error } = await callApi("/api/endpoint", {
-	schemas: {
-		errorData: errorSchema,
-	},
-});
-
-// Or using validators
-const { error: error2 } = await callApi("/api/endpoint", {
-	validators: {
-		errorData: errorSchema.parse,
-	},
-});
-
-if (isHTTPError(error)) {
-	// errorData is now fully typed and validated
-	console.log(error.errorData.message);
-	console.log(error.errorData.errors);
 }
 ```
 
@@ -109,21 +75,39 @@ if (isHTTPError(error)) {
 	console.error(error.name); // 'HTTPError'
 	console.error(error.message);
 	console.error(error.errorData); // Will be set to the error response data
-} else if (error) {
+}
+
+if (error) {
 	console.error(error);
-	console.error(error.name); // PossibleJavascriptErrorNames
+	console.error(error.name); // PossibleValidationErrorName | PossibleJavascriptErrorNames
 	console.error(error.message);
-	console.error(error.errorData); // Will be set to the JS error object that caused the error
+	console.error(error.errorData); // Will be set to the original error object that caused the error if it's a javascript error or the issues array if it's a validation error
+}
+```
+
+If you want to handle validation errors specifically, you can use the `isValidationError` utility:
+
+```ts twoslash title="api.ts"
+import { callApi } from "@zayne-labs/callapi";
+import { isValidationError } from "@zayne-labs/callapi/utils";
+
+const { data, error } = await callApi("https://my-api.com/api/v1/session");
+
+if (isValidationError(error)) {
+	console.error(error);
+	console.error(error.name); // 'ValidationError'
+	console.error(error.message);
+	console.error(error.errorData); // Will be set to the validation issues array
 }
 ```
 
 ## Handling Thrown Errors
 
-When using the `throwOnError` option, CallApi will throw the error instead of returning it. The thrown error will be an instance of the `HTTPError` class (a subclass of `Error`). You can handle these errors using a try-catch block with the `isHTTPErrorInstance` utility:
+When using the `throwOnError` option, CallApi will throw any error it encounters instead of returning it. The thrown error can be an instance of the `HTTPError` class (a subclass of `Error`) or a `ValidationError` class (a subclass of `Error`) or a regular javascript error. You can handle `HTTPError` and `ValidationError` in a try-catch block using the `isHTTPErrorInstance` or `isValidationErrorInstance` utility respectively:
 
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
-import { isHTTPErrorInstance } from "@zayne-labs/callapi/utils";
+import { isHTTPErrorInstance, isValidationErrorInstance } from "@zayne-labs/callapi/utils";
 
 type UserData = {
 	id: number;
@@ -143,6 +127,13 @@ try {
 	});
 } catch (error) {
 	if (isHTTPErrorInstance<ErrorResponseData>(error)) {
+		console.error(error);
+		console.error(error.name);
+		console.error(error.message);
+		console.error(error.errorData);
+	}
+
+	if (isValidationErrorInstance(error)) {
 		console.error(error);
 		console.error(error.name);
 		console.error(error.message);

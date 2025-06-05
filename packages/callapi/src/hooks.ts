@@ -103,7 +103,7 @@ export type HooksOrHooksArray<
 		| Array<Hooks<TData, TErrorData, TMoreOptions>[Key]>;
 };
 
-export interface SharedHookContext<TMoreOptions = unknown> {
+export type RequestContext = {
 	/**
 	 * Config object passed to createFetchClient
 	 */
@@ -116,59 +116,51 @@ export interface SharedHookContext<TMoreOptions = unknown> {
 	 * Merged options consisting of extra options from createFetchClient, the callApi instance and default options.
 	 *
 	 */
-	options: CombinedCallApiExtraOptions & Partial<TMoreOptions>;
+	options: CombinedCallApiExtraOptions;
 	/**
 	 * Merged request consisting of request options from createFetchClient, the callApi instance and default request options.
 	 */
 	request: CallApiRequestOptionsForHooks;
-}
+};
 
-export type RequestContext = UnmaskType<SharedHookContext>;
+export type ResponseContext<TData, TErrorData> = RequestContext
+	& (
+		| {
+				data: null;
+				error: PossibleHTTPError<TErrorData>;
+				response: Response;
+		  }
+		| {
+				data: null;
+				error: PossibleJavaScriptOrValidationError;
+				response: Response | null;
+		  }
+		| {
+				data: TData;
+				error: null;
+				response: Response;
+		  }
+	);
 
-export type ResponseContext<TData, TErrorData> = UnmaskType<
-	SharedHookContext
-		& (
-			| {
-					data: null;
-					error: PossibleHTTPError<TErrorData>;
-					response: Response;
-			  }
-			| {
-					data: null;
-					error: PossibleJavaScriptOrValidationError;
-					response: Response | null;
-			  }
-			| {
-					data: TData;
-					error: null;
-					response: Response;
-			  }
-		)
->;
+export type ValidationErrorContext = RequestContext & {
+	error: ValidationError;
+	response: Response | null;
+};
 
-export type ValidationErrorContext = UnmaskType<
-	SharedHookContext & {
-		error: ValidationError;
-		response: Response | null;
-	}
->;
-
-export type SuccessContext<TData> = UnmaskType<
-	SharedHookContext & {
-		data: TData;
-		response: Response;
-	}
->;
+export type SuccessContext<TData> = RequestContext & {
+	data: TData;
+	response: Response;
+};
 
 export type RequestErrorContext = UnmaskType<
-	SharedHookContext & {
+	RequestContext & {
 		error: PossibleJavaScriptOrValidationError;
 		response: null;
 	}
 >;
 
 export type ResponseErrorContext<TErrorData> = UnmaskType<
-	SharedHookContext & {
+	RequestContext & {
 		error: PossibleHTTPError<TErrorData>;
 		response: Response;
 	}
@@ -179,7 +171,7 @@ export type RetryContext<TErrorData> = UnmaskType<
 >;
 
 export type ErrorContext<TErrorData> = UnmaskType<
-	SharedHookContext
+	RequestContext
 		& (
 			| {
 					error: PossibleHTTPError<TErrorData>;
@@ -193,14 +185,14 @@ export type ErrorContext<TErrorData> = UnmaskType<
 >;
 
 export type RequestStreamContext = UnmaskType<
-	SharedHookContext & {
+	RequestContext & {
 		event: StreamProgressEvent;
 		requestInstance: Request;
 	}
 >;
 
 export type ResponseStreamContext = UnmaskType<
-	SharedHookContext & {
+	RequestContext & {
 		event: StreamProgressEvent;
 		response: Response;
 	}

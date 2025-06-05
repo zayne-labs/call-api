@@ -254,7 +254,7 @@ export type CallApiExtraOptions<
 		| Writeable<TSchema, "deep">
 		| ((context: {
 				baseSchema: Writeable<TBaseSchema, "deep">;
-				routeSchema: NonNullable<Writeable<TBaseSchema[TCurrentRouteKey], "deep">>;
+				currentRouteSchema: NonNullable<Writeable<TBaseSchema[TCurrentRouteKey], "deep">>;
 		  }) => Writeable<TSchema, "deep">);
 
 	/**

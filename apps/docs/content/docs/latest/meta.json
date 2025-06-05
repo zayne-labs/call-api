@@ -19,12 +19,13 @@
 		"request-and-response-helpers",
 
 		"---Advanced---",
-		"validation-schemas",
+		"validation",
 		"hooks",
 		"plugins",
 
 		"---API Reference---",
-		"all-options",
-		"extra-options"
+		"extra-options",
+		"base-extra-options",
+		"request-options"
 	]
 }

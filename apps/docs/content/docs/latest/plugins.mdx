@@ -18,7 +18,7 @@ const envPlugin = definePlugin({
 	description: "Adds environment-specific headers to requests",
 	version: "1.0.0",
 
-	init: ({ request }) => {
+	init: ({ request, options, initURL }) => {
 		const env = process.env.NODE_ENV || "development";
 
 		const updatedRequest = {
@@ -26,7 +26,19 @@ const envPlugin = definePlugin({
 			headers: { ...request.headers, "X-Environment": env },
 		};
 
+		const updatedOptions = {
+			...options,
+			meta: {
+				...options.meta,
+				env,
+			},
+		};
+
+		const updatedInitURL = initURL.replace("http://localhost:3000", "http://localhost:3001");
+
 		return {
+			initURL: updatedInitURL,
+			options: updatedOptions,
 			request: updatedRequest,
 		};
 	},
@@ -78,7 +90,7 @@ const envPlugin = definePlugin({
 	description: "A plugin that adds environment-specific headers to requests",
 	version: "1.0.0",
 
-	init: ({ initURL, request, options }) => {
+	init: ({ request }) => {
 		const env = process.env.NODE_ENV ?? "development";
 		const platform = typeof window !== "undefined" ? "browser" : "node";
 		const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -136,11 +148,11 @@ const callBackendApi = createFetchClient({
 	order they are registered.
 </Callout>
 
-### CreateExtraOptions
+### Defining Extra Options
 
-Sometimes your plugin needs additional configuration options beyond the standard `CallApiPlugin` interface. To handle this, you can use the `createExtraOptions` function to return a validation schema that defines those options.
+Sometimes your plugin needs to define additional callapi options beyond what is provided. To handle this, you can use the `defineExtraOptions` function to return a validation schema that defines those options.
 
-For example, let's create a plugin that tracks upload progress:
+For example, let's create a plugin that tracks upload progress and defines a custom option `onUploadProgress`:
 
 ```ts twoslash title="plugins.ts"
 import { createFetchClient, definePlugin, type PluginInitContext } from "@zayne-labs/callapi";
@@ -156,12 +168,13 @@ const uploadProgressPlugin = definePlugin({
 	description: "A plugin that tracks upload progress",
 	version: "1.0.0",
 
-	createExtraOptions: () => pluginOptionsSchema,
+	defineExtraOptions: () => pluginOptionsSchema,
 
 	init: ({ request, options }: PluginInitContext<z.infer<typeof pluginOptionsSchema>>) => {
 		const xhr = new XMLHttpRequest();
 
 		xhr.open(request.method!, options.fullURL!);
+
 		xhr.send(request.body as XMLHttpRequestBodyInit);
 
 		xhr.upload.addEventListener("progress", (event) => {
@@ -187,7 +200,7 @@ const { data } = await callBackendApi("/api/users", {
 });
 ```
 
-In this example, we use Zod to define custom plugin options. The plugin then uses these validated options in its `init` function to set up the XMLHttpRequest progress tracking.
+Here we use Zod schemas to define the custom callapi option `onUploadProgress`, which is then called inside the `init` function to set up progress tracking for XMLHttpRequest uploads.
 
 ## Using Plugins
 
@@ -214,13 +227,18 @@ const { data } = await callBackendApi("/users", {
 });
 ```
 
-**NOTE**: Using the `plugins` option directly on the CallApi instance will replace the base plugins array by default. If you want to keep the base plugins and still be able to add new ones, use the `extends` option:
+**NOTE**: Using the `plugins` option directly on the CallApi instance will replace the base plugins array by default. If you want to keep the base plugins and still be able to add new ones, pass a callback to the `plugins` option that is called with the base plugins array:
 
 ```ts title="api.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+import { metricsPlugin, envPlugin, loggingPlugin } from "./plugins";
+
+const callBackendApi = createFetchClient({
+	plugins: [envPlugin, loggingPlugin],
+});
+
 const { data } = await callBackendApi("/users", {
-	extends: {
-		plugins: [metricsPlugin], // Add metrics plugin while keeping base plugins
-	},
+	plugins: ({ basePlugins }) => [...basePlugins, metricsPlugin], // Add metrics plugin while keeping base plugins
 });
 ```
 
@@ -228,10 +246,8 @@ const { data } = await callBackendApi("/users", {
 
 Here's a complete example of a plugin that tracks API metrics:
 
-```ts twoslash title="plugins.ts"
+```ts title="plugins.ts"
 import { definePlugin } from "@zayne-labs/callapi";
-
-// ---cut---
 
 declare module "@zayne-labs/callapi" {
 	interface Register {
@@ -277,6 +293,6 @@ const metricsPlugin = definePlugin({
 });
 ```
 
-## Properties
+## Types
 
 <auto-type-table path="../../../lib/callapi-options.ts" name="CallApiPlugin" />

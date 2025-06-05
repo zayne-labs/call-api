@@ -1,14 +1,19 @@
 import type {
-	CallApiRequestOptions,
-	CombinedCallApiExtraOptions as InitCombinedCallApiExtraOptions,
-	RetryOptions,
+	BaseCallApiExtraOptions as InitBaseCallApiExtraOptions,
+	CallApiExtraOptions as InitCallApiExtraOptions,
 } from "@zayne-labs/callapi";
 
-export type { CallApiPlugin, CallApiRequestOptions, Hooks } from "@zayne-labs/callapi";
+export type TimeoutOptions = Pick<InitCallApiExtraOptions, "timeout">;
 
-export type RetryAndTimeoutOptions<TErrorData> = Omit<RetryOptions<TErrorData>, "~retryAttemptCount">
-	& Pick<CombinedCallApiExtraOptions, "timeout">;
+export type {
+	CallApiPlugin,
+	RetryOptions,
+	CallApiRequestOptions,
+	CallApiSchema,
+	CallApiSchemaConfig,
+	Hooks,
+} from "@zayne-labs/callapi";
 
-export type CombinedCallApiExtraOptions = Omit<InitCombinedCallApiExtraOptions, "~retryAttemptCount">;
+export type BaseCallApiExtraOptions = Omit<InitBaseCallApiExtraOptions, "~retryAttemptCount">;
 
-export type CombinedCallApiConfig = CallApiRequestOptions & CombinedCallApiExtraOptions;
+export type CallApiExtraOptions = Omit<InitCallApiExtraOptions, "~retryAttemptCount">;

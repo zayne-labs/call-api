@@ -172,7 +172,7 @@ export const createFetchClient = <
 		const resolvedSchema = isFunction(extraOptions.schema)
 			? extraOptions.schema({
 					baseSchema: baseExtraOptions.schema ?? {},
-					routeSchema: routeSchema ?? {},
+					currentRouteSchema: routeSchema ?? {},
 				})
 			: (extraOptions.schema ?? routeSchema);
 

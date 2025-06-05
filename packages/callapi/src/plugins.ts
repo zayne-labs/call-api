@@ -3,7 +3,8 @@ import { hookDefaults } from "./constants/default-options";
 import {
 	type Hooks,
 	type HooksOrHooksArray,
-	type SharedHookContext,
+	type PluginExtraOptions,
+	type RequestContext,
 	composeTwoHooks,
 	hookRegistries,
 } from "./hooks";
@@ -13,15 +14,12 @@ import type {
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 } from "./types/common";
-import type { AnyFunction, Awaitable, Prettify } from "./types/type-helpers";
+import type { AnyFunction, Awaitable } from "./types/type-helpers";
 import type { InitURLOrURLObject } from "./url";
 import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
 
-export type PluginInitContext<TMoreOptions = unknown> = Prettify<
-	SharedHookContext<TMoreOptions> & {
-		initURL: string;
-	}
->;
+export type PluginInitContext<TPluginExtraOptions = unknown> = RequestContext // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
+	& PluginExtraOptions<TPluginExtraOptions> & { initURL: string };
 
 export type PluginInitResult = Partial<
 	Omit<PluginInitContext, "initURL" | "request"> & {

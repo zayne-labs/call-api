@@ -79,7 +79,7 @@ export type PossibleHTTPError<TErrorData> = Prettify<
 
 export type PossibleValidationError = Prettify<
 	UnmaskType<{
-		errorData: ValidationError["issues"];
+		errorData: ValidationError["errorData"];
 		message: string;
 		name: "ValidationError";
 		originalError: ValidationError;
@@ -186,41 +186,6 @@ export const resolveSuccessResult = (data: unknown, info: SuccessInfo): SuccessR
 	return successResult as SuccessResult;
 };
 
-// export const resolveErrorResultAndContextForHooks = (info: ErrorInfo) => {
-// 	const { baseConfig, config, error, message: customErrorMessage, options, request } = info;
-
-// 	const errorContext = {
-// 		baseConfig,
-// 		config,
-// 		error: errorResult?.error as never,
-// 		options,
-// 		request,
-// 		response: errorResult?.response as never,
-// 	} satisfies ErrorContext<unknown>;
-
-// 	const shouldThrowOnError = isFunction(options.throwOnError)
-// 		? options.throwOnError(errorContext)
-// 		: options.throwOnError;
-
-// 	const executeHooksInCatchBlock = async (...hookResults: Array<Awaitable<unknown>>) => {
-// 		try {
-// 			await Promise.all(hookResults);
-
-// 			return null;
-// 		} catch (hookError) {
-// 			if (shouldThrowOnError) {
-// 				throw hookError;
-// 			}
-
-// 			const { errorResult: hookErrorResult } = resolveErrorResult({ ...info, error: hookError });
-
-// 			return hookErrorResult;
-// 		}
-// 	};
-
-// 	return { errorContext, errorResult, executeHooksInCatchBlock, shouldThrowOnError };
-// };
-
 export type ErrorInfo = {
 	cloneResponse: CallApiExtraOptions["cloneResponse"];
 	defaultErrorMessage: CallApiExtraOptions["defaultErrorMessage"];
@@ -245,12 +210,12 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 	} satisfies CallApiResultErrorVariant<unknown> as CallApiResultErrorVariant<unknown>;
 
 	if (isValidationErrorInstance(error)) {
-		const { issues, message, response } = error;
+		const { errorData, message, response } = error;
 
 		details = {
 			data: null,
 			error: {
-				errorData: issues,
+				errorData,
 				message,
 				name: "ValidationError",
 				originalError: error,

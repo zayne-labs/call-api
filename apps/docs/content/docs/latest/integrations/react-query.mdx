@@ -44,7 +44,7 @@ import { callApi } from "@zayne-labs/callapi";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
-const todoSchema = z.object({
+const dataSchema = z.object({
 	id: z.number(),
 	title: z.string(),
 	completed: z.boolean(),
@@ -55,7 +55,7 @@ const { data, isPending, isError, error } = useQuery({
 	queryFn: () => {
 		return callApi("https://my-api.com/api/v1/todos", {
 			schemas: {
-				data: todoSchema,
+				data: dataSchema,
 			},
 			throwOnError: true,
 			resultMode: "onlySuccessWithException",

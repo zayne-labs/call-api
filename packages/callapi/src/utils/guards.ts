@@ -14,7 +14,7 @@ export const isHTTPErrorInstance = <TErrorData>(error: unknown) => {
 };
 
 export const isValidationError = (
-	error: CallApiResultErrorVariant<unknown>["error"]
+	error: CallApiResultErrorVariant<unknown>["error"] | null
 ): error is PossibleValidationError => {
 	return isObject(error) && error.name === "ValidationError";
 };

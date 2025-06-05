@@ -1,4 +1,4 @@
-import { type SharedHookContext, executeHooksInTryBlock } from "./hooks";
+import { type RequestContext, executeHooksInTryBlock } from "./hooks";
 import { isObject } from "./utils/guards";
 
 export type StreamProgressEvent = {
@@ -59,7 +59,7 @@ const calculateTotalBytesFromBody = async (
 	return totalBytes;
 };
 
-type ToStreamableRequestContext = SharedHookContext & { requestInstance: Request };
+type ToStreamableRequestContext = RequestContext & { requestInstance: Request };
 
 export const toStreamableRequest = async (context: ToStreamableRequestContext) => {
 	const { baseConfig, config, options, request, requestInstance } = context;
@@ -123,7 +123,7 @@ export const toStreamableRequest = async (context: ToStreamableRequestContext) =
 	});
 };
 
-type StreamableResponseContext = SharedHookContext & { response: Response };
+type StreamableResponseContext = RequestContext & { response: Response };
 export const toStreamableResponse = async (context: StreamableResponseContext): Promise<Response> => {
 	const { baseConfig, config, options, request, response } = context;
 

@@ -7,6 +7,7 @@ import {
 	defineSchema,
 } from "@zayne-labs/callapi";
 import { loggerPlugin } from "@zayne-labs/callapi-plugins";
+import { isValidationError } from "@zayne-labs/callapi/utils";
 import z from "zod";
 
 const newOptionSchema1 = z.object({
@@ -29,7 +30,7 @@ const newOptionSchema2 = z.object({
 
 type Plugin2Options = z.infer<typeof newOptionSchema2>;
 
-const plugin1 = definePlugin({
+const pluginOne = definePlugin({
 	defineExtraOptions: () => newOptionSchema1,
 
 	hooks: {
@@ -41,7 +42,7 @@ const plugin1 = definePlugin({
 	name: "plugin",
 });
 
-const plugin2 = definePlugin(() => ({
+const pluginTwo = definePlugin({
 	defineExtraOptions: () => newOptionSchema2,
 
 	hooks: {
@@ -66,20 +67,22 @@ const plugin2 = definePlugin(() => ({
 	},
 
 	name: "plugin",
-}));
+});
 
 const callMainApi = createFetchClient({
 	baseURL: "https://dummyjson.com",
 	onRequest: [() => console.info("OnRequest1 - BASE"), () => console.info("OnRequest2 - BASE")],
 	onUpload: (_progress) => {},
 	onUploadSuccess: (_progress) => {},
-	plugins: [plugin1, plugin2(), loggerPlugin()],
+	plugins: [pluginOne, pluginTwo, loggerPlugin()],
+
 	schema: defineSchema({
-		"@delete/products/:food": {
+		"@delete/products/:id": {
 			data: z.object({
 				id: z.number(),
 			}),
 		},
+
 		"/products/:id": {
 			data: z.object({
 				id: z.number(),
@@ -120,9 +123,9 @@ const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
 		params: [1],
 	}),
 
-	callMainApi("@delete/products/:food", {
+	callMainApi("@delete/products/:id", {
 		params: {
-			food: "beans",
+			id: "beans",
 		},
 	}),
 
@@ -141,6 +144,10 @@ const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
 		onResponseStream: (ctx) => console.info("OnResponseStream", { event: ctx.event }),
 	}),
 ]);
+
+if (isValidationError(foo1.error)) {
+	console.info(foo1.error);
+}
 
 console.info(foo1, foo2, foo3, foo4, foo5, foo6);
 

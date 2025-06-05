@@ -23,6 +23,9 @@ const callApi = createFetchClient({
 	onResponseError: (ctx) => {
 		// Do something with context object
 	},
+	onValidationError: (ctx) => {
+		// Do something with context object
+	},
 	onError: (ctx) => {
 		// Do something with context object
 	},
@@ -45,6 +48,7 @@ callApi("/api/data", {
 	onRequestError: (ctx) => {},
 	onResponse: (ctx) => {},
 	onResponseError: (ctx) => {},
+	onValidationError: (ctx) => {},
 	onError: (ctx) => {},
 	onSuccess: (ctx) => {},
 	onRetry: (ctx) => {},
@@ -281,6 +285,22 @@ const client = createFetchClient({
 	retryStatusCodes: [408, 429, 500, 502, 503, 504],
 
 	onRetry: ({ response }) => {
+		// Handle stuff...
+	},
+});
+```
+
+## Validation Phase Hooks
+
+### onValidationError
+
+This hook is called when request or response validation fails via the `schema` option.
+
+```ts twoslash title="example.ts"
+import { createFetchClient } from "@zayne-labs/callapi";
+
+const client = createFetchClient({
+	onValidationError: ({ error, response, request, options }) => {
 		// Handle stuff...
 	},
 });

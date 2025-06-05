@@ -5,6 +5,7 @@ import type { DocsLayoutProps, LinkItemType } from "fumadocs-ui/layouts/docs";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
 import Logo from "public/logo.png";
+import z from "zod/v4";
 
 /**
  * Shared layout configurations
@@ -82,12 +83,21 @@ export const docsOptions: DocsLayoutProps = {
 					),
 				};
 
+				const callApiNpmDataPromise = callApi(
+					"https://registry.npmjs.org/@zayne-labs/callapi/latest",
+					{
+						schema: {
+							data: z.object({ version: z.string() }),
+						},
+					}
+				);
+
+				const descriptionPromise = callApiNpmDataPromise.then(
+					(result) => `v${result.data?.version ?? "1.*.*"}`
+				);
+
 				const modifiedDescription = isString(node.description)
-					&& node.description === "v" && {
-						description: callApi<{ version: string }>(
-							`https://registry.npmjs.org/@zayne-labs/callapi/latest`
-						).then((result) => `v${result.data?.version ?? "1.*.*"}`),
-					};
+					&& node.description === "v" && { description: descriptionPromise };
 
 				return {
 					...options,
