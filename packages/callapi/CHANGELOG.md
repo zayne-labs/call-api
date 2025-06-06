@@ -1,5 +1,11 @@
 # @zayne-labs/callapi
 
+## 1.8.2
+
+### Patch Changes
+
+- 3a150ba: feat: add isJavascriptError guard
+
 ## 1.8.0
 
 ### Minor Changes
