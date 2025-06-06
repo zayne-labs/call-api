@@ -1,9 +1,6 @@
+import { getMDXComponents } from "@/components/common";
 import { baseURL } from "@/lib/metadata";
 import { source } from "@/lib/source";
-import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui";
-import { Tab, Tabs } from "fumadocs-ui/components/tabs";
-import { TypeTable } from "fumadocs-ui/components/type-table";
-import defaultMdxComponents from "fumadocs-ui/mdx";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
 
@@ -39,17 +36,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
 			<DocsTitle>{page.data.title}</DocsTitle>
 			<DocsDescription>{page.data.description}</DocsDescription>
 			<DocsBody>
-				<MDX
-					components={{
-						...defaultMdxComponents,
-						Popup,
-						PopupContent,
-						PopupTrigger,
-						Tab,
-						Tabs,
-						TypeTable,
-					}}
-				/>
+				<MDX components={getMDXComponents()} />
 			</DocsBody>
 		</DocsPage>
 	);

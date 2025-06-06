@@ -10,17 +10,17 @@ const defineParameters = <
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
-	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
-	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TSchema extends CallApiSchema = CallApiSchema,
+	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TInitURL extends InferInitURL<BaseCallApiSchema, TSchemaConfig> = InferInitURL<
 		BaseCallApiSchema,
 		TSchemaConfig
 	>,
 	TCurrentRouteKey extends string = string,
+	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 >(
 	...parameters: CallApiParameters<
 		TData,
@@ -28,14 +28,14 @@ const defineParameters = <
 		TResultMode,
 		TThrowOnError,
 		TResponseType,
-		TBasePluginArray,
-		TPluginArray,
 		TBaseSchema,
-		TBaseSchemaConfig,
 		TSchema,
+		TBaseSchemaConfig,
 		TSchemaConfig,
 		TInitURL,
-		TCurrentRouteKey
+		TCurrentRouteKey,
+		TBasePluginArray,
+		TPluginArray
 	>
 ) => {
 	return parameters;

@@ -32,7 +32,7 @@ export type InferSchemaResult<TSchema, TFallbackResult = NonNullable<unknown>> =
 	: TSchema extends StandardSchemaV1
 		? StandardSchemaV1.InferOutput<TSchema>
 		: TSchema extends AnyFunction<infer TResult>
-			? TResult
+			? Awaited<TResult>
 			: TFallbackResult;
 
 const validationErrorSymbol = Symbol("validationErrorSymbol");

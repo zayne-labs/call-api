@@ -67,9 +67,9 @@ export const createFetchClient = <
 		TBaseResultMode,
 		TBaseThrowOnError,
 		TBaseResponseType,
-		TBasePluginArray,
 		TBaseSchema,
-		TBaseSchemaConfig
+		TBaseSchemaConfig,
+		TBasePluginArray
 	> = {} as never
 ) => {
 	const $RequestInfoCache: RequestInfoCache = new Map();
@@ -86,8 +86,7 @@ export const createFetchClient = <
 			TSchemaConfig,
 			TInitURL
 		>,
-		TComputedRouteSchema extends CallApiSchema = NonNullable<TBaseSchema[TCurrentRouteKey]>,
-		TSchema extends CallApiSchema = TComputedRouteSchema,
+		TSchema extends CallApiSchema = NonNullable<TBaseSchema[TCurrentRouteKey]>,
 		TPluginArray extends CallApiPlugin[] = TBasePluginArray,
 	>(
 		...parameters: CallApiParameters<
@@ -96,14 +95,14 @@ export const createFetchClient = <
 			TResultMode,
 			TThrowOnError,
 			TResponseType,
-			TBasePluginArray,
-			TPluginArray,
 			TBaseSchema,
-			TBaseSchemaConfig,
 			TSchema,
+			TBaseSchemaConfig,
 			TSchemaConfig,
 			TInitURL,
-			TCurrentRouteKey
+			TCurrentRouteKey,
+			TBasePluginArray,
+			TPluginArray
 		>
 	): CallApiResult<
 		InferSchemaResult<TSchema["data"], TData>,

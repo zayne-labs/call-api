@@ -24,7 +24,7 @@ To use CallApi without npm, import it directly into your JavaScript files via a 
 </script>
 ```
 
-_If you want to use a specific version, you can specify it in the URL like this:_
+If you want to use a specific version, you can specify it in the URL like this:
 
 ```html
 <script type="module">
@@ -36,7 +36,7 @@ _If you want to use a specific version, you can specify it in the URL like this:
 
 The fastest way to start using callApi is to import the callApi function and commence making requests.
 
-You can define the response data and error types using generics or validate them via zod or any other validation library (will be automatically inferred via openApi in future versions of callApi)
+You can define the response data and error types using generics or validate and infer them via [Validation Schema](./validation)
 
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
@@ -48,9 +48,9 @@ type Todo = {
 	completed: boolean;
 };
 
-const { data, error, response } = await callApi<Todo>("https://jsonplaceholder.typicode.com/todos/1");
-
 // @annotate: Hover over the data or error object to see the type
+
+const { data, error, response } = await callApi<Todo>("https://jsonplaceholder.typicode.com/todos/1");
 ```
 
 CallApi by default returns a Promise that resolves to an object of data, error and the original response object. But this can be customized using the `resultMode` option.

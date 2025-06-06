@@ -274,6 +274,8 @@ const callApi = createFetchClient({
 });
 ```
 
+## Custom Validator
+
 ## Schema Configuration
 
 When creating a schema with `defineSchema`, you can configure validation behavior:
@@ -362,6 +364,90 @@ const { data, error } = await callApi("/user", {
 	},
 });
 ```
+
+## Custom Validators
+
+Instead of using Zod schemas, you can also provide custom validator functions for any schema field. These functions receive the input value and can perform custom validation or transformation. They can also be async if need be.
+
+```ts twoslash title="client.ts"
+import { createFetchClient, defineSchema } from "@zayne-labs/callapi";
+
+const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+// Simulation: Get allowed domains from config/API
+const getAllowedDomains = async () => {
+	await wait(1000);
+	return ["example.com", "company.com"];
+};
+
+const callApi = createFetchClient({
+	baseURL: "https://api.example.com",
+
+	schema: defineSchema({
+		"users/:id": {
+			// Async body validator with custom validation
+			body: async (body) => {
+				if (!body || typeof body !== "object") {
+					throw new Error("Invalid request body");
+				}
+
+				// Required fields
+				if (!("name" in body) || typeof body.name !== "string") {
+					throw new Error("Name is required");
+				}
+
+				if (!("email" in body) || typeof body.email !== "string" || !body.email.includes("@")) {
+					throw new Error("Valid email required");
+				}
+
+				// Validate domain against allowed list
+				const domain = body.email.split("@")[1] ?? "";
+				const allowed = await getAllowedDomains();
+
+				if (!allowed.includes(domain)) {
+					throw new Error(`Email domain ${domain} not allowed`);
+				}
+
+				return {
+					email: body.email.toLowerCase(),
+					name: body.name.trim(),
+				};
+			},
+
+			// Response data validator
+			data: (data) => {
+				if (
+					!data
+					|| typeof data !== "object"
+					|| !("id" in data)
+					|| !("name" in data)
+					|| !("email" in data)
+				) {
+					throw new Error("Invalid response data");
+				}
+
+				return data; // Type will be narrowed to { id: number; name: string; email: string }
+			},
+		},
+	}),
+});
+
+// @annotate: Types are inferred from validator return types
+const { data } = await callApi("users/:id", {
+	body: {
+		email: "JOHN@example.com",
+		name: " John ", // Will be trimmed & lowercased.
+	},
+});
+```
+
+Custom validators allow you to:
+
+1. Accept raw input data to validate
+2. Run sync or async validation logic
+3. Transform data if needed (e.g., normalize, sanitize)
+4. Can throw errors for invalid data
+5. Return the validated data (From which TypeScript infers the return type)
 
 ### Overriding the base schema for a specific path
 
