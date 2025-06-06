@@ -1,5 +1,10 @@
 import { HTTPError } from "../error";
-import type { CallApiResultErrorVariant, PossibleHTTPError, PossibleValidationError } from "../result";
+import type {
+	CallApiResultErrorVariant,
+	PossibleHTTPError,
+	PossibleJavaScriptError,
+	PossibleValidationError,
+} from "../result";
 import type { AnyFunction } from "../types/type-helpers";
 import { ValidationError } from "../validation";
 
@@ -21,6 +26,12 @@ export const isValidationError = (
 
 export const isValidationErrorInstance = (error: unknown): error is ValidationError => {
 	return ValidationError.isError(error);
+};
+
+export const isJavascriptError = (
+	error: CallApiResultErrorVariant<unknown>["error"] | null
+): error is PossibleJavaScriptError => {
+	return isObject(error) && !isHTTPError(error) && !isValidationError(error);
 };
 
 export const isArray = <TArrayItem>(value: unknown): value is TArrayItem[] => Array.isArray(value);

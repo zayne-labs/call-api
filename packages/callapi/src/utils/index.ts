@@ -1,2 +1,8 @@
 export { toQueryString } from "./common";
-export { isHTTPError, isHTTPErrorInstance, isValidationError, isValidationErrorInstance } from "./guards";
+export {
+	isHTTPError,
+	isHTTPErrorInstance,
+	isValidationError,
+	isValidationErrorInstance,
+	isJavascriptError,
+} from "./guards";
