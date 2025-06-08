@@ -10,6 +10,8 @@ export type {
 	RetryOptions,
 	CallApiRequestOptions,
 	CallApiSchema,
+	URLOptions,
+	DedupeOptions,
 	CallApiSchemaConfig,
 	Hooks,
 } from "@zayne-labs/callapi";

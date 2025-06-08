@@ -19,7 +19,7 @@ import {
 	resolveSuccessResult,
 } from "./result";
 import { createRetryStrategy } from "./retry";
-import type { GetCurrentRouteKey, InferInitURL } from "./types";
+import type { GetCurrentRouteKey, InferHeadersOption, InferInitURL } from "./types";
 import type {
 	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
@@ -31,6 +31,7 @@ import type {
 	CombinedCallApiExtraOptions,
 } from "./types/common";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
+import type { AnyFunction } from "./types/type-helpers";
 import { getCurrentRouteKey, getFullURL, getMethod, normalizeURL } from "./url";
 import {
 	createCombinedSignal,
@@ -50,6 +51,8 @@ import {
 	handleOptionsValidation,
 	handleValidation,
 } from "./validation";
+
+const $GlobalRequestInfoCache: RequestInfoCache = new Map();
 
 export const createFetchClient = <
 	TBaseData = DefaultDataType,
@@ -72,7 +75,7 @@ export const createFetchClient = <
 		TBasePluginArray
 	> = {} as never
 ) => {
-	const $RequestInfoCache: RequestInfoCache = new Map();
+	const $LocalRequestInfoCache: RequestInfoCache = new Map();
 
 	const callApi = async <
 		TData = TBaseData,
@@ -205,7 +208,8 @@ export const createFetchClient = <
 			handleRequestDeferStrategy,
 			removeDedupeKeyFromCache,
 		} = await createDedupeStrategy({
-			$RequestInfoCache,
+			$GlobalRequestInfoCache,
+			$LocalRequestInfoCache,
 			baseConfig,
 			config,
 			newFetchController,
@@ -238,16 +242,23 @@ export const createFetchClient = <
 				};
 			}
 
+			const rawBody = shouldApplySchemaOutput ? requestOptionsValidationResult?.body : request.body;
+
 			const validBody = getBody({
-				body: shouldApplySchemaOutput ? requestOptionsValidationResult?.body : request.body,
+				body: rawBody,
 				bodySerializer: options.bodySerializer,
 			});
 
+			type HeaderFn = Extract<InferHeadersOption<CallApiSchema>["headers"], AnyFunction>;
+
+			const resolvedHeaders = isFunction<HeaderFn>(fetchOptions.headers)
+				? fetchOptions.headers({ baseHeaders: baseFetchOptions.headers ?? {} })
+				: (fetchOptions.headers ?? baseFetchOptions.headers);
+
 			const validHeaders = await getHeaders({
 				auth: options.auth,
-				baseHeaders: request.headers,
-				body: request.body,
-				headers: shouldApplySchemaOutput ? requestOptionsValidationResult?.headers : request.headers,
+				body: rawBody,
+				headers: shouldApplySchemaOutput ? requestOptionsValidationResult?.headers : resolvedHeaders,
 			});
 
 			const validMethod = getMethod({
@@ -263,7 +274,7 @@ export const createFetchClient = <
 				...(Boolean(validMethod) && { method: validMethod }),
 			};
 
-			const response = await handleRequestDeferStrategy(options, request);
+			const response = await handleRequestDeferStrategy({ options, request });
 
 			// == Also clone response when dedupeStrategy is set to "defer" or when onRequestStream is set, to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = dedupeStrategy === "defer" || options.cloneResponse;

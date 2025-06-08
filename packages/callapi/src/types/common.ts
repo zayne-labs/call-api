@@ -5,7 +5,7 @@ import type { ErrorContext, Hooks, HooksOrHooksArray } from "../hooks";
 import type { CallApiPlugin } from "../plugins";
 import type { GetCallApiResult, ResponseTypeUnion, ResultModeUnion } from "../result";
 import type { RetryOptions } from "../retry";
-import type { UrlOptions } from "../url";
+import type { URLOptions } from "../url";
 import type { BaseCallApiSchema, CallApiSchema, CallApiSchemaConfig } from "../validation";
 import type {
 	Body,
@@ -168,7 +168,7 @@ export type SharedExtraOptions<
 	& RetryOptions<TErrorData>
 	& ResultModeOption<TErrorData, TResultMode>
 	& ThrowOnErrorOption<TErrorData>
-	& UrlOptions;
+	& URLOptions;
 /* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
 
 export type BaseCallApiExtraOptions<

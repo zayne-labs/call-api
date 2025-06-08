@@ -12,7 +12,8 @@ type RequestInfo = {
 export type RequestInfoCache = Map<string | null, RequestInfo>;
 
 type DedupeContext = RequestContext & {
-	$RequestInfoCache: RequestInfoCache;
+	$GlobalRequestInfoCache: RequestInfoCache;
+	$LocalRequestInfoCache: RequestInfoCache;
 	newFetchController: AbortController;
 };
 
@@ -27,7 +28,8 @@ export const getAbortErrorMessage = (
 
 export const createDedupeStrategy = async (context: DedupeContext) => {
 	const {
-		$RequestInfoCache,
+		$GlobalRequestInfoCache,
+		$LocalRequestInfoCache,
 		baseConfig,
 		config,
 		newFetchController,
@@ -48,6 +50,15 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 	};
 
 	const dedupeKey = globalOptions.dedupeKey ?? generateDedupeKey();
+
+	const dedupeCacheScope = globalOptions.dedupeCacheScope ?? dedupeDefaults.dedupeCacheScope;
+
+	const $RequestInfoCache = (
+		{
+			global: $GlobalRequestInfoCache,
+			local: $LocalRequestInfoCache,
+		} satisfies Record<NonNullable<DedupeOptions["dedupeCacheScope"]>, RequestInfoCache>
+	)[dedupeCacheScope];
 
 	// == This is to ensure cache operations only occur when key is available
 	const $RequestInfoCacheOrNull = dedupeKey !== null ? $RequestInfoCache : null;
@@ -77,37 +88,43 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 		return Promise.resolve();
 	};
 
-	const handleRequestDeferStrategy = async (
-		options: DedupeContext["options"],
-		request: DedupeContext["request"]
-	) => {
-		const fetchApi = getFetchImpl(options.customFetchImpl);
+	const handleRequestDeferStrategy = async (deferContext: {
+		options: DedupeContext["options"];
+		request: DedupeContext["request"];
+	}) => {
+		// == Local options and request are needed so that transformations are applied can be applied to both from call site
+		const { options: localOptions, request: localRequest } = deferContext;
+
+		const fetchApi = getFetchImpl(localOptions.customFetchImpl);
 
 		const shouldUsePromiseFromCache = prevRequestInfo && dedupeStrategy === "defer";
 
-		const requestObjectForStream = isReadableStream(request.body)
-			? { ...request, duplex: request.duplex ?? "half" }
-			: request;
+		const requestObjectForStream = isReadableStream(localRequest.body)
+			? { ...localRequest, duplex: localRequest.duplex ?? "half" }
+			: localRequest;
 
 		const requestInstance = new Request(
-			options.fullURL as NonNullable<typeof options.fullURL>,
+			localOptions.fullURL as NonNullable<typeof localOptions.fullURL>,
 			requestObjectForStream as RequestInit
 		);
 
 		await toStreamableRequest({
 			baseConfig,
 			config,
-			options,
-			request,
+			options: localOptions,
+			request: localRequest,
 			requestInstance: requestInstance.clone(),
 		});
 
 		const getFetchApiPromise = () => {
-			if (isReadableStream(request.body)) {
+			if (isReadableStream(localRequest.body)) {
 				return fetchApi(requestInstance.clone());
 			}
 
-			return fetchApi(options.fullURL as NonNullable<typeof options.fullURL>, request as RequestInit);
+			return fetchApi(
+				localOptions.fullURL as NonNullable<typeof localOptions.fullURL>,
+				localRequest as RequestInit
+			);
 		};
 
 		const responsePromise = shouldUsePromiseFromCache
@@ -119,8 +136,8 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 		const streamableResponse = toStreamableResponse({
 			baseConfig,
 			config,
-			options,
-			request,
+			options: localOptions,
+			request: localRequest,
 			response: await responsePromise,
 		});
 
@@ -140,6 +157,14 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 };
 
 export type DedupeOptions = {
+	/**
+	 * Defines the scope of the deduplication cache, can be set to "global" | "local".
+	 * - If set to "global", the deduplication cache will be shared across all requests, regardless of whether they shared the same `createFetchClient` or not.
+	 * - If set to "local", the deduplication cache will be scoped to the current request.
+	 * @default "local"
+	 */
+	dedupeCacheScope?: "global" | "local";
+
 	/**
 	 * Custom request key to be used to identify a request in the fetch deduplication strategy.
 	 * @default the full request url + string formed from the request options

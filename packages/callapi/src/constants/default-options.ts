@@ -39,6 +39,7 @@ export const hookDefaults = defineEnum({
 });
 
 export const dedupeDefaults = defineEnum({
+	dedupeCacheScope: "local",
 	dedupeStrategy: "cancel",
 });
 

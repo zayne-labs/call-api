@@ -1,10 +1,7 @@
 import { getAuthHeader } from "../auth";
 import { fetchSpecificKeys } from "../constants/common";
 import { commonDefaults } from "../constants/default-options";
-import type { InferHeadersOption } from "../types";
 import type { BaseCallApiExtraOptions, CallApiExtraOptions, CallApiRequestOptions } from "../types/common";
-import type { AnyFunction } from "../types/type-helpers";
-import type { CallApiSchema } from "../validation";
 import { isFunction, isJsonString, isPlainObject, isQueryString, isSerializable } from "./guards";
 
 export const omitKeys = <
@@ -86,31 +83,24 @@ export const objectifyHeaders = (headers: CallApiRequestOptions["headers"]) => {
 
 export type GetHeadersOptions = {
 	auth: CallApiExtraOptions["auth"];
-	baseHeaders: CallApiRequestOptions["headers"];
 	body: CallApiRequestOptions["body"];
 	headers: CallApiRequestOptions["headers"];
 };
 
 export const getHeaders = async (options: GetHeadersOptions) => {
-	const { auth, baseHeaders, body, headers } = options;
-
-	type HeaderFn = Extract<InferHeadersOption<CallApiSchema>["headers"], AnyFunction>;
-
-	const resolvedHeaders = isFunction<HeaderFn>(headers)
-		? headers({ baseHeaders: baseHeaders ?? {} })
-		: (headers ?? baseHeaders);
+	const { auth, body, headers } = options;
 
 	// == Return early if any of the following conditions are met (so that native fetch would auto set the correct headers):
 	// == - The headers are not provided
 	// == - The body is not provided
 	// == - The auth option is not provided
-	const shouldResolveHeaders = Boolean(resolvedHeaders) || Boolean(body) || Boolean(auth);
+	const shouldResolveHeaders = Boolean(headers) || Boolean(body) || Boolean(auth);
 
 	if (!shouldResolveHeaders) return;
 
 	const headersObject: Record<string, string | undefined> = {
 		...(await getAuthHeader(auth)),
-		...objectifyHeaders(resolvedHeaders),
+		...objectifyHeaders(headers),
 	};
 
 	if (isQueryString(body)) {

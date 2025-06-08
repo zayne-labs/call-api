@@ -1,4 +1,5 @@
 /* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import { ValidationError } from "./error";
 import type {
 	Body,
 	CallApiExtraOptions,
@@ -18,7 +19,7 @@ import {
 	defineEnum,
 } from "./types/type-helpers";
 import type { Params, Query } from "./url";
-import { isFunction, isObject } from "./utils/guards";
+import { isFunction } from "./utils/guards";
 
 type InferSchemaInput<TSchema extends CallApiSchema[keyof CallApiSchema]> =
 	TSchema extends StandardSchemaV1
@@ -34,65 +35,6 @@ export type InferSchemaResult<TSchema, TFallbackResult = NonNullable<unknown>> =
 		: TSchema extends AnyFunction<infer TResult>
 			? Awaited<TResult>
 			: TFallbackResult;
-
-const validationErrorSymbol = Symbol("validationErrorSymbol");
-
-type ValidationErrorDetails = {
-	issues: readonly StandardSchemaV1.Issue[];
-	response: Response | null;
-};
-
-const formatPath = (path: StandardSchemaV1.Issue["path"]) => {
-	if (!path || path.length === 0) {
-		return "";
-	}
-
-	return ` → at ${path.map((segment) => (isObject(segment) ? segment.key : String(segment))).join(".")}`;
-};
-
-const formatValidationIssues = (issues: ValidationError["errorData"]) => {
-	return issues.map((issue) => `✖ ${issue.message}${formatPath(issue.path)}`).join(" | ");
-};
-
-export class ValidationError extends Error {
-	errorData: readonly StandardSchemaV1.Issue[];
-
-	override name = "ValidationError";
-
-	response: Response | null;
-
-	validationErrorSymbol = validationErrorSymbol;
-
-	constructor(details: ValidationErrorDetails, errorOptions?: ErrorOptions) {
-		const { issues, response } = details;
-
-		const message = formatValidationIssues(issues);
-
-		super(message, errorOptions);
-
-		this.errorData = issues;
-		this.response = response;
-
-		Error.captureStackTrace(this, this.constructor);
-	}
-
-	/**
-	 * @description Checks if the given error is an instance of HTTPError
-	 * @param error - The error to check
-	 * @returns true if the error is an instance of HTTPError, false otherwise
-	 */
-	static isError(error: unknown): error is ValidationError {
-		if (!isObject<Record<string, unknown>>(error)) {
-			return false;
-		}
-
-		if (error instanceof ValidationError) {
-			return true;
-		}
-
-		return error.validationErrorSymbol === validationErrorSymbol && error.name === "ValidationError";
-	}
-}
 
 const handleValidatorFunction = async <TInput>(
 	validator: Extract<CallApiSchema[keyof CallApiSchema], AnyFunction>,

@@ -15,7 +15,7 @@ import type {
 } from "./types/common";
 import type { DefaultDataType } from "./types/default-types";
 import type { AnyFunction, Awaitable, UnmaskType } from "./types/type-helpers";
-import type { ValidationError } from "./validation";
+import type { ValidationError } from "./error";
 
 export type PluginExtraOptions<TPluginOptions = unknown> = {
 	options: Partial<TPluginOptions>;

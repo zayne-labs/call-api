@@ -1,8 +1,9 @@
 import { commonDefaults } from "./constants/default-options";
 import type { CallApiExtraOptions } from "./types";
+import type { StandardSchemaV1 } from "./types/standard-schema";
 import { isObject } from "./utils/guards";
 
-type ErrorDetails<TErrorData> = {
+type HTTPErrorDetails<TErrorData> = {
 	defaultErrorMessage: CallApiExtraOptions["defaultErrorMessage"];
 	errorData: TErrorData;
 	response: Response;
@@ -11,7 +12,7 @@ type ErrorDetails<TErrorData> = {
 const httpErrorSymbol = Symbol("HTTPError");
 
 export class HTTPError<TErrorData = Record<string, unknown>> extends Error {
-	errorData: ErrorDetails<TErrorData>["errorData"];
+	errorData: HTTPErrorDetails<TErrorData>["errorData"];
 
 	httpErrorSymbol = httpErrorSymbol;
 
@@ -19,9 +20,9 @@ export class HTTPError<TErrorData = Record<string, unknown>> extends Error {
 
 	override name = "HTTPError" as const;
 
-	response: ErrorDetails<TErrorData>["response"];
+	response: HTTPErrorDetails<TErrorData>["response"];
 
-	constructor(errorDetails: ErrorDetails<TErrorData>, errorOptions?: ErrorOptions) {
+	constructor(errorDetails: HTTPErrorDetails<TErrorData>, errorOptions?: ErrorOptions) {
 		const { defaultErrorMessage, errorData, response } = errorDetails;
 
 		const selectedDefaultErrorMessage =
@@ -52,5 +53,70 @@ export class HTTPError<TErrorData = Record<string, unknown>> extends Error {
 		}
 
 		return error.httpErrorSymbol === httpErrorSymbol && error.isHTTPError === true;
+	}
+}
+
+const prettifyPath = (path: ValidationError["errorData"][number]["path"]) => {
+	if (!path || path.length === 0) {
+		return "";
+	}
+
+	const pathString = path.map((segment) => (isObject(segment) ? segment.key : segment)).join(".");
+
+	return ` → at ${pathString}`;
+};
+
+const prettifyValidationIssues = (issues: ValidationError["errorData"]) => {
+	const issuesString = issues
+		.map((issue) => `✖ ${issue.message}${prettifyPath(issue.path)}`)
+		.join(" | ");
+
+	return issuesString;
+};
+
+type ValidationErrorDetails = {
+	issues: readonly StandardSchemaV1.Issue[];
+	response: Response | null;
+};
+
+const validationErrorSymbol = Symbol("validationErrorSymbol");
+
+export class ValidationError extends Error {
+	errorData: ValidationErrorDetails["issues"];
+
+	override name = "ValidationError";
+
+	response: ValidationErrorDetails["response"];
+
+	validationErrorSymbol = validationErrorSymbol;
+
+	constructor(details: ValidationErrorDetails, errorOptions?: ErrorOptions) {
+		const { issues, response } = details;
+
+		const message = prettifyValidationIssues(issues);
+
+		super(message, errorOptions);
+
+		this.errorData = issues;
+		this.response = response;
+
+		Error.captureStackTrace(this, this.constructor);
+	}
+
+	/**
+	 * @description Checks if the given error is an instance of HTTPError
+	 * @param error - The error to check
+	 * @returns true if the error is an instance of HTTPError, false otherwise
+	 */
+	static isError(error: unknown): error is ValidationError {
+		if (!isObject<Record<string, unknown>>(error)) {
+			return false;
+		}
+
+		if (error instanceof ValidationError) {
+			return true;
+		}
+
+		return error.validationErrorSymbol === validationErrorSymbol && error.name === "ValidationError";
 	}
 }

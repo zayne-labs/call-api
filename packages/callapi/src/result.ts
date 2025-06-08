@@ -1,10 +1,9 @@
 import { commonDefaults, responseDefaults } from "./constants/default-options";
-import type { HTTPError } from "./error";
+import type { HTTPError, ValidationError } from "./error";
 import type { CallApiExtraOptions } from "./types";
 import type { DefaultDataType } from "./types/default-types";
 import type { Awaitable, Prettify, UnmaskType } from "./types/type-helpers";
 import { isHTTPErrorInstance, isValidationErrorInstance } from "./utils/guards";
-import type { ValidationError } from "./validation";
 
 type Parser = (responseString: string) => Awaitable<Record<string, unknown>>;
 

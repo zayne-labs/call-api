@@ -1,5 +1,7 @@
 export { callApi, createFetchClient } from "./createFetchClient";
 
+export { defineParameters } from "./defineParameters";
+
 export {
 	definePlugin,
 	type CallApiPlugin,
@@ -8,20 +10,21 @@ export {
 	type PluginHooksWithMoreOptions,
 } from "./plugins";
 
-export { defineParameters } from "./defineParameters";
+export type { URLOptions } from "./url";
+
+export type { DedupeOptions } from "./dedupe";
 
 export {
 	type CallApiSchema,
 	type BaseCallApiSchema,
 	type InferSchemaResult,
-	ValidationError,
 	type CallApiSchemaConfig,
 	defineSchema,
 } from "./validation";
 
 export type { RetryOptions } from "./retry";
 
-export { HTTPError } from "./error";
+export { HTTPError, ValidationError } from "./error";
 
 export {
 	type PossibleHTTPError,

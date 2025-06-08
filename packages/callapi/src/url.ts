@@ -148,7 +148,7 @@ export type Query = UnmaskType<Record<string, AllowedQueryParamValues>>;
 
 export type InitURLOrURLObject = string | URL;
 
-export interface UrlOptions {
+export interface URLOptions {
 	/**
 	 * Base URL to be prepended to all request URLs
 	 */

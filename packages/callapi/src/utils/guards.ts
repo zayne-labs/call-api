@@ -1,4 +1,4 @@
-import { HTTPError } from "../error";
+import { HTTPError, ValidationError } from "../error";
 import type {
 	CallApiResultErrorVariant,
 	PossibleHTTPError,
@@ -6,7 +6,6 @@ import type {
 	PossibleValidationError,
 } from "../result";
 import type { AnyFunction } from "../types/type-helpers";
-import { ValidationError } from "../validation";
 
 export const isHTTPError = <TErrorData>(
 	error: CallApiResultErrorVariant<TErrorData>["error"] | null

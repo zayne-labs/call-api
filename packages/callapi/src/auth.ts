@@ -72,7 +72,7 @@ type AuthorizationHeader = {
 
 export const getAuthHeader = async (
 	auth: SharedExtraOptions["auth"]
-): Promise<false | AuthorizationHeader | undefined> => {
+): Promise<AuthorizationHeader | undefined> => {
 	if (auth === undefined) return;
 
 	if (isString(auth) || auth === null) {
@@ -111,7 +111,9 @@ export const getAuthHeader = async (
 				return { Authorization: `Token ${token}` };
 			}
 
-			return bearer !== undefined && { Authorization: `Bearer ${bearer}` };
+			if (bearer === undefined) return;
+
+			return { Authorization: `Bearer ${bearer}` };
 		}
 	}
 };

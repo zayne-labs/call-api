@@ -128,7 +128,6 @@ export type HeadersOption = UnmaskType<
 	| Record<"Authorization", CommonAuthorizationHeaders>
 	| Record<"Content-Type", CommonContentTypes>
 	| Record<CommonRequestHeaders, string | undefined>
-	| Record<string, string | undefined>
 	| RequestInit["headers"]
 >;
 
