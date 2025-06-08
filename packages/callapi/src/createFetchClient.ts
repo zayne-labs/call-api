@@ -3,6 +3,7 @@ import { HTTPError } from "./error";
 import {
 	type ErrorContext,
 	type ExecuteHookInfo,
+	type RequestContext,
 	type RetryContext,
 	type SuccessContext,
 	executeHooksInCatchBlock,
@@ -199,6 +200,10 @@ export const createFetchClient = <
 
 		let request = {
 			...resolvedRequestOptions,
+			// == Making  sure headers is always an object
+			// eslint-disable-next-line ts-eslint/no-unnecessary-condition -- False positive
+			headers: resolvedRequestOptions.headers ?? {},
+
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
 
@@ -322,7 +327,7 @@ export const createFetchClient = <
 				options,
 				request,
 				response,
-			} satisfies SuccessContext<unknown>;
+			} satisfies RequestContext & SuccessContext<unknown>;
 
 			await executeHooksInTryBlock(
 				options.onSuccess?.(successContext),
@@ -354,7 +359,7 @@ export const createFetchClient = <
 				options,
 				request,
 				response: generalErrorResult?.response as never,
-			} satisfies ErrorContext<unknown>;
+			} satisfies ErrorContext<unknown> & RequestContext;
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
 				? options.throwOnError(errorContext)

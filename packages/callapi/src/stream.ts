@@ -21,7 +21,6 @@ export type StreamProgressEvent = {
 };
 
 declare global {
-	// eslint-disable-next-line ts-eslint/consistent-type-definitions -- Allow
 	interface ReadableStream<R> {
 		[Symbol.asyncIterator]: () => AsyncIterableIterator<R>;
 	}

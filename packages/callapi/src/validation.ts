@@ -1,4 +1,3 @@
-/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import { ValidationError } from "./error";
 import type {
 	Body,

@@ -60,7 +60,7 @@ const pluginTwo = definePlugin({
 				...request,
 				headers: {
 					...request.headers,
-					Authorization: request.headers?.["X-Environment"],
+					Authorization: request.headers["X-Environment"],
 				},
 			},
 		};
@@ -81,6 +81,11 @@ const callMainApi = createFetchClient({
 			data: z.object({
 				id: z.number(),
 			}),
+			headers: z
+				.object({
+					Authorization: z.string(),
+				})
+				.optional(),
 		},
 
 		"/products/:id": {
@@ -124,6 +129,9 @@ const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
 	callMainApi("@delete/products/:id", {
 		params: {
 			id: "beans",
+		},
+		onSuccess(context) {
+			console.info("OnSuccess - INSTANCE", context.options.params);
 		},
 	}),
 

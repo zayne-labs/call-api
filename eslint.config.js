@@ -17,9 +17,15 @@ export default zayne(
 		},
 	},
 	{
+		files: ["packages/callapi/src/**/*.ts"],
+		rules: {
+			"ts-eslint/consistent-type-definitions": "off",
+		},
+	},
+	{
 		files: ["packages/callapi/src/createFetchClient.ts"],
 		rules: {
-			complexity: ["warn", { max: 65 }],
+			complexity: ["warn", { max: 70 }],
 		},
 	}
 );

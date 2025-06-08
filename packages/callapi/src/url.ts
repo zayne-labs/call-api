@@ -1,6 +1,5 @@
-/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import { requestOptionDefaults } from "./constants/default-options";
-import type { CallApiExtraOptions, CallApiRequestOptions, SharedExtraOptions } from "./types/common";
+import type { CallApiExtraOptions, CallApiRequestOptions } from "./types/common";
 import type { UnmaskType } from "./types/type-helpers";
 import { toQueryString } from "./utils";
 import { isArray } from "./utils/guards";
@@ -117,8 +116,8 @@ export const normalizeURL = (initURL: string) => {
 type GetFullURLOptions = {
 	baseURL: string | undefined;
 	initURL: string;
-	params: SharedExtraOptions["params"];
-	query: SharedExtraOptions["query"];
+	params: CallApiExtraOptions["params"];
+	query: CallApiExtraOptions["query"];
 };
 
 export const getFullURL = (options: GetFullURLOptions) => {

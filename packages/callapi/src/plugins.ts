@@ -1,4 +1,3 @@
-/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import { hookDefaults } from "./constants/default-options";
 import {
 	type Hooks,
@@ -17,6 +16,7 @@ import type {
 import type { AnyFunction, Awaitable } from "./types/type-helpers";
 import type { InitURLOrURLObject } from "./url";
 import { isArray, isFunction, isPlainObject, isString } from "./utils/guards";
+import type { CallApiSchema } from "./validation";
 
 export type PluginInitContext<TPluginExtraOptions = unknown> = RequestContext // eslint-disable-next-line perfectionist/sort-intersection-types -- Allow
 	& PluginExtraOptions<TPluginExtraOptions> & { initURL: string };
@@ -31,12 +31,16 @@ export type PluginInitResult = Partial<
 export type PluginHooksWithMoreOptions<TMoreOptions = unknown> = HooksOrHooksArray<
 	never,
 	never,
+	CallApiSchema,
+	string,
 	TMoreOptions
 >;
 
 export type PluginHooks<TData = never, TErrorData = never, TMoreOptions = unknown> = HooksOrHooksArray<
 	TData,
 	TErrorData,
+	CallApiSchema,
+	string,
 	TMoreOptions
 >;
 
@@ -108,7 +112,7 @@ export const initializePlugins = async (context: PluginInitContext) => {
 
 	const addMainHooks = () => {
 		for (const key of Object.keys(clonedHookRegistries) as Array<keyof Hooks>) {
-			const baseHook = baseConfig[key];
+			const baseHook = baseConfig;
 			const instanceHook = config[key];
 
 			const overriddenHook = options[key] as HooksOrHooksArray[typeof key];
@@ -204,6 +208,6 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		resolvedHooks,
 		resolvedInitURL: resolvedInitURL.toString(),
 		resolvedOptions,
-		resolvedRequestOptions,
+		resolvedRequestOptions: resolvedRequestOptions as CallApiRequestOptionsForHooks,
 	};
 };

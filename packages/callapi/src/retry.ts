@@ -1,6 +1,5 @@
-/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
 import { requestOptionDefaults, retryDefaults } from "./constants/default-options";
-import type { ErrorContext } from "./hooks";
+import type { ErrorContext, RequestContext } from "./hooks";
 import type { MethodUnion } from "./types";
 import type { Awaitable } from "./types/type-helpers";
 import { isFunction, isHTTPError } from "./utils/guards";
@@ -73,7 +72,7 @@ export interface RetryOptions<TErrorData> {
 	retryStrategy?: "exponential" | "linear";
 }
 
-const getLinearDelay = <TErrorData>(currentAttemptCount: number, options: RetryOptions<TErrorData>) => {
+const getLinearDelay = (currentAttemptCount: number, options: RetryOptions<unknown>) => {
 	const retryDelay = options.retryDelay ?? options.retry?.delay;
 
 	const resolveRetryDelay =
@@ -82,10 +81,7 @@ const getLinearDelay = <TErrorData>(currentAttemptCount: number, options: RetryO
 	return resolveRetryDelay;
 };
 
-const getExponentialDelay = <TErrorData>(
-	currentAttemptCount: number,
-	options: RetryOptions<TErrorData>
-) => {
+const getExponentialDelay = (currentAttemptCount: number, options: RetryOptions<unknown>) => {
 	const retryDelay = options.retryDelay ?? options.retry?.delay ?? retryDefaults.delay;
 
 	const resolvedRetryDelay = Number(
@@ -99,7 +95,7 @@ const getExponentialDelay = <TErrorData>(
 	return Math.min(exponentialDelay, maxDelay);
 };
 
-export const createRetryStrategy = <TErrorData>(ctx: ErrorContext<TErrorData>) => {
+export const createRetryStrategy = (ctx: ErrorContext<unknown> & RequestContext) => {
 	const { options } = ctx;
 
 	// eslint-disable-next-line ts-eslint/no-deprecated -- Allowed for internal use

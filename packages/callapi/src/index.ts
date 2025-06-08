@@ -53,9 +53,11 @@ export type {
 	CallApiExtraOptions,
 	CallApiParameters,
 	CallApiRequestOptions,
+	CallApiConfig,
+	BaseCallApiConfig,
 	CallApiRequestOptionsForHooks,
 	CallApiResult,
-	InferParamFromPath,
+	InferParamFromRoute,
 	CombinedCallApiExtraOptions,
 	Register,
 } from "./types";

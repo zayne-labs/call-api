@@ -90,10 +90,7 @@ export type GetHeadersOptions = {
 export const getHeaders = async (options: GetHeadersOptions) => {
 	const { auth, body, headers } = options;
 
-	// == Return early if any of the following conditions are met (so that native fetch would auto set the correct headers):
-	// == - The headers are not provided
-	// == - The body is not provided
-	// == - The auth option is not provided
+	// == Return early if any of the following conditions are not met (so that native fetch would auto set the correct headers):
 	const shouldResolveHeaders = Boolean(headers) || Boolean(body) || Boolean(auth);
 
 	if (!shouldResolveHeaders) return;

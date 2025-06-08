@@ -1,7 +1,7 @@
 import type { Auth } from "../auth";
 import type { fetchSpecificKeys } from "../constants/common";
 import type { DedupeOptions } from "../dedupe";
-import type { ErrorContext, Hooks, HooksOrHooksArray } from "../hooks";
+import type { Hooks, HooksOrHooksArray } from "../hooks";
 import type { CallApiPlugin } from "../plugins";
 import type { GetCallApiResult, ResponseTypeUnion, ResultModeUnion } from "../result";
 import type { RetryOptions } from "../retry";
@@ -46,130 +46,125 @@ export type CallApiRequestOptions = Prettify<
 >;
 
 export type CallApiRequestOptionsForHooks = Omit<CallApiRequestOptions, "headers"> & {
-	headers?: Record<string, string | undefined>;
+	headers: Record<string, string | undefined>;
 };
 
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
-export type SharedExtraOptions<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
+type SharedExtraOptions<
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
-	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
-> = {
-	/**
-	 * Authorization header value.
-	 */
-	auth?: string | Auth | null;
+> = DedupeOptions
+	& URLOptions & {
+		/**
+		 * Authorization header value.
+		 */
+		auth?: string | Auth | null;
 
-	/**
-	 * Custom function to serialize the body object into a string.
-	 */
-	bodySerializer?: (bodyData: Record<string, unknown>) => string;
+		/**
+		 * Base URL for the request.
+		 */
+		baseURL?: string;
 
-	/**
-	 * Whether or not to clone the response, so response.json() and the like can be read again else where.
-	 * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
-	 * @default false
-	 */
-	cloneResponse?: boolean;
+		/**
+		 * Custom function to serialize the body object into a string.
+		 */
+		bodySerializer?: (bodyData: Record<string, unknown>) => string;
 
-	/**
-	 * Custom fetch implementation
-	 */
-	customFetchImpl?: FetchImpl;
+		/**
+		 * Whether or not to clone the response, so response.json() and the like can be read again else where.
+		 * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
+		 * @default false
+		 */
+		cloneResponse?: boolean;
 
-	/**
-	 * Default error message to use if none is provided from a response.
-	 * @default "Failed to fetch data from server!"
-	 */
-	defaultErrorMessage?: string;
+		/**
+		 * Custom fetch implementation
+		 */
+		customFetchImpl?: FetchImpl;
 
-	/**
-	 * If true, forces the calculation of the total byte size from the request or response body, in case the content-length header is not present or is incorrect.
-	 * @default false
-	 */
-	forceCalculateStreamSize?: boolean | { request?: boolean; response?: boolean };
+		/**
+		 * Default error message to use if none is provided from a response.
+		 * @default "Failed to fetch data from server!"
+		 */
+		defaultErrorMessage?: string;
 
-	/**
-	 * Defines the mode in which the composed hooks are executed".
-	 * - If set to "parallel", main and plugin hooks will be executed in parallel.
-	 * - If set to "sequential", the plugin hooks will be executed first, followed by the main hook.
-	 * @default "parallel"
-	 */
-	mergedHooksExecutionMode?: "parallel" | "sequential";
+		/**
+		 * If true, forces the calculation of the total byte size from the request or response body, in case the content-length header is not present or is incorrect.
+		 * @default false
+		 */
+		forceCalculateStreamSize?: boolean | { request?: boolean; response?: boolean };
 
-	/**
-	 * - Controls what order in which the composed hooks execute
-	 * @default "mainHooksAfterPlugins"
-	 */
-	mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
+		/**
+		 * Defines the mode in which the composed hooks are executed".
+		 * - If set to "parallel", main and plugin hooks will be executed in parallel.
+		 * - If set to "sequential", the plugin hooks will be executed first, followed by the main hook.
+		 * @default "parallel"
+		 */
+		mergedHooksExecutionMode?: "parallel" | "sequential";
 
-	/**
-	 * - An optional field you can fill with additional information,
-	 * to associate with the request, typically used for logging or tracing.
-	 *
-	 * - A good use case for this, would be to use the info to handle specific cases in any of the shared interceptors.
-	 *
-	 * @example
-	 * ```ts
-	 * const callMainApi = callApi.create({
-	 * 	baseURL: "https://main-api.com",
-	 * 	onResponseError: ({ response, options }) => {
-	 * 		if (options.meta?.userId) {
-	 * 			console.error(`User ${options.meta.userId} made an error`);
-	 * 		}
-	 * 	},
-	 * });
-	 *
-	 * const response = await callMainApi({
-	 * 	url: "https://example.com/api/data",
-	 * 	meta: { userId: "123" },
-	 * });
-	 * ```
-	 */
-	meta?: GlobalMeta;
+		/**
+		 * - Controls what order in which the composed hooks execute
+		 * @default "mainHooksAfterPlugins"
+		 */
+		mergedHooksExecutionOrder?: "mainHooksAfterPlugins" | "mainHooksBeforePlugins";
 
-	/**
-	 * Custom function to parse the response string
-	 */
-	responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
+		/**
+		 * - An optional field you can fill with additional information,
+		 * to associate with the request, typically used for logging or tracing.
+		 *
+		 * - A good use case for this, would be to use the info to handle specific cases in any of the shared interceptors.
+		 *
+		 * @example
+		 * ```ts
+		 * const callMainApi = callApi.create({
+		 * 	baseURL: "https://main-api.com",
+		 * 	onResponseError: ({ response, options }) => {
+		 * 		if (options.meta?.userId) {
+		 * 			console.error(`User ${options.meta.userId} made an error`);
+		 * 		}
+		 * 	},
+		 * });
+		 *
+		 * const response = await callMainApi({
+		 * 	url: "https://example.com/api/data",
+		 * 	meta: { userId: "123" },
+		 * });
+		 * ```
+		 */
+		meta?: GlobalMeta;
 
-	/**
-	 * Expected response type, affects how response is parsed
-	 * @default "json"
-	 */
-	responseType?: TResponseType;
+		/**
+		 * Custom function to parse the response string
+		 */
+		responseParser?: (responseString: string) => Awaitable<Record<string, unknown>>;
 
-	/**
-	 * Mode of the result, can influence how results are handled or returned.
-	 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
-	 * @default "all"
-	 */
-	resultMode?: TResultMode;
+		/**
+		 * Expected response type, affects how response is parsed
+		 * @default "json"
+		 */
+		responseType?: TResponseType;
 
-	/**
-	 * If true or the function returns true, throws errors instead of returning them
-	 * The function is passed the error object and can be used to conditionally throw the error
-	 * @default false
-	 */
-	throwOnError?: TThrowOnError | ((context: ErrorContext<TErrorData>) => TThrowOnError);
+		/**
+		 * Mode of the result, can influence how results are handled or returned.
+		 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
+		 * @default "all"
+		 */
+		resultMode?: TResultMode;
 
-	/**
-	 * Request timeout in milliseconds
-	 */
-	timeout?: number;
-	/* eslint-disable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
-} & DedupeOptions
-	& HooksOrHooksArray<TData, TErrorData, Partial<InferPluginOptions<TPluginArray>>>
-	& Partial<InferPluginOptions<TPluginArray>>
-	& RetryOptions<TErrorData>
-	& ResultModeOption<TErrorData, TResultMode>
-	& ThrowOnErrorOption<TErrorData>
-	& URLOptions;
-/* eslint-enable perfectionist/sort-intersection-types -- Allow these to be last for the sake of docs */
+		/**
+		 * If true or the function returns true, throws errors instead of returning them
+		 * The function is passed the error object and can be used to conditionally throw the error
+		 * @default false
+		 */
+		throwOnError?: TThrowOnError;
+
+		/**
+		 * Request timeout in milliseconds
+		 */
+		timeout?: number;
+	};
 
 export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
@@ -180,16 +175,7 @@ export type BaseCallApiExtraOptions<
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
 	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
-> = SharedExtraOptions<
-	TBaseData,
-	TBaseErrorData,
-	TBaseResultMode,
-	TBaseThrowOnError,
-	TBaseResponseType,
-	TBasePluginArray
-> & {
-	baseURL?: string;
-
+> = SharedExtraOptions<TBaseResultMode, TBaseThrowOnError, TBaseResponseType> & {
 	/**
 	 * An array of base callApi plugins. It allows you to extend the behavior of the library.
 	 */
@@ -226,7 +212,19 @@ export type BaseCallApiExtraOptions<
 	 * ```
 	 */
 	skipAutoMergeFor?: "all" | "options" | "request";
-};
+	/* eslint-disable perfectionist/sort-intersection-types -- Inferred options should come last */
+} & HooksOrHooksArray<
+		TBaseData,
+		TBaseErrorData,
+		CallApiSchema,
+		string,
+		Partial<InferPluginOptions<TBasePluginArray>>
+	>
+	& Partial<InferPluginOptions<TBasePluginArray>>
+	& ResultModeOption<TBaseErrorData, TBaseResultMode>
+	& RetryOptions<TBaseErrorData>
+	& ThrowOnErrorOption<TBaseErrorData, TBaseThrowOnError>;
+/* eslint-enable perfectionist/sort-intersection-types -- Inferred options should come last */
 
 export type CallApiExtraOptions<
 	TData = DefaultDataType,
@@ -241,7 +239,7 @@ export type CallApiExtraOptions<
 	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TCurrentRouteKey extends string = string,
-> = SharedExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray> & {
+> = SharedExtraOptions<TResultMode, TThrowOnError, TResponseType> & {
 	/**
 	 * An array of instance CallApi plugins. It allows you to extend the behavior of the library.
 	 */
@@ -265,9 +263,20 @@ export type CallApiExtraOptions<
 		| ((context: {
 				baseSchemaConfig: NonNullable<Writeable<TBaseSchemaConfig, "deep">>;
 		  }) => Writeable<TSchemaConfig, "deep">);
-};
+	/* eslint-disable perfectionist/sort-intersection-types -- Inferred options should come last */
+} & HooksOrHooksArray<
+		TData,
+		TErrorData,
+		CallApiSchema,
+		TCurrentRouteKey,
+		Partial<InferPluginOptions<TPluginArray>>
+	>
+	& Partial<InferPluginOptions<TPluginArray>>
+	& ResultModeOption<TErrorData, TResultMode>
+	& RetryOptions<TErrorData>
+	& ThrowOnErrorOption<TErrorData, TThrowOnError>;
+/* eslint-enable perfectionist/sort-intersection-types -- Inferred options should come last */
 
-// eslint-disable-next-line ts-eslint/consistent-type-definitions -- Allow this to be an interface
 export interface CombinedCallApiExtraOptions extends Omit<CallApiExtraOptions, keyof Hooks>, Hooks {}
 
 export type BaseCallApiConfig<

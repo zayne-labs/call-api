@@ -1,4 +1,4 @@
-/* eslint-disable ts-eslint/consistent-type-definitions -- I need to use interfaces for the sake of user overrides */
+import type { ErrorContext } from "../hooks";
 import type { CallApiPlugin } from "../plugins";
 import type { ResultModeUnion } from "../result";
 import type { AllowedQueryParamValues, Params, Query } from "../url";
@@ -9,6 +9,7 @@ import type {
 	InferSchemaResult,
 	RouteKeyMethods,
 } from "../validation";
+import type { DefaultThrowOnError } from "./default-types";
 import type {
 	AnyFunction,
 	AnyString,
@@ -125,10 +126,12 @@ export type InferMethodOption<
 >;
 
 export type HeadersOption = UnmaskType<
-	| Record<"Authorization", CommonAuthorizationHeaders>
-	| Record<"Content-Type", CommonContentTypes>
+	| Record<"Authorization", CommonAuthorizationHeaders | undefined>
+	| Record<"Content-Type", CommonContentTypes | undefined>
 	| Record<CommonRequestHeaders, string | undefined>
-	| RequestInit["headers"]
+	| Record<string, string | undefined>
+	// eslint-disable-next-line perfectionist/sort-union-types -- I need to preserve the order of the types
+	| Array<[string, string]>
 >;
 
 export type InferHeadersOption<TSchema extends CallApiSchema> = MakeSchemaOptionRequired<
@@ -182,18 +185,18 @@ export type InferQueryOption<TSchema extends CallApiSchema> = MakeSchemaOptionRe
 type EmptyString = "";
 
 /* eslint-disable perfectionist/sort-union-types -- I need to preserve the order of the types */
-export type InferParamFromPath<TPath> =
-	TPath extends `${infer IgnoredPrefix}:${infer TCurrentParam}/${infer TRemainingPath}`
+export type InferParamFromRoute<TRoute> =
+	TRoute extends `${infer IgnoredPrefix}:${infer TCurrentParam}/${infer TRemainingPath}`
 		? TCurrentParam extends EmptyString
-			? InferParamFromPath<TRemainingPath>
+			? InferParamFromRoute<TRemainingPath>
 			:
 					| Prettify<
 							Record<
 								| TCurrentParam
-								| (Params extends InferParamFromPath<TRemainingPath>
+								| (Params extends InferParamFromRoute<TRemainingPath>
 										? never
 										: keyof Extract<
-												InferParamFromPath<TRemainingPath>,
+												InferParamFromRoute<TRemainingPath>,
 												Record<string, unknown>
 											>),
 								AllowedQueryParamValues
@@ -201,29 +204,29 @@ export type InferParamFromPath<TPath> =
 					  >
 					| [
 							AllowedQueryParamValues,
-							...(Params extends InferParamFromPath<TRemainingPath>
+							...(Params extends InferParamFromRoute<TRemainingPath>
 								? []
-								: Extract<InferParamFromPath<TRemainingPath>, unknown[]>),
+								: Extract<InferParamFromRoute<TRemainingPath>, unknown[]>),
 					  ]
-		: TPath extends `${infer IgnoredPrefix}:${infer TCurrentParam}`
+		: TRoute extends `${infer IgnoredPrefix}:${infer TCurrentParam}`
 			? TCurrentParam extends EmptyString
 				? Params
 				: Prettify<Record<TCurrentParam, AllowedQueryParamValues>> | [AllowedQueryParamValues]
 			: Params;
 /* eslint-enable perfectionist/sort-union-types -- I need to preserve the order of the types */
 
-export type InferParamsOption<TPath, TSchema extends CallApiSchema> = MakeSchemaOptionRequired<
+export type InferParamsOption<TSchema extends CallApiSchema, TCurrentRouteKey> = MakeSchemaOptionRequired<
 	TSchema["params"],
 	{
 		/**
 		 * Parameters to be appended to the URL (i.e: /:id)
 		 */
-		params?: InferSchemaResult<TSchema["params"], InferParamFromPath<TPath>>;
+		params?: InferSchemaResult<TSchema["params"], InferParamFromRoute<TCurrentRouteKey>>;
 	}
 >;
 
-export type InferExtraOptions<TSchema extends CallApiSchema, TPath> = InferMetaOption<TSchema>
-	& InferParamsOption<TPath, TSchema>
+export type InferExtraOptions<TSchema extends CallApiSchema, TCurrentRouteKey> = InferMetaOption<TSchema>
+	& InferParamsOption<TSchema, TCurrentRouteKey>
 	& InferQueryOption<TSchema>;
 
 export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
@@ -249,8 +252,11 @@ export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> = 
 				? { resultMode?: TResultMode }
 				: { resultMode: TResultMode };
 
-export type ThrowOnErrorOption<TErrorData> = TErrorData extends false
+export type ThrowOnErrorOption<
+	TErrorData,
+	TThrowOnError extends DefaultThrowOnError,
+> = TErrorData extends false
 	? { throwOnError: true }
 	: TErrorData extends false | undefined
 		? { throwOnError?: true }
-		: NonNullable<unknown>;
+		: { throwOnError?: TThrowOnError | ((context: ErrorContext<TErrorData>) => TThrowOnError) };

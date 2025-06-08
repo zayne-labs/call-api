@@ -1,4 +1,3 @@
-/* eslint-disable ts-eslint/consistent-type-definitions -- Allow */
 /* eslint-disable ts-eslint/no-namespace -- Allow */
 
 /**
