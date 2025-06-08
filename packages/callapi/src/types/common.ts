@@ -52,10 +52,18 @@ export type CallApiRequestOptionsForHooks = Omit<CallApiRequestOptions, "headers
 type FetchImpl = UnmaskType<(input: string | Request | URL, init?: RequestInit) => Promise<Response>>;
 
 type SharedExtraOptions<
+	TData = DefaultDataType,
+	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
 	TThrowOnError extends boolean = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
+	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 > = DedupeOptions
+	& HooksOrHooksArray<TData, TErrorData, Partial<InferPluginOptions<TPluginArray>>>
+	& Partial<InferPluginOptions<TPluginArray>>
+	& ResultModeOption<TErrorData, TResultMode>
+	& RetryOptions<TErrorData>
+	& ThrowOnErrorOption<TErrorData, TThrowOnError>
 	& URLOptions & {
 		/**
 		 * Authorization header value.
@@ -175,7 +183,14 @@ export type BaseCallApiExtraOptions<
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
 	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
-> = SharedExtraOptions<TBaseResultMode, TBaseThrowOnError, TBaseResponseType> & {
+> = SharedExtraOptions<
+	TBaseData,
+	TBaseErrorData,
+	TBaseResultMode,
+	TBaseThrowOnError,
+	TBaseResponseType,
+	TBasePluginArray
+> & {
 	/**
 	 * An array of base callApi plugins. It allows you to extend the behavior of the library.
 	 */
@@ -212,19 +227,7 @@ export type BaseCallApiExtraOptions<
 	 * ```
 	 */
 	skipAutoMergeFor?: "all" | "options" | "request";
-	/* eslint-disable perfectionist/sort-intersection-types -- Inferred options should come last */
-} & HooksOrHooksArray<
-		TBaseData,
-		TBaseErrorData,
-		CallApiSchema,
-		string,
-		Partial<InferPluginOptions<TBasePluginArray>>
-	>
-	& Partial<InferPluginOptions<TBasePluginArray>>
-	& ResultModeOption<TBaseErrorData, TBaseResultMode>
-	& RetryOptions<TBaseErrorData>
-	& ThrowOnErrorOption<TBaseErrorData, TBaseThrowOnError>;
-/* eslint-enable perfectionist/sort-intersection-types -- Inferred options should come last */
+};
 
 export type CallApiExtraOptions<
 	TData = DefaultDataType,
@@ -239,7 +242,7 @@ export type CallApiExtraOptions<
 	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
 	TCurrentRouteKey extends string = string,
-> = SharedExtraOptions<TResultMode, TThrowOnError, TResponseType> & {
+> = SharedExtraOptions<TData, TErrorData, TResultMode, TThrowOnError, TResponseType, TPluginArray> & {
 	/**
 	 * An array of instance CallApi plugins. It allows you to extend the behavior of the library.
 	 */
@@ -263,21 +266,9 @@ export type CallApiExtraOptions<
 		| ((context: {
 				baseSchemaConfig: NonNullable<Writeable<TBaseSchemaConfig, "deep">>;
 		  }) => Writeable<TSchemaConfig, "deep">);
-	/* eslint-disable perfectionist/sort-intersection-types -- Inferred options should come last */
-} & HooksOrHooksArray<
-		TData,
-		TErrorData,
-		CallApiSchema,
-		TCurrentRouteKey,
-		Partial<InferPluginOptions<TPluginArray>>
-	>
-	& Partial<InferPluginOptions<TPluginArray>>
-	& ResultModeOption<TErrorData, TResultMode>
-	& RetryOptions<TErrorData>
-	& ThrowOnErrorOption<TErrorData, TThrowOnError>;
-/* eslint-enable perfectionist/sort-intersection-types -- Inferred options should come last */
+};
 
-export interface CombinedCallApiExtraOptions extends Omit<CallApiExtraOptions, keyof Hooks>, Hooks {}
+export type CallApiExtraOptionsForHooks = Hooks & Omit<CallApiExtraOptions, keyof Hooks>;
 
 export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,

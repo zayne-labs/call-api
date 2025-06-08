@@ -3,7 +3,6 @@ import { HTTPError } from "./error";
 import {
 	type ErrorContext,
 	type ExecuteHookInfo,
-	type RequestContext,
 	type RetryContext,
 	type SuccessContext,
 	executeHooksInCatchBlock,
@@ -25,11 +24,11 @@ import type {
 	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
 	CallApiExtraOptions,
+	CallApiExtraOptionsForHooks,
 	CallApiParameters,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
 	CallApiResult,
-	CombinedCallApiExtraOptions,
 } from "./types/common";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./types/default-types";
 import type { AnyFunction } from "./types/type-helpers";
@@ -153,7 +152,7 @@ export const createFetchClient = <
 				baseConfig,
 				config,
 				initURL: initURLOrURLObject.toString(),
-				options: mergedExtraOptions as CombinedCallApiExtraOptions,
+				options: mergedExtraOptions as CallApiExtraOptionsForHooks,
 				request: mergedRequestOptions as CallApiRequestOptionsForHooks,
 			});
 
@@ -186,7 +185,7 @@ export const createFetchClient = <
 			fullURL,
 			initURL: resolvedInitURL,
 			initURLNormalized: normalizeURL(resolvedInitURL),
-		} satisfies CombinedCallApiExtraOptions;
+		} satisfies CallApiExtraOptionsForHooks;
 
 		const newFetchController = new AbortController();
 
@@ -327,7 +326,7 @@ export const createFetchClient = <
 				options,
 				request,
 				response,
-			} satisfies RequestContext & SuccessContext<unknown>;
+			} satisfies SuccessContext<unknown>;
 
 			await executeHooksInTryBlock(
 				options.onSuccess?.(successContext),
@@ -359,7 +358,7 @@ export const createFetchClient = <
 				options,
 				request,
 				response: generalErrorResult?.response as never,
-			} satisfies ErrorContext<unknown> & RequestContext;
+			} satisfies ErrorContext<unknown>;
 
 			const shouldThrowOnError = isFunction(options.throwOnError)
 				? options.throwOnError(errorContext)

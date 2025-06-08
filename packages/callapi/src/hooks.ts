@@ -6,117 +6,87 @@ import {
 	resolveErrorResult,
 } from "./result";
 import type { StreamProgressEvent } from "./stream";
-import type { InferExtraOptions, InferRequestOptions } from "./types";
 import type {
 	BaseCallApiExtraOptions,
 	CallApiExtraOptions,
+	CallApiExtraOptionsForHooks,
 	CallApiRequestOptions,
 	CallApiRequestOptionsForHooks,
-	CombinedCallApiExtraOptions,
 } from "./types/common";
 import type { DefaultDataType } from "./types/default-types";
-import type { AnyFunction, Awaitable } from "./types/type-helpers";
-import type { CallApiSchema, CallApiSchemaConfig } from "./validation";
+import type { AnyFunction, Awaitable, UnmaskType } from "./types/type-helpers";
 
 export type PluginExtraOptions<TPluginOptions = unknown> = {
 	options: Partial<TPluginOptions>;
 };
 
 /* eslint-disable perfectionist/sort-intersection-types -- Plugin options should come last */
-export interface Hooks<
-	TData = DefaultDataType,
-	TErrorData = DefaultDataType,
-	TPluginOptions = unknown,
-	TSchema extends CallApiSchema = CallApiSchema,
-	TCurrentRouteKey extends string = string,
-> {
+export interface Hooks<TData = DefaultDataType, TErrorData = DefaultDataType, TPluginOptions = unknown> {
 	/**
 	 * Hook that will be called when any error occurs within the request/response lifecycle, regardless of whether the error is from the api or not.
 	 * It is basically a combination of `onRequestError` and `onResponseError` hooks
 	 */
 	onError?: (
-		context: ErrorContext<TErrorData>
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
+		context: ErrorContext<TErrorData> & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 
 	/**
 	 * Hook that will be called just before the request is being made.
 	 */
-	onRequest?: (
-		context: RequestContext<TSchema, TCurrentRouteKey> & PluginExtraOptions<TPluginOptions>
-	) => Awaitable<unknown>;
+	onRequest?: (context: RequestContext & PluginExtraOptions<TPluginOptions>) => Awaitable<unknown>;
 
 	/**
 	 *  Hook that will be called when an error occurs during the fetch request.
 	 */
 	onRequestError?: (
-		context: RequestErrorContext
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
+		context: RequestErrorContext & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 
 	/**
 	 * Hook that will be called when upload stream progress is tracked
 	 */
 	onRequestStream?: (
-		context: RequestStreamContext
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
+		context: RequestStreamContext & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 
 	/**
 	 * Hook that will be called when any response is received from the api, whether successful or not
 	 */
 	onResponse?: (
-		context: ResponseContext<TData, TErrorData>
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
+		context: ResponseContext<TData, TErrorData> & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 
 	/**
 	 *  Hook that will be called when an error response is received from the api.
 	 */
 	onResponseError?: (
-		context: ResponseErrorContext<TErrorData>
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
+		context: ResponseErrorContext<TErrorData> & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 
 	/**
 	 * Hook that will be called when download stream progress is tracked
 	 */
 	onResponseStream?: (
-		context: ResponseStreamContext
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
+		context: ResponseStreamContext & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 
 	/**
 	 * Hook that will be called when a request is retried.
 	 */
 	onRetry?: (
-		response: RetryContext<TErrorData>
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
+		response: RetryContext<TErrorData> & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 
 	/**
 	 * Hook that will be called when a successful response is received from the api.
 	 */
-	onSuccess?: (
-		context: SuccessContext<TData>
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
-	) => Awaitable<unknown>;
+	onSuccess?: (context: SuccessContext<TData> & PluginExtraOptions<TPluginOptions>) => Awaitable<unknown>;
 
 	/**
 	 * Hook that will be called when a validation error occurs.
 	 */
 	onValidationError?: (
-		context: ValidationErrorContext
-			& RequestContext<TSchema, TCurrentRouteKey>
-			& PluginExtraOptions<TPluginOptions>
+		context: ValidationErrorContext & PluginExtraOptions<TPluginOptions>
 	) => Awaitable<unknown>;
 }
 /* eslint-enable perfectionist/sort-intersection-types -- Plugin options should come last */
@@ -124,20 +94,15 @@ export interface Hooks<
 export type HooksOrHooksArray<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
-	TSchema extends CallApiSchema = CallApiSchema,
-	TCurrentRouteKey extends string = string,
 	TMoreOptions = unknown,
 > = {
-	[Key in keyof Hooks<TData, TErrorData, TMoreOptions, TSchema, TCurrentRouteKey>]:
-		| Hooks<TData, TErrorData, TMoreOptions, TSchema, TCurrentRouteKey>[Key]
+	[Key in keyof Hooks<TData, TErrorData, TMoreOptions>]:
+		| Hooks<TData, TErrorData, TMoreOptions>[Key]
 		// eslint-disable-next-line perfectionist/sort-union-types -- I need arrays to be last
-		| Array<Hooks<TData, TErrorData, TMoreOptions, TSchema, TCurrentRouteKey>[Key]>;
+		| Array<Hooks<TData, TErrorData, TMoreOptions>[Key]>;
 };
 
-export type RequestContext<
-	TSchema extends CallApiSchema = CallApiSchema,
-	TCurrentRouteKey extends string = string,
-> = {
+export type RequestContext = {
 	/**
 	 * Config object passed to createFetchClient
 	 */
@@ -150,76 +115,84 @@ export type RequestContext<
 	 * Merged options consisting of extra options from createFetchClient, the callApi instance and default options.
 	 *
 	 */
-	options: InferExtraOptions<TSchema, TCurrentRouteKey>
-		& Omit<CombinedCallApiExtraOptions, keyof InferExtraOptions<CallApiSchema, string>>;
+	options: CallApiExtraOptionsForHooks;
 	/**
 	 * Merged request consisting of request options from createFetchClient, the callApi instance and default request options.
 	 */
-	request: Omit<
-		CallApiRequestOptionsForHooks,
-		keyof Omit<InferRequestOptions<TSchema, CallApiSchemaConfig, string>, "headers">
-	>
-		& Omit<InferRequestOptions<TSchema, CallApiSchemaConfig, string>, "headers">;
+	request: CallApiRequestOptionsForHooks;
 };
 
-export type ResponseContext<TData, TErrorData> =
-	| {
-			data: null;
-			error: PossibleHTTPError<TErrorData>;
-			response: Response;
-	  }
-	| {
-			data: null;
-			error: PossibleJavaScriptOrValidationError;
-			response: Response | null;
-	  }
-	| {
-			data: TData;
-			error: null;
-			response: Response;
-	  };
+export type ResponseContext<TData, TErrorData> = RequestContext
+	& (
+		| {
+				data: null;
+				error: PossibleHTTPError<TErrorData>;
+				response: Response;
+		  }
+		| {
+				data: null;
+				error: PossibleJavaScriptOrValidationError;
+				response: Response | null;
+		  }
+		| {
+				data: TData;
+				error: null;
+				response: Response;
+		  }
+	);
 
-export type ValidationErrorContext = {
+export type ValidationErrorContext = RequestContext & {
 	error: ValidationError;
 	response: Response | null;
 };
 
-export type SuccessContext<TData> = {
+export type SuccessContext<TData> = RequestContext & {
 	data: TData;
 	response: Response;
 };
 
-export type RequestErrorContext = {
-	error: PossibleJavaScriptOrValidationError;
-	response: null;
-};
-
-export type ResponseErrorContext<TErrorData> = Extract<
-	ErrorContext<TErrorData>,
-	{ error: PossibleHTTPError<TErrorData> }
+export type RequestErrorContext = UnmaskType<
+	RequestContext & {
+		error: PossibleJavaScriptOrValidationError;
+		response: null;
+	}
 >;
 
-export type RetryContext<TErrorData> = ErrorContext<TErrorData> & { retryAttemptCount: number };
+export type ResponseErrorContext<TErrorData> = UnmaskType<
+	Extract<ErrorContext<TErrorData>, { error: PossibleHTTPError<TErrorData> }> & RequestContext
+>;
 
-export type ErrorContext<TErrorData> =
-	| {
-			error: PossibleHTTPError<TErrorData>;
-			response: Response;
-	  }
-	| {
-			error: PossibleJavaScriptOrValidationError;
-			response: Response | null;
-	  };
+export type RetryContext<TErrorData> = UnmaskType<
+	ErrorContext<TErrorData> & { retryAttemptCount: number }
+>;
 
-export type RequestStreamContext = {
-	event: StreamProgressEvent;
-	requestInstance: Request;
-};
+export type ErrorContext<TErrorData> = UnmaskType<
+	RequestContext
+		& (
+			| {
+					error: PossibleHTTPError<TErrorData>;
+					response: Response;
+			  }
+			| {
+					error: PossibleJavaScriptOrValidationError;
+					response: Response | null;
+			  }
+		)
+>;
 
-export type ResponseStreamContext = {
-	event: StreamProgressEvent;
-	response: Response;
-};
+export type RequestStreamContext = UnmaskType<
+	RequestContext & {
+		event: StreamProgressEvent;
+		requestInstance: Request;
+	}
+>;
+
+export type ResponseStreamContext = UnmaskType<
+	RequestContext & {
+		event: StreamProgressEvent;
+		response: Response;
+	}
+>;
 
 type HookRegistries = Required<{
 	[Key in keyof Hooks]: Set<Hooks[Key]>;
@@ -240,7 +213,7 @@ export const hookRegistries = {
 
 export const composeTwoHooks = (
 	hooks: Array<AnyFunction | undefined>,
-	mergedHooksExecutionMode: CombinedCallApiExtraOptions["mergedHooksExecutionMode"]
+	mergedHooksExecutionMode: CallApiExtraOptionsForHooks["mergedHooksExecutionMode"]
 ) => {
 	if (hooks.length === 0) return;
 

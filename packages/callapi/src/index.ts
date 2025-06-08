@@ -58,6 +58,6 @@ export type {
 	CallApiRequestOptionsForHooks,
 	CallApiResult,
 	InferParamFromRoute,
-	CombinedCallApiExtraOptions,
+	CallApiExtraOptionsForHooks,
 	Register,
 } from "./types";
