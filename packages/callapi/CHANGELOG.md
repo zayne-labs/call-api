@@ -1,5 +1,14 @@
 # @zayne-labs/callapi
 
+## 1.8.3
+
+### Patch Changes
+
+- 9d8f72d: refactor(auth): 🔄 Simplify auth header return types
+
+   fix(auth): 🐛 Improve bearer token handling logic
+   feat(dedupe): ✨ Add dedupeCacheScope option with 'local' default
+
 ## 1.8.2
 
 ### Patch Changes
