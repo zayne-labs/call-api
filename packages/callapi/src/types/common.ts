@@ -155,19 +155,19 @@ type SharedExtraOptions<
 		 */
 		responseType?: TResponseType;
 
-		// /**
-		//  * Mode of the result, can influence how results are handled or returned.
-		//  * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
-		//  * @default "all"
-		//  */
-		// resultMode?: TResultMode;
+		/**
+		 * Mode of the result, can influence how results are handled or returned.
+		 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
+		 * @default "all"
+		 */
+		resultMode?: TResultMode;
 
-		// /**
-		//  * If true or the function returns true, throws errors instead of returning them
-		//  * The function is passed the error object and can be used to conditionally throw the error
-		//  * @default false
-		//  */
-		// throwOnError?: TThrowOnError;
+		/**
+		 * If true or the function returns true, throws errors instead of returning them
+		 * The function is passed the error object and can be used to conditionally throw the error
+		 * @default false
+		 */
+		throwOnError?: TThrowOnError;
 
 		/**
 		 * Request timeout in milliseconds
