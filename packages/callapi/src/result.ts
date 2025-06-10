@@ -1,8 +1,8 @@
 import { commonDefaults, responseDefaults } from "./constants/default-options";
 import type { HTTPError, ValidationError } from "./error";
-import type { CallApiExtraOptions } from "./types";
+import type { CallApiExtraOptions, False, ThrowOnErrorUnion } from "./types";
 import type { DefaultDataType } from "./types/default-types";
-import type { Awaitable, Prettify, UnmaskType } from "./types/type-helpers";
+import type { AnyString, Awaitable, Prettify, UnmaskType } from "./types/type-helpers";
 import { isHTTPErrorInstance, isValidationErrorInstance } from "./utils/guards";
 
 type Parser = (responseString: string) => Awaitable<Record<string, unknown>>;
@@ -61,9 +61,9 @@ export type CallApiResultSuccessVariant<TData> = {
 };
 
 export type PossibleJavaScriptError = UnmaskType<{
-	errorData: PossibleJavaScriptError["originalError"];
+	errorData: false;
 	message: string;
-	name: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | (`${string}Error` & {});
+	name: "AbortError" | "Error" | "SyntaxError" | "TimeoutError" | "TypeError" | AnyString;
 	originalError: DOMException | Error | SyntaxError | TypeError;
 }>;
 
@@ -127,13 +127,13 @@ export type GetCallApiResult<
 	TData,
 	TErrorData,
 	TResultMode extends ResultModeUnion,
-	TThrowOnError extends boolean,
+	TThrowOnError extends ThrowOnErrorUnion,
 	TResponseType extends ResponseTypeUnion,
-> = TErrorData extends false
+> = TErrorData extends False
 	? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-	: TErrorData extends false | undefined
+	: TErrorData extends False | undefined
 		? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-		: TErrorData extends false | null
+		: TErrorData extends False | null
 			? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccess"]
 			: null extends TResultMode
 				? TThrowOnError extends true
@@ -200,9 +200,9 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 	let details = {
 		data: null,
 		error: {
-			errorData: error as Error,
+			errorData: false,
 			message: customErrorMessage ?? (error as Error).message,
-			name: (error as Error).name as PossibleJavaScriptError["name"],
+			name: (error as Error).name,
 			originalError: error as Error,
 		},
 		response: null,
@@ -213,12 +213,7 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 
 		details = {
 			data: null,
-			error: {
-				errorData,
-				message,
-				name: "ValidationError",
-				originalError: error,
-			},
+			error: { errorData, message, name: "ValidationError", originalError: error },
 			response,
 		};
 	}
@@ -230,12 +225,7 @@ export const resolveErrorResult = (error: unknown, info: ErrorInfo): ErrorResult
 
 		details = {
 			data: null,
-			error: {
-				errorData,
-				message,
-				name,
-				originalError: error,
-			},
+			error: { errorData, message, name, originalError: error },
 			response: cloneResponse ? response.clone() : response,
 		};
 	}

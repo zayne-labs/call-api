@@ -16,9 +16,12 @@ CallApi by default returns request and response errors as a value, wrapped in a 
    - For HTTP errors: The error message from the server, or if not provided, falls back to the `defaultErrorMessage` option
 
 3. **errorData**: The detailed error information:
-   - For HTTP errors: The parsed response from the API
-   - For validation errors: The validation issues array
-   - For non-HTTP errors: The JavaScript error object that caused the error
+
+   - For HTTP errors: It is set to the parsed response from the API
+   - For validation errors: It is set to the validation issues array
+   - For non-HTTP errors: It is set to `false`
+
+4. **originalError**: The original error object that caused the error
 
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";

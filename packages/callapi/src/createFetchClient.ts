@@ -19,7 +19,7 @@ import {
 	resolveSuccessResult,
 } from "./result";
 import { createRetryStrategy } from "./retry";
-import type { GetCurrentRouteKey, InferHeadersOption, InferInitURL } from "./types";
+import type { GetCurrentRouteKey, InferHeadersOption, InferInitURL, ThrowOnErrorUnion } from "./types";
 import type {
 	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
@@ -58,7 +58,7 @@ export const createFetchClient = <
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBaseThrowOnError extends boolean = DefaultThrowOnError,
+	TBaseThrowOnError extends ThrowOnErrorUnion = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	const TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
 	const TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
@@ -81,7 +81,7 @@ export const createFetchClient = <
 		TData = TBaseData,
 		TErrorData = TBaseErrorData,
 		TResultMode extends ResultModeUnion = TBaseResultMode,
-		TThrowOnError extends boolean = TBaseThrowOnError,
+		TThrowOnError extends ThrowOnErrorUnion = TBaseThrowOnError,
 		TResponseType extends ResponseTypeUnion = TBaseResponseType,
 		TSchemaConfig extends CallApiSchemaConfig = TBaseSchemaConfig,
 		TInitURL extends InferInitURL<TBaseSchema, TSchemaConfig> = InferInitURL<TBaseSchema, TSchemaConfig>,
@@ -360,9 +360,9 @@ export const createFetchClient = <
 				response: generalErrorResult?.response as never,
 			} satisfies ErrorContext<unknown>;
 
-			const shouldThrowOnError = isFunction(options.throwOnError)
-				? options.throwOnError(errorContext)
-				: options.throwOnError;
+			const shouldThrowOnError = (
+				isFunction(options.throwOnError) ? options.throwOnError(errorContext) : options.throwOnError
+			) as boolean;
 
 			const hookInfo = {
 				errorInfo,

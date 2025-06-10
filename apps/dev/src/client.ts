@@ -255,15 +255,6 @@ export type ApiErrorResponse<TError = Record<string, string>> = {
 	success: false;
 };
 
-// type GlobalMeta = RedirectOn401ErrorPluginMeta & ToastPluginMeta;
-
-// declare module "@zayne-labs/callapi" {
-// 	// eslint-disable-next-line ts-eslint/consistent-type-definitions
-// 	interface Register {
-// 		meta: GlobalMeta;
-// 	}
-// }
-
 const sharedFetchClient = createFetchClient({
 	baseURL: "/api/v1",
 	credentials: "same-origin",
@@ -280,6 +271,18 @@ export const callBackendApi = <
 	const [url, config] = parameters;
 
 	return sharedFetchClient(url, config);
+};
+
+export const callBackendApiOne = <
+	TData = unknown,
+	TError = unknown,
+	TResultMode extends ResultModeUnion = ResultModeUnion,
+>(
+	...args: CallApiParameters<TData, TError, TResultMode>
+) => {
+	const [initUrl, config] = args;
+
+	return sharedFetchClient(initUrl, config);
 };
 
 export const callBackendApiForQuery = <TData = unknown>(

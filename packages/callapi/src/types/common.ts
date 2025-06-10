@@ -18,6 +18,7 @@ import type {
 	MethodUnion,
 	ResultModeOption,
 	ThrowOnErrorOption,
+	ThrowOnErrorUnion,
 } from "./conditional-types";
 import type { DefaultDataType, DefaultPluginArray, DefaultThrowOnError } from "./default-types";
 import type { Awaitable, Prettify, UnmaskType, Writeable } from "./type-helpers";
@@ -55,7 +56,7 @@ type SharedExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TThrowOnError extends boolean = DefaultThrowOnError,
+	TThrowOnError extends ThrowOnErrorUnion = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
 > = DedupeOptions
@@ -154,19 +155,19 @@ type SharedExtraOptions<
 		 */
 		responseType?: TResponseType;
 
-		/**
-		 * Mode of the result, can influence how results are handled or returned.
-		 * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
-		 * @default "all"
-		 */
-		resultMode?: TResultMode;
+		// /**
+		//  * Mode of the result, can influence how results are handled or returned.
+		//  * Can be set to "all" | "onlySuccess" | "onlyError" | "onlyResponse".
+		//  * @default "all"
+		//  */
+		// resultMode?: TResultMode;
 
-		/**
-		 * If true or the function returns true, throws errors instead of returning them
-		 * The function is passed the error object and can be used to conditionally throw the error
-		 * @default false
-		 */
-		throwOnError?: TThrowOnError;
+		// /**
+		//  * If true or the function returns true, throws errors instead of returning them
+		//  * The function is passed the error object and can be used to conditionally throw the error
+		//  * @default false
+		//  */
+		// throwOnError?: TThrowOnError;
 
 		/**
 		 * Request timeout in milliseconds
@@ -178,7 +179,7 @@ export type BaseCallApiExtraOptions<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBaseThrowOnError extends boolean = DefaultThrowOnError,
+	TBaseThrowOnError extends ThrowOnErrorUnion = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
@@ -233,7 +234,7 @@ export type CallApiExtraOptions<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TThrowOnError extends boolean = DefaultThrowOnError,
+	TThrowOnError extends ThrowOnErrorUnion = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBasePluginArray extends CallApiPlugin[] = DefaultPluginArray,
 	TPluginArray extends CallApiPlugin[] = DefaultPluginArray,
@@ -274,7 +275,7 @@ export type BaseCallApiConfig<
 	TBaseData = DefaultDataType,
 	TBaseErrorData = DefaultDataType,
 	TBaseResultMode extends ResultModeUnion = ResultModeUnion,
-	TBaseThrowOnError extends boolean = DefaultThrowOnError,
+	TBaseThrowOnError extends ThrowOnErrorUnion = DefaultThrowOnError,
 	TBaseResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
 	TBaseSchemaConfig extends CallApiSchemaConfig = CallApiSchemaConfig,
@@ -311,7 +312,7 @@ export type CallApiConfig<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TThrowOnError extends boolean = DefaultThrowOnError,
+	TThrowOnError extends ThrowOnErrorUnion = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
 	TSchema extends CallApiSchema = CallApiSchema,
@@ -349,7 +350,7 @@ export type CallApiParameters<
 	TData = DefaultDataType,
 	TErrorData = DefaultDataType,
 	TResultMode extends ResultModeUnion = ResultModeUnion,
-	TThrowOnError extends boolean = DefaultThrowOnError,
+	TThrowOnError extends ThrowOnErrorUnion = DefaultThrowOnError,
 	TResponseType extends ResponseTypeUnion = ResponseTypeUnion,
 	TBaseSchema extends BaseCallApiSchema = BaseCallApiSchema,
 	TSchema extends CallApiSchema = CallApiSchema,
@@ -385,6 +386,6 @@ export type CallApiResult<
 	TData,
 	TErrorData,
 	TResultMode extends ResultModeUnion,
-	TThrowOnError extends boolean,
+	TThrowOnError extends ThrowOnErrorUnion,
 	TResponseType extends ResponseTypeUnion,
 > = Promise<GetCallApiResult<TData, TErrorData, TResultMode, TThrowOnError, TResponseType>>;

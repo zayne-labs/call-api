@@ -9,7 +9,6 @@ import type {
 	InferSchemaResult,
 	RouteKeyMethods,
 } from "../validation";
-import type { DefaultThrowOnError } from "./default-types";
 import type {
 	AnyFunction,
 	AnyString,
@@ -98,13 +97,15 @@ type InferMethodFromURL<TInitURL> = TInitURL extends `@${infer TMethod extends R
 
 type MakeMethodOptionRequired<
 	TInitURL,
-	TRequireMethodOption extends CallApiSchemaConfig["requireHttpMethodProvision"],
+	TSchemaConfig extends CallApiSchemaConfig,
 	TObject,
-> = TInitURL extends `@${string}/${string}`
-	? TRequireMethodOption extends true
-		? Required<TObject>
-		: TObject
-	: TObject;
+> = undefined extends TSchemaConfig
+	? TObject
+	: TInitURL extends `@${string}/${string}`
+		? TSchemaConfig["requireHttpMethodProvision"] extends true
+			? Required<TObject>
+			: TObject
+		: TObject;
 
 export type InferMethodOption<
 	TSchema extends CallApiSchema,
@@ -114,7 +115,7 @@ export type InferMethodOption<
 	TSchema["method"],
 	MakeMethodOptionRequired<
 		TInitURL,
-		TSchemaConfig["requireHttpMethodProvision"],
+		TSchemaConfig,
 		{
 			/**
 			 * HTTP method for the request.
@@ -242,21 +243,26 @@ export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIn
 // == DID THIS FOR AUTOCOMPLETION
 type ExtractKeys<TUnion, TSelectedUnion extends TUnion> = Extract<TUnion, TSelectedUnion>;
 
-export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> = TErrorData extends false
+// == This int is necessary to prevent assignability errors via errorData for JavaScript errors
+export type False = false;
+
+export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> = TErrorData extends False
 	? { resultMode: "onlySuccessWithException" }
-	: TErrorData extends false | undefined
+	: TErrorData extends False | undefined
 		? { resultMode?: "onlySuccessWithException" }
-		: TErrorData extends false | null
+		: TErrorData extends False | null
 			? { resultMode?: ExtractKeys<ResultModeUnion, "onlySuccess" | "onlySuccessWithException"> }
 			: null extends TResultMode
 				? { resultMode?: TResultMode }
 				: { resultMode: TResultMode };
 
+export type ThrowOnErrorUnion = boolean;
+
 export type ThrowOnErrorOption<
 	TErrorData,
-	TThrowOnError extends DefaultThrowOnError,
-> = TErrorData extends false
+	TThrowOnError extends ThrowOnErrorUnion,
+> = TErrorData extends False
 	? { throwOnError: true }
-	: TErrorData extends false | undefined
+	: TErrorData extends False | undefined
 		? { throwOnError?: true }
 		: { throwOnError?: TThrowOnError | ((context: ErrorContext<TErrorData>) => TThrowOnError) };
