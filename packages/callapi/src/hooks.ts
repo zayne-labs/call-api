@@ -212,14 +212,12 @@ export const hookRegistries = {
 } satisfies HookRegistries;
 
 export const composeAllHooks = (
-	hooks: Array<AnyFunction | undefined>,
+	hooksArray: Array<AnyFunction | undefined>,
 	mergedHooksExecutionMode: CallApiExtraOptionsForHooks["mergedHooksExecutionMode"]
 ) => {
-	if (hooks.length === 0) return;
-
 	const mergedHook = async (ctx: unknown) => {
 		if (mergedHooksExecutionMode === "sequential") {
-			for (const hook of hooks) {
+			for (const hook of hooksArray) {
 				// eslint-disable-next-line no-await-in-loop -- This is necessary in this case
 				await hook?.(ctx);
 			}
@@ -228,7 +226,7 @@ export const composeAllHooks = (
 		}
 
 		if (mergedHooksExecutionMode === "parallel") {
-			await Promise.all(hooks.map((uniqueHook) => uniqueHook?.(ctx)));
+			await Promise.all(hooksArray.map((uniqueHook) => uniqueHook?.(ctx)));
 		}
 	};
 

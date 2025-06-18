@@ -189,14 +189,19 @@ export const initializePlugins = async (context: PluginInitContext) => {
 	const resolvedHooks: Hooks = {};
 
 	for (const [key, hookRegistry] of Object.entries(clonedHookRegistries)) {
+		if (hookRegistry.size === 0) continue;
+
+		// == Flatten the hook registry to remove any nested arrays or hooks incase an array of hooks is passed to any of the hooks
 		const flattenedHookArray = [...hookRegistry].flat();
+
+		if (flattenedHookArray.length === 0) continue;
 
 		const mergedHooksExecutionMode =
 			options.mergedHooksExecutionMode ?? hookDefaults.mergedHooksExecutionMode;
 
 		const composedHook = composeAllHooks(flattenedHookArray, mergedHooksExecutionMode);
 
-		composedHook && (resolvedHooks[key as keyof Hooks] = composedHook);
+		resolvedHooks[key as keyof Hooks] = composedHook;
 	}
 
 	return {
