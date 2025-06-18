@@ -211,7 +211,7 @@ export const hookRegistries = {
 	onValidationError: new Set(),
 } satisfies HookRegistries;
 
-export const composeTwoHooks = (
+export const composeAllHooks = (
 	hooks: Array<AnyFunction | undefined>,
 	mergedHooksExecutionMode: CallApiExtraOptionsForHooks["mergedHooksExecutionMode"]
 ) => {
@@ -228,9 +228,7 @@ export const composeTwoHooks = (
 		}
 
 		if (mergedHooksExecutionMode === "parallel") {
-			const hookArray = [...hooks];
-
-			await Promise.all(hookArray.map((uniqueHook) => uniqueHook?.(ctx)));
+			await Promise.all(hooks.map((uniqueHook) => uniqueHook?.(ctx)));
 		}
 	};
 

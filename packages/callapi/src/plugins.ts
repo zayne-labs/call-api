@@ -1,11 +1,11 @@
 import { hookDefaults } from "./constants/default-options";
 import {
+	composeAllHooks,
 	type Hooks,
 	type HooksOrHooksArray,
+	hookRegistries,
 	type PluginExtraOptions,
 	type RequestContext,
-	composeTwoHooks,
-	hookRegistries,
 } from "./hooks";
 import type {
 	BaseCallApiExtraOptions,
@@ -194,14 +194,14 @@ export const initializePlugins = async (context: PluginInitContext) => {
 		const mergedHooksExecutionMode =
 			options.mergedHooksExecutionMode ?? hookDefaults.mergedHooksExecutionMode;
 
-		const composedHook = composeTwoHooks(flattenedHookArray, mergedHooksExecutionMode);
+		const composedHook = composeAllHooks(flattenedHookArray, mergedHooksExecutionMode);
 
 		composedHook && (resolvedHooks[key as keyof Hooks] = composedHook);
 	}
 
 	return {
 		resolvedHooks,
-		resolvedInitURL: resolvedInitURL.toString(),
+		resolvedInitURL,
 		resolvedOptions,
 		resolvedRequestOptions,
 	};

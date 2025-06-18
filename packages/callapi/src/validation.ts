@@ -12,28 +12,24 @@ import {
 	type AnyFunction,
 	type AnyString,
 	type Awaitable,
+	defineEnum,
 	type Prettify,
 	type UnionToIntersection,
 	type Writeable,
-	defineEnum,
 } from "./types/type-helpers";
 import type { Params, Query } from "./url";
 import { isFunction } from "./utils/guards";
 
 type InferSchemaInput<TSchema extends CallApiSchema[keyof CallApiSchema]> =
-	TSchema extends StandardSchemaV1
-		? StandardSchemaV1.InferInput<TSchema>
-		: TSchema extends (value: infer TInput) => unknown
-			? TInput
-			: never;
+	TSchema extends StandardSchemaV1 ? StandardSchemaV1.InferInput<TSchema>
+	: TSchema extends (value: infer TInput) => unknown ? TInput
+	: never;
 
-export type InferSchemaResult<TSchema, TFallbackResult = NonNullable<unknown>> = undefined extends TSchema
-	? TFallbackResult
-	: TSchema extends StandardSchemaV1
-		? StandardSchemaV1.InferOutput<TSchema>
-		: TSchema extends AnyFunction<infer TResult>
-			? Awaited<TResult>
-			: TFallbackResult;
+export type InferSchemaResult<TSchema, TFallbackResult = NonNullable<unknown>> =
+	undefined extends TSchema ? TFallbackResult
+	: TSchema extends StandardSchemaV1 ? StandardSchemaV1.InferOutput<TSchema>
+	: TSchema extends AnyFunction<infer TResult> ? Awaited<TResult>
+	: TFallbackResult;
 
 const handleValidatorFunction = async <TInput>(
 	validator: Extract<CallApiSchema[keyof CallApiSchema], AnyFunction>,
@@ -42,9 +38,15 @@ const handleValidatorFunction = async <TInput>(
 	try {
 		const result = await validator(inputData as never);
 
-		return { issues: undefined, value: result as never };
+		return {
+			issues: undefined,
+			value: result as never,
+		};
 	} catch (error) {
-		return { issues: error as never, value: undefined };
+		return {
+			issues: error as never,
+			value: undefined,
+		};
 	}
 };
 
@@ -55,9 +57,10 @@ export const standardSchemaParser = async <
 	inputData: InferSchemaInput<TSchema>,
 	response?: Response | null
 ): Promise<InferSchemaResult<TSchema>> => {
-	const result = isFunction(schema)
-		? await handleValidatorFunction(schema, inputData)
-		: await schema["~standard"].validate(inputData);
+	const result =
+		isFunction(schema) ?
+			await handleValidatorFunction(schema, inputData)
+		:	await schema["~standard"].validate(inputData);
 
 	// == If the `issues` field exists, it means the validation failed
 	if (result.issues) {
@@ -165,9 +168,7 @@ export type RouteKeyMethods = (typeof routeKeyMethods)[number];
 
 type PossibleRouteKey = `@${RouteKeyMethods}/` | AnyString;
 
-export type BaseCallApiSchema = {
-	[Key in PossibleRouteKey]?: CallApiSchema;
-};
+export type BaseCallApiSchema = Partial<Record<PossibleRouteKey, CallApiSchema>>;
 
 export const defineSchema = <const TBaseSchema extends BaseCallApiSchema>(baseSchema: TBaseSchema) => {
 	return baseSchema as Writeable<typeof baseSchema, "deep">;
@@ -205,16 +206,13 @@ type UnionToTuple<
 	TUnion,
 	TComputedLastUnion = LastOf<TUnion>,
 	TComputedIsUnionEqualToNever = [TUnion] extends [never] ? true : false,
-> = true extends TComputedIsUnionEqualToNever
-	? []
-	: Push<UnionToTuple<Exclude<TUnion, TComputedLastUnion>>, TComputedLastUnion>;
+> =
+	true extends TComputedIsUnionEqualToNever ? []
+	:	Push<UnionToTuple<Exclude<TUnion, TComputedLastUnion>>, TComputedLastUnion>;
 
-export type Tuple<
-	TTuple,
-	TArray extends TTuple[] = [],
-> = UnionToTuple<TTuple>["length"] extends TArray["length"]
-	? [...TArray]
-	: Tuple<TTuple, [TTuple, ...TArray]>;
+export type Tuple<TTuple, TArray extends TTuple[] = []> =
+	UnionToTuple<TTuple>["length"] extends TArray["length"] ? [...TArray]
+	:	Tuple<TTuple, [TTuple, ...TArray]>;
 
 const extraOptionsToBeValidated = ["meta", "params", "query"] satisfies Tuple<
 	Extract<keyof CallApiSchema, keyof CallApiExtraOptions>

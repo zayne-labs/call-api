@@ -29,9 +29,9 @@ type MakeSchemaOptionRequired<TSchema extends CallApiSchema[keyof CallApiSchema]
 export type ApplyURLBasedConfig<
 	TSchemaConfig extends CallApiSchemaConfig,
 	TCurrentRouteKeys extends string,
-> = TSchemaConfig["baseURL"] extends string
-	? `${TSchemaConfig["baseURL"]}${TCurrentRouteKeys}`
-	: TCurrentRouteKeys;
+> =
+	TSchemaConfig["baseURL"] extends string ? `${TSchemaConfig["baseURL"]}${TCurrentRouteKeys}`
+	:	TCurrentRouteKeys;
 
 export type ApplyStrictConfig<
 	TSchemaConfig extends CallApiSchemaConfig,
@@ -54,18 +54,15 @@ export type InferInitURL<
 	TSchemaConfig extends CallApiSchemaConfig,
 > = InferAllRouteKeys<TBaseSchema, TSchemaConfig> | URL;
 
-export type GetCurrentRouteKey<
-	TSchemaConfig extends CallApiSchemaConfig,
-	TPath,
-> = TSchemaConfig["baseURL"] extends string
-	? TPath extends `${TSchemaConfig["baseURL"]}${infer TCurrentRoute}`
-		? TCurrentRoute extends string
-			? TCurrentRoute
-			: string
-		: string
-	: TPath extends URL
-		? string
-		: TPath;
+export type GetCurrentRouteKey<TSchemaConfig extends CallApiSchemaConfig, TPath> =
+	TSchemaConfig["baseURL"] extends string ?
+		TPath extends `${TSchemaConfig["baseURL"]}${infer TCurrentRoute}` ?
+			TCurrentRoute extends string ?
+				TCurrentRoute
+			:	string
+		:	string
+	: TPath extends URL ? string
+	: TPath;
 
 type JsonPrimitive = boolean | number | string | null | undefined;
 
@@ -91,21 +88,17 @@ export type MethodUnion = UnmaskType<
 	"CONNECT" | "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "TRACE" | AnyString
 >;
 
-type InferMethodFromURL<TInitURL> = TInitURL extends `@${infer TMethod extends RouteKeyMethods}/${string}`
-	? Uppercase<TMethod>
-	: MethodUnion;
+type InferMethodFromURL<TInitURL> =
+	TInitURL extends `@${infer TMethod extends RouteKeyMethods}/${string}` ? Uppercase<TMethod>
+	:	MethodUnion;
 
-type MakeMethodOptionRequired<
-	TInitURL,
-	TSchemaConfig extends CallApiSchemaConfig,
-	TObject,
-> = undefined extends TSchemaConfig
-	? TObject
-	: TInitURL extends `@${string}/${string}`
-		? TSchemaConfig["requireHttpMethodProvision"] extends true
-			? Required<TObject>
-			: TObject
-		: TObject;
+type MakeMethodOptionRequired<TInitURL, TSchemaConfig extends CallApiSchemaConfig, TObject> =
+	undefined extends TSchemaConfig ? TObject
+	: TInitURL extends `@${string}/${string}` ?
+		TSchemaConfig["requireHttpMethodProvision"] extends true ?
+			Required<TObject>
+		:	TObject
+	:	TObject;
 
 export type InferMethodOption<
 	TSchema extends CallApiSchema,
@@ -162,9 +155,8 @@ export interface Register {
 	// == meta: Meta
 }
 
-export type GlobalMeta = Register extends { meta?: infer TMeta extends Record<string, unknown> }
-	? TMeta
-	: never;
+export type GlobalMeta =
+	Register extends { meta?: infer TMeta extends Record<string, unknown> } ? TMeta : never;
 
 export type InferMetaOption<TSchema extends CallApiSchema> = MakeSchemaOptionRequired<
 	TSchema["meta"],
@@ -187,33 +179,27 @@ type EmptyString = "";
 
 /* eslint-disable perfectionist/sort-union-types -- I need to preserve the order of the types */
 export type InferParamFromRoute<TRoute> =
-	TRoute extends `${infer IgnoredPrefix}:${infer TCurrentParam}/${infer TRemainingPath}`
-		? TCurrentParam extends EmptyString
-			? InferParamFromRoute<TRemainingPath>
-			:
-					| Prettify<
-							Record<
-								| TCurrentParam
-								| (Params extends InferParamFromRoute<TRemainingPath>
-										? never
-										: keyof Extract<
-												InferParamFromRoute<TRemainingPath>,
-												Record<string, unknown>
-											>),
-								AllowedQueryParamValues
-							>
-					  >
-					| [
-							AllowedQueryParamValues,
-							...(Params extends InferParamFromRoute<TRemainingPath>
-								? []
-								: Extract<InferParamFromRoute<TRemainingPath>, unknown[]>),
-					  ]
-		: TRoute extends `${infer IgnoredPrefix}:${infer TCurrentParam}`
-			? TCurrentParam extends EmptyString
-				? Params
-				: Prettify<Record<TCurrentParam, AllowedQueryParamValues>> | [AllowedQueryParamValues]
-			: Params;
+	TRoute extends `${infer IgnoredPrefix}:${infer TCurrentParam}/${infer TRemainingPath}` ?
+		TCurrentParam extends EmptyString ?
+			InferParamFromRoute<TRemainingPath>
+		:	| Prettify<
+					Record<
+						| TCurrentParam
+						| (Params extends InferParamFromRoute<TRemainingPath> ? never
+						  :	keyof Extract<InferParamFromRoute<TRemainingPath>, Record<string, unknown>>),
+						AllowedQueryParamValues
+					>
+			  >
+			| [
+					AllowedQueryParamValues,
+					...(Params extends InferParamFromRoute<TRemainingPath> ? []
+					:	Extract<InferParamFromRoute<TRemainingPath>, unknown[]>),
+			  ]
+	: TRoute extends `${infer IgnoredPrefix}:${infer TCurrentParam}` ?
+		TCurrentParam extends EmptyString ?
+			Params
+		:	Prettify<Record<TCurrentParam, AllowedQueryParamValues>> | [AllowedQueryParamValues]
+	:	Params;
 /* eslint-enable perfectionist/sort-union-types -- I need to preserve the order of the types */
 
 export type InferParamsOption<TSchema extends CallApiSchema, TCurrentRouteKey> = MakeSchemaOptionRequired<
@@ -231,13 +217,13 @@ export type InferExtraOptions<TSchema extends CallApiSchema, TCurrentRouteKey> =
 	& InferQueryOption<TSchema>;
 
 export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
-	TPluginArray extends Array<infer TPlugin>
-		? TPlugin extends CallApiPlugin
-			? TPlugin["defineExtraOptions"] extends AnyFunction<infer TResult>
-				? InferSchemaResult<TResult>
-				: never
-			: never
-		: never
+	TPluginArray extends Array<infer TPlugin> ?
+		TPlugin extends CallApiPlugin ?
+			TPlugin["defineExtraOptions"] extends AnyFunction<infer TResult> ?
+				InferSchemaResult<TResult>
+			:	never
+		:	never
+	:	never
 >;
 
 // == DID THIS FOR AUTOCOMPLETION
@@ -246,23 +232,17 @@ type ExtractKeys<TUnion, TSelectedUnion extends TUnion> = Extract<TUnion, TSelec
 // == This int is necessary to prevent assignability errors via errorData for JavaScript errors
 export type False = false;
 
-export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> = TErrorData extends False
-	? { resultMode: "onlySuccessWithException" }
-	: TErrorData extends False | undefined
-		? { resultMode?: "onlySuccessWithException" }
-		: TErrorData extends False | null
-			? { resultMode?: ExtractKeys<ResultModeUnion, "onlySuccess" | "onlySuccessWithException"> }
-			: null extends TResultMode
-				? { resultMode?: TResultMode }
-				: { resultMode: TResultMode };
+export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> =
+	TErrorData extends False ? { resultMode: "onlySuccessWithException" }
+	: TErrorData extends False | undefined ? { resultMode?: "onlySuccessWithException" }
+	: TErrorData extends False | null ?
+		{ resultMode?: ExtractKeys<ResultModeUnion, "onlySuccess" | "onlySuccessWithException"> }
+	: null extends TResultMode ? { resultMode?: TResultMode }
+	: { resultMode: TResultMode };
 
 export type ThrowOnErrorUnion = boolean;
 
-export type ThrowOnErrorOption<
-	TErrorData,
-	TThrowOnError extends ThrowOnErrorUnion,
-> = TErrorData extends False
-	? { throwOnError: true }
-	: TErrorData extends False | undefined
-		? { throwOnError?: true }
-		: { throwOnError?: TThrowOnError | ((context: ErrorContext<TErrorData>) => TThrowOnError) };
+export type ThrowOnErrorOption<TErrorData, TThrowOnError extends ThrowOnErrorUnion> =
+	TErrorData extends False ? { throwOnError: true }
+	: TErrorData extends False | undefined ? { throwOnError?: true }
+	: { throwOnError?: TThrowOnError | ((context: ErrorContext<TErrorData>) => TThrowOnError) };

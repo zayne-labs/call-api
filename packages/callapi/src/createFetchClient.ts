@@ -1,19 +1,19 @@
-import { type RequestInfoCache, createDedupeStrategy, getAbortErrorMessage } from "./dedupe";
+import { createDedupeStrategy, getAbortErrorMessage, type RequestInfoCache } from "./dedupe";
 import { HTTPError } from "./error";
 import {
 	type ErrorContext,
 	type ExecuteHookInfo,
-	type RetryContext,
-	type SuccessContext,
 	executeHooksInCatchBlock,
 	executeHooksInTryBlock,
+	type RetryContext,
+	type SuccessContext,
 } from "./hooks";
 import { type CallApiPlugin, initializePlugins } from "./plugins";
 import {
 	type ErrorInfo,
+	getCustomizedErrorResult,
 	type ResponseTypeUnion,
 	type ResultModeUnion,
-	getCustomizedErrorResult,
 	resolveErrorResult,
 	resolveResponseData,
 	resolveSuccessResult,
@@ -47,9 +47,9 @@ import {
 	type BaseCallApiSchema,
 	type CallApiSchema,
 	type CallApiSchemaConfig,
-	type InferSchemaResult,
 	handleOptionsValidation,
 	handleValidation,
+	type InferSchemaResult,
 } from "./validation";
 
 const $GlobalRequestInfoCache: RequestInfoCache = new Map();
@@ -118,15 +118,19 @@ export const createFetchClient = <
 
 		const [fetchOptions, extraOptions] = splitConfig(initConfig);
 
-		const resolvedBaseConfig = isFunction(initBaseConfig)
-			? initBaseConfig({
+		const resolvedBaseConfig =
+			isFunction(initBaseConfig) ?
+				initBaseConfig({
 					initURL: initURLOrURLObject.toString(),
 					options: extraOptions,
 					request: fetchOptions,
 				})
-			: initBaseConfig;
+			:	initBaseConfig;
 
-		const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(resolvedBaseConfig);
+		const baseConfig = resolvedBaseConfig as BaseCallApiExtraOptions & CallApiRequestOptions;
+		const config = initConfig as CallApiExtraOptions & CallApiRequestOptions;
+
+		const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(baseConfig);
 
 		// == Merged Extra Options
 		const mergedExtraOptions = {
@@ -144,9 +148,6 @@ export const createFetchClient = <
 				&& fetchOptions),
 		} satisfies CallApiRequestOptions;
 
-		const baseConfig = resolvedBaseConfig as BaseCallApiExtraOptions & CallApiRequestOptions;
-		const config = initConfig as CallApiExtraOptions & CallApiRequestOptions;
-
 		const { resolvedHooks, resolvedInitURL, resolvedOptions, resolvedRequestOptions } =
 			await initializePlugins({
 				baseConfig,
@@ -163,20 +164,22 @@ export const createFetchClient = <
 			query: resolvedOptions.query,
 		});
 
-		const resolvedSchemaConfig = isFunction(extraOptions.schemaConfig)
-			? extraOptions.schemaConfig({ baseSchemaConfig: baseExtraOptions.schemaConfig ?? {} })
-			: (extraOptions.schemaConfig ?? baseExtraOptions.schemaConfig);
+		const resolvedSchemaConfig =
+			isFunction(extraOptions.schemaConfig) ?
+				extraOptions.schemaConfig({ baseSchemaConfig: baseExtraOptions.schemaConfig ?? {} })
+			:	(extraOptions.schemaConfig ?? baseExtraOptions.schemaConfig);
 
 		const currentRouteKey = getCurrentRouteKey(resolvedInitURL, resolvedSchemaConfig);
 
 		const routeSchema = baseExtraOptions.schema?.[currentRouteKey];
 
-		const resolvedSchema = isFunction(extraOptions.schema)
-			? extraOptions.schema({
+		const resolvedSchema =
+			isFunction(extraOptions.schema) ?
+				extraOptions.schema({
 					baseSchema: baseExtraOptions.schema ?? {},
 					currentRouteSchema: routeSchema ?? {},
 				})
-			: (extraOptions.schema ?? routeSchema);
+			:	(extraOptions.schema ?? routeSchema);
 
 		let options = {
 			...resolvedOptions,
@@ -239,6 +242,7 @@ export const createFetchClient = <
 				|| Boolean(requestOptionsValidationResult)
 				|| !resolvedSchemaConfig?.disableValidationOutputApplication;
 
+			// == Apply Schema Output for Extra Options
 			if (shouldApplySchemaOutput) {
 				options = {
 					...options,
@@ -246,6 +250,7 @@ export const createFetchClient = <
 				};
 			}
 
+			// == Apply Schema Output for Request Options
 			const rawBody = shouldApplySchemaOutput ? requestOptionsValidationResult?.body : request.body;
 
 			const validBody = getBody({
@@ -255,9 +260,10 @@ export const createFetchClient = <
 
 			type HeaderFn = Extract<InferHeadersOption<CallApiSchema>["headers"], AnyFunction>;
 
-			const resolvedHeaders = isFunction<HeaderFn>(fetchOptions.headers)
-				? fetchOptions.headers({ baseHeaders: baseFetchOptions.headers ?? {} })
-				: (fetchOptions.headers ?? baseFetchOptions.headers);
+			const resolvedHeaders =
+				isFunction<HeaderFn>(fetchOptions.headers) ?
+					fetchOptions.headers({ baseHeaders: baseFetchOptions.headers ?? {} })
+				:	(fetchOptions.headers ?? baseFetchOptions.headers);
 
 			const validHeaders = await getHeaders({
 				auth: options.auth,
@@ -280,7 +286,7 @@ export const createFetchClient = <
 
 			const response = await handleRequestDeferStrategy({ options, request });
 
-			// == Also clone response when dedupeStrategy is set to "defer" or when onRequestStream is set, to avoid error thrown from reading response.(whatever) more than once
+			// == Also clone response when dedupeStrategy is set to "defer" to avoid error thrown from reading response.(whatever) more than once
 			const shouldCloneResponse = dedupeStrategy === "defer" || options.cloneResponse;
 
 			if (!response.ok) {
@@ -361,8 +367,9 @@ export const createFetchClient = <
 			} satisfies ErrorContext<unknown>;
 
 			const shouldThrowOnError = (
-				isFunction(options.throwOnError) ? options.throwOnError(errorContext) : options.throwOnError
-			) as boolean;
+				isFunction(options.throwOnError) ?
+					options.throwOnError(errorContext)
+				:	options.throwOnError) as boolean;
 
 			const hookInfo = {
 				errorInfo,

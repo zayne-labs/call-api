@@ -2,18 +2,18 @@ import { requestOptionDefaults, retryDefaults } from "./constants/default-option
 import type { ErrorContext, RequestContext } from "./hooks";
 import type { MethodUnion } from "./types";
 import type { Awaitable } from "./types/type-helpers";
-import { isFunction, isHTTPError } from "./utils/guards";
+import { isFunction } from "./utils/guards";
 
 type RetryCondition<TErrorData> = (context: ErrorContext<TErrorData>) => Awaitable<boolean>;
 
 type InnerRetryKeys<TErrorData> = Exclude<keyof RetryOptions<TErrorData>, "~retryAttemptCount" | "retry">;
 
 type InnerRetryOptions<TErrorData> = {
-	[Key in InnerRetryKeys<TErrorData> as Key extends `retry${infer TRest}`
-		? Uncapitalize<TRest> extends "attempts"
-			? never
-			: Uncapitalize<TRest>
-		: Key]?: RetryOptions<TErrorData>[Key];
+	[Key in InnerRetryKeys<TErrorData> as Key extends `retry${infer TRest}` ?
+		Uncapitalize<TRest> extends "attempts" ?
+			never
+		:	Uncapitalize<TRest>
+	:	Key]?: RetryOptions<TErrorData>[Key];
 } & {
 	attempts: NonNullable<RetryOptions<TErrorData>["retryAttempts"]>;
 };
@@ -84,11 +84,9 @@ const getLinearDelay = (currentAttemptCount: number, options: RetryOptions<unkno
 const getExponentialDelay = (currentAttemptCount: number, options: RetryOptions<unknown>) => {
 	const retryDelay = options.retryDelay ?? options.retry?.delay ?? retryDefaults.delay;
 
-	const resolvedRetryDelay = Number(
-		isFunction(retryDelay) ? retryDelay(currentAttemptCount) : retryDelay
-	);
+	const resolvedRetryDelay = isFunction(retryDelay) ? retryDelay(currentAttemptCount) : retryDelay;
 
-	const maxDelay = Number(options.retryMaxDelay ?? options.retry?.maxDelay ?? retryDefaults.maxDelay);
+	const maxDelay = options.retryMaxDelay ?? options.retry?.maxDelay ?? retryDefaults.maxDelay;
 
 	const exponentialDelay = resolvedRetryDelay * 2 ** currentAttemptCount;
 
@@ -131,25 +129,19 @@ export const createRetryStrategy = (ctx: ErrorContext<unknown> & RequestContext)
 			return false;
 		}
 
-		// == If error is not an HTTP error, just return true since at this point we know it's a retryable error
-		if (!isHTTPError(ctx.error)) {
-			return true;
-		}
+		const retryMethods = new Set(
+			options.retryMethods ?? options.retry?.methods ?? retryDefaults.methods
+		);
 
-		const selectedMethodArray = options.retryMethods ?? options.retry?.methods ?? retryDefaults.methods;
+		const resolvedMethod = ctx.request.method ?? requestOptionDefaults.method;
 
-		const retryMethods = new Set(selectedMethodArray);
+		const includesMethod = Boolean(resolvedMethod) && retryMethods.has(resolvedMethod);
 
-		const method = ctx.request.method ?? requestOptionDefaults.method;
-
-		const includesMethod = Boolean(method) && retryMethods.has(method);
-
-		const selectedStatusCodeArray = options.retryStatusCodes ?? options.retry?.statusCodes;
-
-		const retryStatusCodes = selectedStatusCodeArray ? new Set(selectedStatusCodeArray) : null;
+		const retryStatusCodes = new Set(options.retryStatusCodes ?? options.retry?.statusCodes ?? []);
 
 		const includesStatusCodes =
-			Boolean(ctx.response?.status) && (retryStatusCodes?.has(ctx.response.status) ?? true);
+			Boolean(ctx.response?.status)
+			&& (retryStatusCodes.size > 0 ? retryStatusCodes.has(ctx.response.status) : true);
 
 		const shouldRetry = includesMethod && includesStatusCodes;
 

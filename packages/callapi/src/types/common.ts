@@ -103,7 +103,7 @@ type SharedExtraOptions<
 		 * If true, forces the calculation of the total byte size from the request or response body, in case the content-length header is not present or is incorrect.
 		 * @default false
 		 */
-		forceCalculateStreamSize?: boolean | { request?: boolean; response?: boolean };
+		forcefullyCalculateStreamSize?: boolean | { request?: boolean; response?: boolean };
 
 		/**
 		 * Defines the mode in which the composed hooks are executed".

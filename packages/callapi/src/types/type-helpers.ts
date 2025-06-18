@@ -24,31 +24,27 @@ export type WriteableLevel = "deep" | "shallow";
 
 type ArrayOrObject = Record<number | string | symbol, unknown> | unknown[];
 
-export type Writeable<TObject, TLevel extends WriteableLevel = "shallow"> = TObject extends readonly [
-	...infer TTupleItems,
-]
-	? [
+export type Writeable<TObject, TLevel extends WriteableLevel = "shallow"> =
+	TObject extends readonly [...infer TTupleItems] ?
+		[
 			...{
-				[Index in keyof TTupleItems]: TLevel extends "deep"
-					? Writeable<TTupleItems[Index], "deep">
-					: TTupleItems[Index];
+				[Index in keyof TTupleItems]: TLevel extends "deep" ? Writeable<TTupleItems[Index], "deep">
+				:	TTupleItems[Index];
 			},
 		]
-	: TObject extends ArrayOrObject
-		? {
-				-readonly [Key in keyof TObject]: TLevel extends "deep"
-					? Writeable<TObject[Key], "deep">
-					: TObject[Key];
-			}
-		: TObject;
+	: TObject extends ArrayOrObject ?
+		{
+			-readonly [Key in keyof TObject]: TLevel extends "deep" ? Writeable<TObject[Key], "deep">
+			:	TObject[Key];
+		}
+	:	TObject;
 
 export const defineEnum = <const TValue extends object>(value: TValue) => value as Writeable<TValue>;
 
-export type UnionToIntersection<TUnion> = (
-	TUnion extends unknown ? (param: TUnion) => void : never
-) extends (param: infer TParam) => void
-	? TParam
-	: never;
+export type UnionToIntersection<TUnion> =
+	(TUnion extends unknown ? (param: TUnion) => void : never) extends (param: infer TParam) => void ?
+		TParam
+	:	never;
 
 // == Using this Immediately Indexed Mapped type helper to help show computed type of anything passed to it instead of just the type name
 export type UnmaskType<TValue> = { _: TValue }["_"];

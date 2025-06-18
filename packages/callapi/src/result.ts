@@ -31,11 +31,10 @@ export type GetResponseType<
 	TResponse,
 	TResponseType extends ResponseTypeUnion,
 	TComputedResponseTypeMap extends ResponseTypeMap<TResponse> = ResponseTypeMap<TResponse>,
-> = null extends TResponseType
-	? TComputedResponseTypeMap["json"]
-	: TResponseType extends NonNullable<ResponseTypeUnion>
-		? TComputedResponseTypeMap[TResponseType]
-		: never;
+> =
+	null extends TResponseType ? TComputedResponseTypeMap["json"]
+	: TResponseType extends NonNullable<ResponseTypeUnion> ? TComputedResponseTypeMap[TResponseType]
+	: never;
 
 export const resolveResponseData = <TResponse>(
 	response: Response,
@@ -129,19 +128,18 @@ export type GetCallApiResult<
 	TResultMode extends ResultModeUnion,
 	TThrowOnError extends ThrowOnErrorUnion,
 	TResponseType extends ResponseTypeUnion,
-> = TErrorData extends False
-	? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-	: TErrorData extends False | undefined
-		? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-		: TErrorData extends False | null
-			? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccess"]
-			: null extends TResultMode
-				? TThrowOnError extends true
-					? ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]
-					: ResultModeMap<TData, TErrorData, TResponseType>["all"]
-				: TResultMode extends NonNullable<ResultModeUnion>
-					? ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
-					: never;
+> =
+	TErrorData extends False ? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
+	: TErrorData extends False | undefined ?
+		ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
+	: TErrorData extends False | null ? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccess"]
+	: null extends TResultMode ?
+		TThrowOnError extends true ?
+			ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]
+		:	ResultModeMap<TData, TErrorData, TResponseType>["all"]
+	: TResultMode extends NonNullable<ResultModeUnion> ?
+		ResultModeMap<TData, TErrorData, TResponseType>[TResultMode]
+	:	never;
 
 type SuccessInfo = {
 	response: Response;

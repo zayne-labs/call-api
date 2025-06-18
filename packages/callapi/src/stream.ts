@@ -1,4 +1,4 @@
-import { type RequestContext, executeHooksInTryBlock } from "./hooks";
+import { executeHooksInTryBlock, type RequestContext } from "./hooks";
 import { isObject } from "./utils/guards";
 
 export type StreamProgressEvent = {
@@ -72,12 +72,13 @@ export const toStreamableRequest = async (context: ToStreamableRequestContext) =
 
 	let totalBytes = Number(contentLength ?? 0);
 
-	const shouldForceContentLengthCalc = isObject(options.forceCalculateStreamSize)
-		? options.forceCalculateStreamSize.request
-		: options.forceCalculateStreamSize;
+	const shouldForcefullyCalcStreamSize =
+		isObject(options.forcefullyCalculateStreamSize) ?
+			options.forcefullyCalculateStreamSize.request
+		:	options.forcefullyCalculateStreamSize;
 
 	// If no content length is present, we read the total bytes from the body
-	if (!contentLength && shouldForceContentLengthCalc) {
+	if (!contentLength && shouldForcefullyCalcStreamSize) {
 		totalBytes = await calculateTotalBytesFromBody(requestInstance.clone().body, totalBytes);
 	}
 
@@ -123,6 +124,7 @@ export const toStreamableRequest = async (context: ToStreamableRequestContext) =
 };
 
 type StreamableResponseContext = RequestContext & { response: Response };
+
 export const toStreamableResponse = async (context: StreamableResponseContext): Promise<Response> => {
 	const { baseConfig, config, options, request, response } = context;
 
@@ -134,9 +136,10 @@ export const toStreamableResponse = async (context: StreamableResponseContext): 
 
 	let totalBytes = Number(contentLength ?? 0);
 
-	const shouldForceContentLengthCalc = isObject(options.forceCalculateStreamSize)
-		? options.forceCalculateStreamSize.response
-		: options.forceCalculateStreamSize;
+	const shouldForceContentLengthCalc =
+		isObject(options.forcefullyCalculateStreamSize) ?
+			options.forcefullyCalculateStreamSize.response
+		:	options.forcefullyCalculateStreamSize;
 
 	// If no content length is present and `forceContentLengthCalculation` is enabled, we read the total bytes from the body
 	if (!contentLength && shouldForceContentLengthCalc) {

@@ -21,9 +21,9 @@ export const getAbortErrorMessage = (
 	dedupeKey: DedupeOptions["dedupeKey"],
 	fullURL: DedupeContext["options"]["fullURL"]
 ) => {
-	return dedupeKey
-		? `Duplicate request detected - Aborting previous request with key '${dedupeKey}' as a new request was initiated`
-		: `Duplicate request detected - Aborting previous request to '${fullURL}' as a new request with identical options was initiated`;
+	return dedupeKey ?
+			`Duplicate request detected - Aborting previous request with key '${dedupeKey}' as a new request was initiated`
+		:	`Duplicate request detected - Aborting previous request to '${fullURL}' as a new request with identical options was initiated`;
 };
 
 export const createDedupeStrategy = async (context: DedupeContext) => {
@@ -99,9 +99,10 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 
 		const shouldUsePromiseFromCache = prevRequestInfo && dedupeStrategy === "defer";
 
-		const requestObjectForStream = isReadableStream(localRequest.body)
-			? { ...localRequest, duplex: localRequest.duplex ?? "half" }
-			: localRequest;
+		const requestObjectForStream =
+			isReadableStream(localRequest.body) ?
+				{ ...localRequest, duplex: localRequest.duplex ?? "half" }
+			:	localRequest;
 
 		const requestInstance = new Request(
 			localOptions.fullURL as NonNullable<typeof localOptions.fullURL>,
@@ -127,9 +128,8 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 			);
 		};
 
-		const responsePromise = shouldUsePromiseFromCache
-			? prevRequestInfo.responsePromise
-			: getFetchApiPromise();
+		const responsePromise =
+			shouldUsePromiseFromCache ? prevRequestInfo.responsePromise : getFetchApiPromise();
 
 		$RequestInfoCacheOrNull?.set(dedupeKey, { controller: newFetchController, responsePromise });
 
