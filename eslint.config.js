@@ -11,6 +11,9 @@ export default zayne(
 				"nextjs-next/no-html-link-for-pages": ["error", "apps/docs"],
 			},
 		},
+		tailwindcssBetter: {
+			settings: { entryPoint: "apps/docs/tailwind.css" },
+		},
 		type: "lib",
 		typescript: {
 			tsconfigPath: ["**/tsconfig.json"],

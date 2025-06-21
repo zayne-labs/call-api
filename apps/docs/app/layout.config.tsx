@@ -1,11 +1,12 @@
-import { source } from "@/lib/source";
 import { callApi } from "@zayne-labs/callapi";
-import { assertDefined, isString } from "@zayne-labs/toolkit-type-helpers";
+import { assertDefined } from "@zayne-labs/toolkit-type-helpers";
 import type { DocsLayoutProps, LinkItemType } from "fumadocs-ui/layouts/docs";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import { TagIcon } from "lucide-react";
 import Image from "next/image";
 import Logo from "public/logo.png";
 import z from "zod/v4";
+import { source } from "@/lib/source";
 
 /**
  * Shared layout configurations
@@ -19,7 +20,7 @@ import z from "zod/v4";
 const linkItems = [
 	{
 		text: "Documentation",
-		url: "/docs/latest",
+		url: "/docs",
 		active: "nested-url",
 	},
 	{
@@ -39,6 +40,10 @@ const linkItems = [
 export const baseOptions: BaseLayoutProps = {
 	links: linkItems,
 };
+
+const callApiNpmDataPromise = callApi("https://registry.npmjs.org/@zayne-labs/callapi/latest", {
+	schema: { data: z.object({ version: z.string() }) },
+});
 
 export const docsOptions: DocsLayoutProps = {
 	...baseOptions,
@@ -63,49 +68,22 @@ export const docsOptions: DocsLayoutProps = {
 	},
 
 	sidebar: {
-		tabs: {
-			transform: (options, node) => {
-				const meta = source.getNodeMeta(node);
-
-				if (!meta) {
-					return options;
-				}
-
-				const modifiedIcon = node.icon && {
-					icon: (
-						<div
-							key={node.icon.key}
-							className="rounded-md border bg-gradient-to-t from-fd-background/80 p-1
-								text-fd-primary shadow-md [&_svg]:size-5"
-						>
-							{node.icon}
-						</div>
-					),
-				};
-
-				const callApiNpmDataPromise = callApi(
-					"https://registry.npmjs.org/@zayne-labs/callapi/latest",
-					{
-						schema: {
-							data: z.object({ version: z.string() }),
-						},
-					}
-				);
-
-				const descriptionPromise = callApiNpmDataPromise.then(
-					(result) => `v${result.data?.version ?? "1.*.*"}`
-				);
-
-				const modifiedDescription = isString(node.description)
-					&& node.description === "v" && { description: descriptionPromise };
-
-				return {
-					...options,
-					...modifiedIcon,
-					...modifiedDescription,
-				};
+		tabs: [
+			{
+				// eslint-disable-next-line unicorn/prefer-top-level-await -- Ignore
+				description: callApiNpmDataPromise.then((result) => `v${result.data?.version ?? "*.*.*"}`),
+				icon: (
+					<div
+						className="rounded-md border bg-gradient-to-t from-fd-background/80 p-1 text-fd-primary
+							shadow-md [&_svg]:size-5"
+					>
+						<TagIcon />
+					</div>
+				),
+				title: "Latest",
+				url: "/docs",
 			},
-		},
+		],
 	},
 	tree: source.pageTree,
 };

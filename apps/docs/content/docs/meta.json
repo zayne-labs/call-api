@@ -1,8 +1,5 @@
 {
-	"root": true,
 	"title": "Latest",
-	"icon": "Tag",
-	"description": "v",
 	"pages": [
 		"---Guide---",
 		"index",

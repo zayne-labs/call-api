@@ -15,7 +15,7 @@
 <p align="center">
 CallApi Fetch is an extra-lightweight wrapper over fetch that provides quality of life improvements beyond the bare fetch api, while keeping the API familiar.</p>
 
-It takes in a url and a request options object, just like fetch, but with some additional options to make your life easier. Check out the [API Reference](https://zayne-labs-callapi.netlify.app/docs/latest/all-options) for a quick look at each option.
+It takes in a url and a request options object, just like fetch, but with some additional options to make your life easier. Check out the [API Reference](https://zayne-labs-callapi.netlify.app/docs/extra-options) for a quick look at the additional options.
 
 # Docs
 
@@ -47,11 +47,11 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 
 ```html
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi";
+ import { callApi } from "https://esm.run/@zayne-labs/callapi";
 </script>
 
 <!-- Locked to a specific version -->
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi@0.3.2";
+ import { callApi } from "https://esm.run/@zayne-labs/callapi@0.3.2";
 </script>
 ```

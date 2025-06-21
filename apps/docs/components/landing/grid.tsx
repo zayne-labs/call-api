@@ -1,8 +1,8 @@
 "use client";
 
-import { cnMerge } from "@/lib/utils/cn";
 import { motion } from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
+import { cnMerge } from "@/lib/utils/cn";
 
 type GridPatternProps = {
 	className?: string;
@@ -54,12 +54,12 @@ export function GridPattern({
 	const updateSquarePosition = (identifier: number) => {
 		setSquares((currentSquares) =>
 			currentSquares.map((sq) =>
-				sq.id === identifier
-					? {
-							...sq,
-							pos: getPos(),
-						}
-					: sq
+				sq.id === identifier ?
+					{
+						...sq,
+						pos: getPos(),
+					}
+				:	sq
 			)
 		);
 	};
@@ -70,7 +70,6 @@ export function GridPattern({
 			// eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- Not my code
 			setSquares(generateSquares(numSquares));
 		}
-		// eslint-disable-next-line react-compiler/react-compiler -- Not my code
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- Not my code
 	}, [dimensions, numSquares]);
 

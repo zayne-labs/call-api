@@ -37,11 +37,13 @@
 		"@zayne-labs/eslint-config": "0.9.3",
 		"@zayne-labs/prettier-config": "0.9.3",
 		"eslint": "9.29.0",
+		"eslint-plugin-better-tailwindcss": "^3.4.0",
 		"eslint-plugin-react-hooks": "^5.2.0",
 		"eslint-plugin-react-refresh": "^0.4.20",
 		"husky": "9.1.7",
 		"lint-staged": "16.1.2",
 		"prettier": "3.5.3",
+		"tailwindcss": "^4.1.10",
 		"turbo": "^2.5.4",
 		"typescript": "^5.8.3"
 	}

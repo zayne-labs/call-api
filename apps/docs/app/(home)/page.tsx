@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { DocsIcon, GitHubIcon } from "@/components/icons";
 import Ripple from "@/components/landing/ripple";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 export default function HomePage() {
 	return (
@@ -19,7 +19,7 @@ export default function HomePage() {
 				</p>
 
 				<div className="flex w-full items-center justify-center gap-4 py-4">
-					<Link href="/docs/latest">
+					<Link href="/docs">
 						<Button className="flex gap-2">
 							<DocsIcon />
 							Docs

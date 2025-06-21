@@ -312,7 +312,7 @@ Here are some important details about how hooks work:
 
 ### Array Support
 
-Any hook can be an array of callbacks that run in sequence:
+Any hook can be an array of callbacks that will run sequentially:
 
 ```ts
 const { error } = await callApi("/api/data", {
@@ -488,4 +488,4 @@ const { error } = await client("/api/data", {
 
 ## Types
 
-<auto-type-table path="../../../lib/callapi-options.ts" name="Hooks" />
+<auto-type-table path="../../lib/callapi-options.ts" name="Hooks" />

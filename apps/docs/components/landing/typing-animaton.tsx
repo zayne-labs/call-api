@@ -1,7 +1,7 @@
 "use client";
 
-import { cnMerge } from "@/lib/utils/cn";
 import { useEffect, useState } from "react";
+import { cnMerge } from "@/lib/utils/cn";
 
 type TypingAnimationProps = {
 	className?: string;
@@ -26,7 +26,6 @@ export default function TypingAnimation({ className, duration = 200, text }: Typ
 		return () => {
 			clearInterval(typingEffect);
 		};
-		// eslint-disable-next-line react-compiler/react-compiler -- Not my code
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- Not my code
 	}, [duration, i]);
 
