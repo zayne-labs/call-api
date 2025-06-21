@@ -147,10 +147,10 @@ import { createFetchClient } from "@zayne-labs/callapi";
 const client = createFetchClient({
 	onResponse: ({ data, error, request, response, options }) => {
 		// Log all API calls
-		console.log(`${request.method} ${options.initURL} - ${response.status}`);
+		console.log(`${request.method} ${options.initURL} - ${response?.status}`);
 
 		// Handle specific status codes
-		if (response.status === 207) {
+		if (response?.status === 207) {
 			console.warn("Partial success:", data);
 		}
 	},

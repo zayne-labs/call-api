@@ -1,45 +1,16 @@
 export { callApi, createFetchClient } from "./createFetchClient";
 
-export { defineParameters } from "./defineParameters";
-
-export {
-	definePlugin,
-	type CallApiPlugin,
-	type PluginInitContext,
-	type PluginHooks,
-	type PluginHooksWithMoreOptions,
-} from "./plugins";
-
-export type { URLOptions } from "./url";
-
 export type { DedupeOptions } from "./dedupe";
 
-export {
-	type CallApiSchema,
-	type BaseCallApiSchema,
-	type InferSchemaResult,
-	type CallApiSchemaConfig,
-	defineSchema,
-} from "./validation";
-
-export type { RetryOptions } from "./retry";
+export { defineParameters } from "./defineParameters";
 
 export { HTTPError, ValidationError } from "./error";
-
-export {
-	type PossibleHTTPError,
-	type PossibleJavaScriptError,
-	type PossibleValidationError,
-	type ResponseTypeUnion,
-	type CallApiResultErrorVariant,
-	type CallApiResultSuccessVariant,
-	type ResultModeUnion,
-} from "./result";
 
 export type {
 	ErrorContext,
 	Hooks,
 	HooksOrHooksArray,
+	PluginExtraOptions,
 	RequestContext,
 	RequestStreamContext,
 	ResponseContext,
@@ -48,16 +19,47 @@ export type {
 	SuccessContext,
 } from "./hooks";
 
+export {
+	type CallApiPlugin,
+	definePlugin,
+	type PluginHooks,
+	type PluginHooksWithMoreOptions,
+	type PluginInitContext,
+} from "./plugins";
+
+export {
+	type CallApiResultErrorVariant,
+	type CallApiResultSuccessVariant,
+	type PossibleHTTPError,
+	type PossibleJavaScriptError,
+	type PossibleJavaScriptOrValidationError,
+	type PossibleValidationError,
+	type ResponseTypeUnion,
+	type ResultModeUnion,
+} from "./result";
+
+export type { RetryOptions } from "./retry";
+
 export type {
+	BaseCallApiConfig,
 	BaseCallApiExtraOptions,
+	CallApiConfig,
 	CallApiExtraOptions,
+	CallApiExtraOptionsForHooks,
 	CallApiParameters,
 	CallApiRequestOptions,
-	CallApiConfig,
-	BaseCallApiConfig,
 	CallApiRequestOptionsForHooks,
 	CallApiResult,
 	InferParamFromRoute,
-	CallApiExtraOptionsForHooks,
 	Register,
 } from "./types";
+
+export type { URLOptions } from "./url";
+
+export {
+	type BaseCallApiSchema,
+	type CallApiSchema,
+	type CallApiSchemaConfig,
+	defineSchema,
+	type InferSchemaResult,
+} from "./validation";

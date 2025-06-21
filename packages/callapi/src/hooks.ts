@@ -1,7 +1,5 @@
 import type { ValidationError } from "./error";
 import {
-	type CallApiResultErrorVariant,
-	type CallApiResultSuccessVariant,
 	type ErrorInfo,
 	type PossibleHTTPError,
 	type PossibleJavaScriptOrValidationError,
@@ -124,10 +122,6 @@ export type RequestContext = {
 	request: CallApiRequestOptionsForHooks;
 };
 
-export type ResponseContext<TData, TErrorData> = UnmaskType<
-	RequestContext & (CallApiResultErrorVariant<TErrorData> | CallApiResultSuccessVariant<TData>)
->;
-
 export type ValidationErrorContext = UnmaskType<
 	RequestContext & {
 		error: ValidationError;
@@ -140,6 +134,22 @@ export type SuccessContext<TData> = UnmaskType<
 		data: TData;
 		response: Response;
 	}
+>;
+
+export type ResponseContext<TData, TErrorData> = UnmaskType<
+	RequestContext
+		& (
+			| {
+					data: NoInfer<TData>;
+					error: null;
+					response: Response;
+			  }
+			| {
+					data: null;
+					error: PossibleHTTPError<TErrorData>;
+					response: Response;
+			  }
+		)
 >;
 
 export type RequestErrorContext = RequestContext & {
