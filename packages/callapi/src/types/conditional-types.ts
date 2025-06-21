@@ -229,13 +229,10 @@ export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIn
 // == DID THIS FOR AUTOCOMPLETION
 type ExtractKeys<TUnion, TSelectedUnion extends TUnion> = Extract<TUnion, TSelectedUnion>;
 
-// == This int is necessary to prevent assignability errors via errorData for JavaScript errors
-export type False = false;
-
 export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> =
-	TErrorData extends False ? { resultMode: "onlySuccessWithException" }
-	: TErrorData extends False | undefined ? { resultMode?: "onlySuccessWithException" }
-	: TErrorData extends False | null ?
+	TErrorData extends false ? { resultMode: "onlySuccessWithException" }
+	: TErrorData extends false | undefined ? { resultMode?: "onlySuccessWithException" }
+	: TErrorData extends false | null ?
 		{ resultMode?: ExtractKeys<ResultModeUnion, "onlySuccess" | "onlySuccessWithException"> }
 	: null extends TResultMode ? { resultMode?: TResultMode }
 	: { resultMode: TResultMode };
@@ -243,6 +240,6 @@ export type ResultModeOption<TErrorData, TResultMode extends ResultModeUnion> =
 export type ThrowOnErrorUnion = boolean;
 
 export type ThrowOnErrorOption<TErrorData, TThrowOnError extends ThrowOnErrorUnion> =
-	TErrorData extends False ? { throwOnError: true }
-	: TErrorData extends False | undefined ? { throwOnError?: true }
+	TErrorData extends false ? { throwOnError: true }
+	: TErrorData extends false | undefined ? { throwOnError?: true }
 	: { throwOnError?: TThrowOnError | ((context: ErrorContext<TErrorData>) => TThrowOnError) };

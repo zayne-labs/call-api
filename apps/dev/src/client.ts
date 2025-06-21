@@ -1,15 +1,15 @@
 import {
 	type CallApiParameters,
+	createFetchClient,
+	definePlugin,
+	defineSchema,
 	type PluginHooksWithMoreOptions,
 	type PluginInitContext,
 	type ResultModeUnion,
 	type SuccessContext,
-	createFetchClient,
-	definePlugin,
-	defineSchema,
 } from "@zayne-labs/callapi";
-import { loggerPlugin } from "@zayne-labs/callapi-plugins";
 import { isValidationError } from "@zayne-labs/callapi/utils";
+import { loggerPlugin } from "@zayne-labs/callapi-plugins";
 import z from "zod";
 
 const newOptionSchema1 = z.object({

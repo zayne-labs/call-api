@@ -1,8 +1,8 @@
 import { commonDefaults, responseDefaults } from "./constants/default-options";
 import type { HTTPError, ValidationError } from "./error";
-import type { CallApiExtraOptions, False, ThrowOnErrorUnion } from "./types";
+import type { CallApiExtraOptions, ThrowOnErrorUnion } from "./types";
 import type { DefaultDataType } from "./types/default-types";
-import type { AnyString, Awaitable, Prettify, UnmaskType } from "./types/type-helpers";
+import type { AnyString, Awaitable, UnmaskType } from "./types/type-helpers";
 import { isHTTPErrorInstance, isValidationErrorInstance } from "./utils/guards";
 
 type Parser = (responseString: string) => Awaitable<Record<string, unknown>>;
@@ -54,7 +54,7 @@ export const resolveResponseData = <TResponse>(
 };
 
 export type CallApiResultSuccessVariant<TData> = {
-	data: TData;
+	data: NoInfer<TData>;
 	error: null;
 	response: Response;
 };
@@ -66,23 +66,19 @@ export type PossibleJavaScriptError = UnmaskType<{
 	originalError: DOMException | Error | SyntaxError | TypeError;
 }>;
 
-export type PossibleHTTPError<TErrorData> = Prettify<
-	UnmaskType<{
-		errorData: TErrorData;
-		message: string;
-		name: "HTTPError";
-		originalError: HTTPError;
-	}>
->;
+export type PossibleHTTPError<TErrorData> = UnmaskType<{
+	errorData: NoInfer<TErrorData>;
+	message: string;
+	name: "HTTPError";
+	originalError: HTTPError;
+}>;
 
-export type PossibleValidationError = Prettify<
-	UnmaskType<{
-		errorData: ValidationError["errorData"];
-		message: string;
-		name: "ValidationError";
-		originalError: ValidationError;
-	}>
->;
+export type PossibleValidationError = UnmaskType<{
+	errorData: ValidationError["errorData"];
+	message: string;
+	name: "ValidationError";
+	originalError: ValidationError;
+}>;
 
 export type PossibleJavaScriptOrValidationError = UnmaskType<
 	PossibleJavaScriptError | PossibleValidationError
@@ -129,10 +125,10 @@ export type GetCallApiResult<
 	TThrowOnError extends ThrowOnErrorUnion,
 	TResponseType extends ResponseTypeUnion,
 > =
-	TErrorData extends False ? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-	: TErrorData extends False | undefined ?
+	TErrorData extends false ? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
+	: TErrorData extends false | undefined ?
 		ResultModeMap<TData, TErrorData, TResponseType>["onlySuccessWithException"]
-	: TErrorData extends False | null ? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccess"]
+	: TErrorData extends false | null ? ResultModeMap<TData, TErrorData, TResponseType>["onlySuccess"]
 	: null extends TResultMode ?
 		TThrowOnError extends true ?
 			ResultModeMap<TData, TErrorData, TResponseType>["allWithException"]

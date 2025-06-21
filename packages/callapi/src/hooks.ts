@@ -1,5 +1,7 @@
 import type { ValidationError } from "./error";
 import {
+	type CallApiResultErrorVariant,
+	type CallApiResultSuccessVariant,
 	type ErrorInfo,
 	type PossibleHTTPError,
 	type PossibleJavaScriptOrValidationError,
@@ -122,49 +124,28 @@ export type RequestContext = {
 	request: CallApiRequestOptionsForHooks;
 };
 
-export type ResponseContext<TData, TErrorData> = RequestContext
-	& (
-		| {
-				data: null;
-				error: PossibleHTTPError<TErrorData>;
-				response: Response;
-		  }
-		| {
-				data: null;
-				error: PossibleJavaScriptOrValidationError;
-				response: Response | null;
-		  }
-		| {
-				data: TData;
-				error: null;
-				response: Response;
-		  }
-	);
+export type ResponseContext<TData, TErrorData> = UnmaskType<
+	RequestContext & (CallApiResultErrorVariant<TErrorData> | CallApiResultSuccessVariant<TData>)
+>;
 
-export type ValidationErrorContext = RequestContext & {
-	error: ValidationError;
-	response: Response | null;
-};
-
-export type SuccessContext<TData> = RequestContext & {
-	data: TData;
-	response: Response;
-};
-
-export type RequestErrorContext = UnmaskType<
+export type ValidationErrorContext = UnmaskType<
 	RequestContext & {
-		error: PossibleJavaScriptOrValidationError;
-		response: null;
+		error: ValidationError;
+		response: Response | null;
 	}
 >;
 
-export type ResponseErrorContext<TErrorData> = UnmaskType<
-	Extract<ErrorContext<TErrorData>, { error: PossibleHTTPError<TErrorData> }> & RequestContext
+export type SuccessContext<TData> = UnmaskType<
+	RequestContext & {
+		data: TData;
+		response: Response;
+	}
 >;
 
-export type RetryContext<TErrorData> = UnmaskType<
-	ErrorContext<TErrorData> & { retryAttemptCount: number }
->;
+export type RequestErrorContext = RequestContext & {
+	error: PossibleJavaScriptOrValidationError;
+	response: null;
+};
 
 export type ErrorContext<TErrorData> = UnmaskType<
 	RequestContext
@@ -178,6 +159,14 @@ export type ErrorContext<TErrorData> = UnmaskType<
 					response: Response | null;
 			  }
 		)
+>;
+
+export type ResponseErrorContext<TErrorData> = UnmaskType<
+	Extract<ErrorContext<TErrorData>, { error: PossibleHTTPError<TErrorData> }> & RequestContext
+>;
+
+export type RetryContext<TErrorData> = UnmaskType<
+	ErrorContext<TErrorData> & { retryAttemptCount: number }
 >;
 
 export type RequestStreamContext = UnmaskType<

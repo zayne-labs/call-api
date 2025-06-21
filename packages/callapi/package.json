@@ -1,7 +1,7 @@
 {
 	"name": "@zayne-labs/callapi",
 	"type": "module",
-	"version": "1.8.7",
+	"version": "1.8.8",
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"author": "Ryan Zayne",
 	"license": "MIT",
@@ -24,8 +24,8 @@
 	],
 	"sideEffects": false,
 	"exports": {
-		".": "./dist/esm/index.js",
-		"./utils": "./dist/esm/utils/index.js"
+		".": "./src/index.ts",
+		"./utils": "./src/utils/index.ts"
 	},
 	"files": [
 		"dist"
@@ -69,7 +69,11 @@
 	"publishConfig": {
 		"access": "public",
 		"registry": "https://registry.npmjs.org/",
-		"provenance": false
+		"provenance": false,
+		"exports": {
+			".": "./dist/esm/index.js",
+			"./utils": "./dist/esm/utils/index.js"
+		}
 	},
 	"size-limit": [
 		{

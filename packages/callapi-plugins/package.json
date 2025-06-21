@@ -7,7 +7,7 @@
 	"license": "MIT",
 	"homepage": "https://github.com/zayne-labs/call-api#readme",
 	"sideEffects": false,
-	"exports": "./dist/esm/index.js",
+	"exports": "./src/index.ts",
 	"files": [
 		"dist"
 	],
@@ -56,7 +56,8 @@
 	"publishConfig": {
 		"access": "public",
 		"registry": "https://registry.npmjs.org/",
-		"provenance": false
+		"provenance": false,
+		"exports": "./dist/esm/index.js"
 	},
 	"size-limit": [
 		{
