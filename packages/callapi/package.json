@@ -24,8 +24,8 @@
 	],
 	"sideEffects": false,
 	"exports": {
-		".": "./src/index.ts",
-		"./utils": "./src/utils/index.ts"
+		".": "./dist/esm/index.js",
+		"./utils": "./dist/esm/utils/index.js"
 	},
 	"files": [
 		"dist"
@@ -69,11 +69,7 @@
 	"publishConfig": {
 		"access": "public",
 		"registry": "https://registry.npmjs.org/",
-		"provenance": false,
-		"exports": {
-			".": "./dist/esm/index.js",
-			"./utils": "./dist/esm/utils/index.js"
-		}
+		"provenance": false
 	},
 	"size-limit": [
 		{
