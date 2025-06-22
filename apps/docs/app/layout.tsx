@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components -- Not relevant in Next.js */
+
+import { Geist, Geist_Mono } from "next/font/google";
 import { baseURL, createMetadata } from "@/lib/metadata";
 import { cnJoin } from "@/lib/utils/cn";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "./Providers";
 import "../tailwind.css";
 
@@ -18,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata = createMetadata({
 	description: "A lightweight, type-safe Fetch API wrapper with dozens of convenience features.",
 	keywords: ["fetch", "type-safe", "interceptors", "callapi", "dedupe"],
-	metadataBase: baseURL,
+	metadataBase: new URL(baseURL),
 	title: {
 		default: "CallApi",
 		template: "%s | CallApi",

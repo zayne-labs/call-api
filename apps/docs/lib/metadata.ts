@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 
-export const baseURL = new URL(
-	process.env.NODE_ENV === "development"
-		? "http://localhost:3000"
-		: "https://zayne-labs-callapi.netlify.app"
-);
+export const baseURL =
+	process.env.NODE_ENV === "development" ?
+		"http://localhost:3000"
+	:	"https://zayne-labs-callapi.netlify.app";
 
 export function createMetadata(override: Metadata = {}): Metadata {
 	return {
@@ -13,7 +12,7 @@ export function createMetadata(override: Metadata = {}): Metadata {
 			description: override.description ?? undefined,
 			images: [
 				{
-					alt: "CallApi - The Ultimate API Testing Tool",
+					alt: "CallApi - The Ultimate Fetch API Wrapper",
 					height: 630,
 					type: "image/png",
 					url: "https://zayne-labs-callapi.netlify.app/og.png",
@@ -23,7 +22,7 @@ export function createMetadata(override: Metadata = {}): Metadata {
 			siteName: "CallApi",
 			title: override.title ?? undefined,
 			type: "website",
-			url: baseURL.toString(),
+			url: baseURL,
 			...override.openGraph,
 		},
 		twitter: {
@@ -32,7 +31,7 @@ export function createMetadata(override: Metadata = {}): Metadata {
 			description: override.description ?? undefined,
 			images: [
 				{
-					alt: "CallApi - The Ultimate API Testing Tool",
+					alt: "CallApi - The Ultimate Fetch API Wrapper",
 					height: 630,
 					url: "https://zayne-labs-callapi.netlify.app/og.png",
 					width: 1200,
