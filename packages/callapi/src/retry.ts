@@ -135,15 +135,14 @@ export const createRetryStrategy = (ctx: ErrorContext<unknown> & RequestContext)
 
 		const resolvedMethod = ctx.request.method ?? requestOptionDefaults.method;
 
-		const includesMethod = Boolean(resolvedMethod) && retryMethods.has(resolvedMethod);
+		const includesMethod = resolvedMethod && retryMethods.has(resolvedMethod);
 
 		const retryStatusCodes = new Set(options.retryStatusCodes ?? options.retry?.statusCodes ?? []);
 
 		const includesStatusCodes =
-			Boolean(ctx.response?.status)
-			&& (retryStatusCodes.size > 0 ? retryStatusCodes.has(ctx.response.status) : true);
+			ctx.response && (retryStatusCodes.size > 0 ? retryStatusCodes.has(ctx.response.status) : true);
 
-		const shouldRetry = includesMethod && includesStatusCodes;
+		const shouldRetry = Boolean(includesMethod && includesStatusCodes);
 
 		return shouldRetry;
 	};
