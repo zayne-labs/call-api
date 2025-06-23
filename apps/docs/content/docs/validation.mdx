@@ -274,8 +274,6 @@ const callApi = createFetchClient({
 });
 ```
 
-## Custom Validator
-
 ## Schema Configuration
 
 When creating a schema with `defineSchema`, you can configure validation behavior:
@@ -367,7 +365,9 @@ const { data, error } = await callApi("/user", {
 
 ## Custom Validators
 
-Instead of using Zod schemas, you can also provide custom validator functions for any schema field. These functions receive the input value and can perform custom validation or transformation. They can also be async if need be.
+Instead of using Zod schemas, you can also provide custom validator functions for any schema field.
+
+These functions receive the input value and can perform custom validation or transformation. They can also be `async` if need be.
 
 ```ts twoslash title="client.ts"
 import { createFetchClient, defineSchema } from "@zayne-labs/callapi";

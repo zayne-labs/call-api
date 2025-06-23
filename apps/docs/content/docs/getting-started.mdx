@@ -34,9 +34,7 @@ If you want to use a specific version, you can specify it in the URL like this:
 
 ## Quick Start
 
-The fastest way to start using callApi is to import the callApi function and commence making requests.
-
-You can define the response data and error types using generics or validate and infer them via [Validation Schema](./validation)
+To get started with callApi, simply import the function and make your first request:
 
 ```ts twoslash title="api.ts"
 import { callApi } from "@zayne-labs/callapi";
@@ -49,11 +47,18 @@ type Todo = {
 };
 
 // @annotate: Hover over the data or error object to see the type
-
 const { data, error, response } = await callApi<Todo>("https://jsonplaceholder.typicode.com/todos/1");
 ```
 
-CallApi by default returns a Promise that resolves to an object of data, error and the original response object. But this can be customized using the `resultMode` option.
+As shown in the example, callApi returns an object containing:
+
+- `data`: The response data
+- `error`: An error object containing info about any error that occurred during the lifecycle of the request
+- `response`: The original Response object
+
+You can specify the data type and error type using TypeScript generics, or using a [Validation Schema](./validation) to validate and infer the types automatically.
+
+The return format can be customized using the `resultMode` option.
 
 ## CreateFetchClient
 
