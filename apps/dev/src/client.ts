@@ -129,12 +129,14 @@ const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
 	}),
 
 	callMainApi("@delete/products/:id", {
+		method: "DELETE",
 		params: {
 			id: "beans",
 		},
 	}),
 
 	callMainApi("/products/:id", {
+		method: "",
 		params: [1302],
 	}),
 

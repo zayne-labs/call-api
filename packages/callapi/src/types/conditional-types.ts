@@ -89,8 +89,9 @@ export type MethodUnion = UnmaskType<
 >;
 
 type InferMethodFromURL<TInitURL> =
-	TInitURL extends `@${infer TMethod extends RouteKeyMethods}/${string}` ? Uppercase<TMethod>
-	:	MethodUnion;
+	string extends TInitURL ? MethodUnion
+	: TInitURL extends `@${infer TMethod extends RouteKeyMethods}/${string}` ? Uppercase<TMethod>
+	: MethodUnion;
 
 type MakeMethodOptionRequired<TInitURL, TSchemaConfig extends CallApiSchemaConfig, TObject> =
 	undefined extends TSchemaConfig ? TObject
