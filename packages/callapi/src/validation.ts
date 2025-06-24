@@ -25,7 +25,7 @@ type InferSchemaInput<TSchema extends CallApiSchema[keyof CallApiSchema]> =
 	: TSchema extends (value: infer TInput) => unknown ? TInput
 	: never;
 
-export type InferSchemaResult<TSchema, TFallbackResult = NonNullable<unknown>> =
+export type InferSchemaResult<TSchema, TFallbackResult = unknown> =
 	undefined extends TSchema ? TFallbackResult
 	: TSchema extends StandardSchemaV1 ? StandardSchemaV1.InferOutput<TSchema>
 	: TSchema extends AnyFunction<infer TResult> ? Awaited<TResult>

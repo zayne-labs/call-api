@@ -1,5 +1,7 @@
 import type { ValidationError } from "./error";
 import {
+	type CallApiResultErrorVariant,
+	type CallApiResultSuccessVariant,
 	type ErrorInfo,
 	type PossibleHTTPError,
 	type PossibleJavaScriptOrValidationError,
@@ -14,7 +16,7 @@ import type {
 	CallApiRequestOptionsForHooks,
 } from "./types/common";
 import type { DefaultDataType } from "./types/default-types";
-import type { AnyFunction, Awaitable, UnmaskType } from "./types/type-helpers";
+import type { AnyFunction, Awaitable, Prettify, UnmaskType } from "./types/type-helpers";
 
 export type PluginExtraOptions<TPluginOptions = unknown> = {
 	options: Partial<TPluginOptions>;
@@ -139,16 +141,10 @@ export type SuccessContext<TData> = UnmaskType<
 export type ResponseContext<TData, TErrorData> = UnmaskType<
 	RequestContext
 		& (
-			| {
-					data: NoInfer<TData>;
-					error: null;
-					response: Response;
-			  }
-			| {
-					data: null;
-					error: PossibleHTTPError<TErrorData>;
-					response: Response;
-			  }
+			| Prettify<CallApiResultSuccessVariant<TData>>
+			| Prettify<
+					Extract<CallApiResultErrorVariant<TErrorData>, { error: PossibleHTTPError<TErrorData> }>
+			  >
 		)
 >;
 

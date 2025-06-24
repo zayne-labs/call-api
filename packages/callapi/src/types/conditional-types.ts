@@ -24,7 +24,7 @@ import type {
  * @description Makes a type required if the output type of TSchema contains undefined, otherwise keeps it as is
  */
 type MakeSchemaOptionRequired<TSchema extends CallApiSchema[keyof CallApiSchema], TObject> =
-	undefined extends InferSchemaResult<TSchema, undefined> ? TObject : Required<TObject>;
+	undefined extends InferSchemaResult<TSchema> ? TObject : Required<TObject>;
 
 export type ApplyURLBasedConfig<
 	TSchemaConfig extends CallApiSchemaConfig,
@@ -220,8 +220,8 @@ export type InferExtraOptions<TSchema extends CallApiSchema, TCurrentRouteKey> =
 export type InferPluginOptions<TPluginArray extends CallApiPlugin[]> = UnionToIntersection<
 	TPluginArray extends Array<infer TPlugin> ?
 		TPlugin extends CallApiPlugin ?
-			TPlugin["defineExtraOptions"] extends AnyFunction<infer TResult> ?
-				InferSchemaResult<TResult>
+			TPlugin["defineExtraOptions"] extends AnyFunction<infer TReturnedSchema> ?
+				InferSchemaResult<TReturnedSchema>
 			:	never
 		:	never
 	:	never
