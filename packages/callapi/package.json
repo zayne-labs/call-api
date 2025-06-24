@@ -57,7 +57,7 @@
 		"@zayne-labs/prettier-config": "^0.9.3",
 		"@zayne-labs/toolkit-type-helpers": "^0.9.48",
 		"@zayne-labs/tsconfig": "0.9.3",
-		"concurrently": "^9.1.2",
+		"concurrently": "^9.2.0",
 		"cross-env": "^7.0.3",
 		"publint": "^0.3.12",
 		"size-limit": "11.2.0",
