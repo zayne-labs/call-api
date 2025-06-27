@@ -5,40 +5,43 @@ export const baseURL =
 		"http://localhost:3000"
 	:	"https://zayne-labs-callapi.netlify.app";
 
-export function createMetadata(override: Metadata = {}): Metadata {
+export function createMetadata(overrides?: Metadata): Metadata {
 	return {
-		...override,
+		...overrides,
+
 		openGraph: {
-			description: override.description ?? undefined,
+			description: overrides?.description ?? undefined,
 			images: [
 				{
 					alt: "CallApi - The Ultimate Fetch API Wrapper",
 					height: 630,
 					type: "image/png",
-					url: "https://zayne-labs-callapi.netlify.app/og.png",
+					url: "/og.png",
 					width: 1200,
 				},
 			],
 			siteName: "CallApi",
-			title: override.title ?? undefined,
+			title: overrides?.title ?? undefined,
 			type: "website",
 			url: baseURL,
-			...override.openGraph,
+
+			...overrides?.openGraph,
 		},
 		twitter: {
 			card: "summary_large_image",
 			creator: "@zayne_el_kaiser",
-			description: override.description ?? undefined,
+			description: overrides?.description ?? undefined,
 			images: [
 				{
 					alt: "CallApi - The Ultimate Fetch API Wrapper",
 					height: 630,
-					url: "https://zayne-labs-callapi.netlify.app/og.png",
+					url: "/og.png",
 					width: 1200,
 				},
 			],
-			title: override.title ?? undefined,
-			...override.twitter,
+			title: overrides?.title ?? undefined,
+
+			...overrides?.twitter,
 		},
 	};
 }

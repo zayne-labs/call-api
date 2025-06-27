@@ -26,6 +26,12 @@ export default zayne(
 		},
 	},
 	{
+		files: ["apps/docs/**/*.{ts,tsx}"],
+		rules: {
+			"eslint-comments/require-description": "off",
+		},
+	},
+	{
 		files: ["packages/callapi/src/createFetchClient.ts"],
 		rules: {
 			complexity: ["warn", { max: 70 }],

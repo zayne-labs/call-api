@@ -1,8 +1,9 @@
-import { getMDXComponents } from "@/components/common";
-import { baseURL } from "@/lib/metadata";
-import { source } from "@/lib/source";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getMDXComponents } from "@/components/common";
+import { createMetadata } from "@/lib/metadata";
+import { source } from "@/lib/source";
 
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
 	// eslint-disable-next-line react/prefer-destructuring-assignment -- Ignore this
@@ -14,7 +15,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
 		notFound();
 	}
 
-	const path = `apps/docs/content/docs/${page.file.path}`;
+	const path = `apps/docs/content/docs/${page.path}`;
 
 	const MDX = page.data.body;
 
@@ -47,46 +48,35 @@ export function generateStaticParams() {
 	return source.generateParams();
 }
 
-const absoluteUrl = (path: string) => `${baseURL}${path}`;
-
-export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }) {
-	const { slug } = await params;
+export async function generateMetadata(props: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
+	const { slug = [] } = await props.params;
 	const page = source.getPage(slug);
 
-	if (page == null) notFound();
+	if (!page) {
+		notFound();
+	}
 
-	const url = new URL(`${baseURL}/api/og`);
-	const { description, title } = page.data;
-	const pageSlug = page.file.path;
+	const description =
+		page.data.description
+		?? "A lightweight, type-safe Fetch API wrapper with dozens of convenience features.";
 
-	url.searchParams.set("type", "Documentation");
-	url.searchParams.set("mode", "dark");
-	url.searchParams.set("heading", title);
+	const image = {
+		height: 630,
+		url: ["/og", ...slug, "image.png"].join("/"),
+		width: 1200,
+	};
 
-	return {
+	return createMetadata({
 		description,
 		openGraph: {
-			description,
-			images: [
-				{
-					alt: title,
-					height: 630,
-					url: url.toString(),
-					width: 1200,
-				},
-			],
-			title,
-			type: "website",
-			url: absoluteUrl(`docs/${pageSlug}`),
+			images: [image],
+			url: `/docs/${page.slugs.join("/")}`,
 		},
-		title,
+		title: page.data.title,
 		twitter: {
-			card: "summary_large_image",
-			description,
-			images: [url.toString()],
-			title,
+			images: [image],
 		},
-	};
+	});
 }
 
 /* eslint-enable react-refresh/only-export-components -- This doesn't apply to Next.js */

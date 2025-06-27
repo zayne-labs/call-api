@@ -1,21 +1,13 @@
-import { docs, meta } from "@/.source";
-// import { IconBox } from "@/components/common";
-// import { icons as lucideIcons } from "@iconify-json/lucide";
-// import { Icon } from "@iconify/react";
-// import { getIconData } from "@iconify/utils";
-import { loader } from "fumadocs-core/source";
+import { type InferMetaType, type InferPageType, loader } from "fumadocs-core/source";
 import { createMDXSource } from "fumadocs-mdx";
 import { icons as lucideIcons } from "lucide-react";
 import { createElement } from "react";
+import { docs, meta } from "@/.source";
 
 export const source = loader({
 	baseUrl: "/docs",
 	icon: (iconName) => {
 		if (!iconName) return;
-
-		// const iconData = getIconData(lucideIcons, iconName);
-
-		// return createElement(IconBox, { icon: iconData });
 
 		if (!(iconName in lucideIcons)) return;
 
@@ -23,3 +15,6 @@ export const source = loader({
 	},
 	source: createMDXSource(docs, meta),
 });
+
+export type Page = InferPageType<typeof source>;
+export type Meta = InferMetaType<typeof source>;
