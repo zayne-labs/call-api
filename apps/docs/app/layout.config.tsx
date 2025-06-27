@@ -70,14 +70,14 @@ export const docsOptions: DocsLayoutProps = {
 	sidebar: {
 		tabs: [
 			{
-				// eslint-disable-next-line unicorn/prefer-top-level-await -- Ignore
+				// eslint-disable-next-line unicorn/prefer-top-level-await -- Ignore`
 				description: callApiNpmDataPromise.then((result) => `v${result.data?.version ?? "*.*.*"}`),
 				icon: (
 					<div
-						className="rounded-md border bg-gradient-to-t from-fd-background/80 p-1 text-fd-primary
-							shadow-md [&_svg]:size-5"
+						className="grid size-full place-items-center rounded-lg max-md:border
+							max-md:bg-fd-primary/10 max-md:p-1.5"
 					>
-						<TagIcon />
+						<TagIcon className="size-full text-fd-primary" />
 					</div>
 				),
 				title: "Latest",

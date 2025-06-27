@@ -17,7 +17,7 @@
 	},
 	"devDependencies": {
 		"@types/node": "^24.0.4",
-		"@zayne-labs/tsconfig": "0.9.3",
+		"@zayne-labs/tsconfig": "0.9.4",
 		"tsx": "^4.20.3",
 		"typescript": "5.8.3",
 		"vite": "^7.0.0"
