@@ -100,21 +100,23 @@ const callMainApi = createFetchClient({
 	}),
 });
 
-// const stream = new ReadableStream({
-// 	async start(controller) {
-// 		await wait(1000);
-// 		controller.enqueue("This ");
-// 		await wait(1000);
-// 		controller.enqueue("is ");
-// 		await wait(1000);
-// 		controller.enqueue("a ");
-// 		await wait(1000);
-// 		controller.enqueue("slow ");
-// 		await wait(1000);
-// 		controller.enqueue("request.");
-// 		controller.close();
-// 	},
-// }).pipeThrough(new TextEncoderStream());
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const stream = new ReadableStream({
+	async start(controller) {
+		await wait(1000);
+		controller.enqueue("This ");
+		await wait(1000);
+		controller.enqueue("is ");
+		await wait(1000);
+		controller.enqueue("a ");
+		await wait(1000);
+		controller.enqueue("slow ");
+		await wait(1000);
+		controller.enqueue("request.");
+		controller.close();
+	},
+}).pipeThrough(new TextEncoderStream());
 
 const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
 	callMainApi<{ foo: string }>("/products/:id", {
@@ -134,13 +136,13 @@ const [foo1, foo2, foo3, foo4, foo5, foo6] = await Promise.all([
 	}),
 
 	callMainApi("/products/:id", {
-		method: "",
 		params: [1302],
 	}),
 
 	callMainApi("/products/:id", {
-		body: ["dev"],
+		body: stream,
 		method: "POST",
+		onRequestStream: (ctx) => console.info("OnRequestStream", { event: ctx.event }),
 		params: [1],
 	}),
 

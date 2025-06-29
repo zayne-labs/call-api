@@ -2,7 +2,6 @@ import { dedupeDefaults } from "./constants/default-options";
 import type { RequestContext } from "./hooks";
 import { toStreamableRequest, toStreamableResponse } from "./stream";
 import { getFetchImpl, waitFor } from "./utils/common";
-import { isReadableStream } from "./utils/guards";
 
 type RequestInfo = {
 	controller: AbortController;
@@ -99,45 +98,24 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 
 		const shouldUsePromiseFromCache = prevRequestInfo && dedupeStrategy === "defer";
 
-		const requestObjectForStream =
-			isReadableStream(localRequest.body) ?
-				{ ...localRequest, duplex: localRequest.duplex ?? "half" }
-			:	localRequest;
-
-		const requestInstance = new Request(
-			localOptions.fullURL as NonNullable<typeof localOptions.fullURL>,
-			requestObjectForStream as RequestInit
-		);
-
-		await toStreamableRequest({
+		const streamableContext = {
 			baseConfig,
 			config,
 			options: localOptions,
 			request: localRequest,
-			requestInstance: requestInstance.clone(),
-		});
+		} satisfies RequestContext;
 
-		const getFetchApiPromise = () => {
-			if (isReadableStream(localRequest.body)) {
-				return fetchApi(requestInstance.clone());
-			}
-
-			return fetchApi(
-				localOptions.fullURL as NonNullable<typeof localOptions.fullURL>,
-				localRequest as RequestInit
-			);
-		};
+		const streamableRequest = await toStreamableRequest(streamableContext);
 
 		const responsePromise =
-			shouldUsePromiseFromCache ? prevRequestInfo.responsePromise : getFetchApiPromise();
+			shouldUsePromiseFromCache ?
+				prevRequestInfo.responsePromise
+			:	fetchApi(localOptions.fullURL as NonNullable<typeof localOptions.fullURL>, streamableRequest);
 
 		$RequestInfoCacheOrNull?.set(dedupeKey, { controller: newFetchController, responsePromise });
 
 		const streamableResponse = toStreamableResponse({
-			baseConfig,
-			config,
-			options: localOptions,
-			request: localRequest,
+			...streamableContext,
 			response: await responsePromise,
 		});
 

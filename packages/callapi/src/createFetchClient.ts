@@ -132,20 +132,24 @@ export const createFetchClient = <
 
 		const [baseFetchOptions, baseExtraOptions] = splitBaseConfig(baseConfig);
 
+		const shouldSkipAutoMergeForOptions =
+			baseExtraOptions.skipAutoMergeFor === "all" || baseExtraOptions.skipAutoMergeFor === "options";
+
+		const shouldSkipAutoMergeForRequest =
+			baseExtraOptions.skipAutoMergeFor === "all" || baseExtraOptions.skipAutoMergeFor === "request";
+
 		// == Merged Extra Options
 		const mergedExtraOptions = {
 			...baseExtraOptions,
-			...(baseExtraOptions.skipAutoMergeFor !== "all"
-				&& baseExtraOptions.skipAutoMergeFor !== "options"
-				&& extraOptions),
+			...(!shouldSkipAutoMergeForOptions && extraOptions),
 		};
 
 		// == Merged Request Options
 		const mergedRequestOptions = {
+			// == Making sure headers is always an object
+			headers: {},
 			...baseFetchOptions,
-			...(baseExtraOptions.skipAutoMergeFor !== "all"
-				&& baseExtraOptions.skipAutoMergeFor !== "request"
-				&& fetchOptions),
+			...(!shouldSkipAutoMergeForRequest && fetchOptions),
 		} satisfies CallApiRequestOptions;
 
 		const { resolvedHooks, resolvedInitURL, resolvedOptions, resolvedRequestOptions } =
@@ -202,9 +206,6 @@ export const createFetchClient = <
 
 		let request = {
 			...resolvedRequestOptions,
-			// == Making  sure headers is always an object
-			// eslint-disable-next-line ts-eslint/no-unnecessary-condition -- False positive
-			headers: resolvedRequestOptions.headers ?? {},
 
 			signal: combinedSignal,
 		} satisfies CallApiRequestOptionsForHooks;
@@ -244,10 +245,7 @@ export const createFetchClient = <
 
 			// == Apply Schema Output for Extra Options
 			if (shouldApplySchemaOutput) {
-				options = {
-					...options,
-					...extraOptionsValidationResult,
-				};
+				options = { ...options, ...extraOptionsValidationResult };
 			}
 
 			// == Apply Schema Output for Request Options
