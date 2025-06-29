@@ -3,6 +3,7 @@
 	"type": "module",
 	"version": "0.0.0",
 	"packageManager": "pnpm@9.15.4",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/zayne-labs/call-api.git"
