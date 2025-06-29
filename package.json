@@ -6,7 +6,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/zayne-labs/call-api.git"
+		"url": "git+https://github.com/zayne-labs/callapi.git"
 	},
 	"scripts": {
 		"build": "turbo run --filter=./packages/* build",

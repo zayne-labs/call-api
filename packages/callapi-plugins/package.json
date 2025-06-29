@@ -5,10 +5,10 @@
 	"description": "A collection of plugins for callapi",
 	"author": "Ryan Zayne",
 	"license": "MIT",
-	"homepage": "https://github.com/zayne-labs/call-api#readme",
+	"homepage": "https://github.com/zayne-labs/callapi#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/zayne-labs/call-api.git"
+		"url": "git+https://github.com/zayne-labs/callapi.git"
 	},
 	"sideEffects": false,
 	"exports": "./src/index.ts",

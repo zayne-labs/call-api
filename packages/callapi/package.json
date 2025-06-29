@@ -5,13 +5,13 @@
 	"description": "A lightweight wrapper over fetch with quality of life improvements like built-in request cancellation, retries, interceptors and more",
 	"author": "Ryan Zayne",
 	"license": "MIT",
-	"homepage": "https://github.com/zayne-labs/call-api#readme",
+	"homepage": "https://github.com/zayne-labs/callapi#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/zayne-labs/call-api.git"
+		"url": "git+https://github.com/zayne-labs/callapi.git"
 	},
 	"bugs": {
-		"url": "https://github.com/zayne-labs/call-api/issues"
+		"url": "https://github.com/zayne-labs/callapi/issues"
 	},
 	"keywords": [
 		"fetch",

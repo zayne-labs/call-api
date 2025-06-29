@@ -7,8 +7,8 @@
 <p align="center">
    <!-- <a href="https://deno.bundlejs.com/badge?q=@zayne-labs/callapi,@zayne-labs/callapi&treeshake=%5B*%5D,%5B%7B+createFetchClient+%7D%5D&config=%7B%22compression%22:%7B%22type%22:%22brotli%22,%22quality%22:11%7D%7D"><img src="https://deno.bundlejs.com/badge?q=@zayne-labs/callapi,@zayne-labs/callapi&treeshake=%5B*%5D,%5B%7B+createFetchClient+%7D%5D&config=%7B%22compression%22:%7B%22type%22:%22brotli%22,%22quality%22:11%7D%7D" alt="bundle size"></a> -->
    <a href="https://www.npmjs.com/package/@zayne-labs/callapi"><img src="https://img.shields.io/npm/v/@zayne-labs/callapi?style=flat&color=EFBA5F" alt="npm version"></a>
-   <a href="https://github.com/zayne-labs/call-api/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/@zayne-labs/callapi?style=flat&color=EFBA5F" alt="license"></a>
-   <a href="https://github.com/zayne-labs/call-api/graphs/commit-activity"><img src="https://img.shields.io/github/commit-activity/m/zayne-labs/call-api?style=flat&color=EFBA5F" alt="commit activity"></a>
+   <a href="https://github.com/zayne-labs/callapi/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/@zayne-labs/callapi?style=flat&color=EFBA5F" alt="license"></a>
+   <a href="https://github.com/zayne-labs/callapi/graphs/commit-activity"><img src="https://img.shields.io/github/commit-activity/m/zayne-labs/callapi?style=flat&color=EFBA5F" alt="commit activity"></a>
    <a href="https://www.npmjs.com/package/@zayne-labs/callapi"><img src="https://img.shields.io/npm/dm/@zayne-labs/callapi?style=flat&color=EFBA5F" alt="downloads per month"></a>
 </p>
 
@@ -47,11 +47,11 @@ To do this, you first need to set your `script`'s type to `module`, then import 
 
 ```html
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi";
+ import { callApi } from "https://esm.run/@zayne-labs/callapi";
 </script>
 
 <!-- Locked to a specific version -->
 <script type="module">
-	import { callApi } from "https://esm.run/@zayne-labs/callapi@0.3.2";
+ import { callApi } from "https://esm.run/@zayne-labs/callapi@1.8.9";
 </script>
 ```

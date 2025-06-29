@@ -134,7 +134,7 @@ export async function GET(req: Request) {
 								style={{ fontFamily: "GeistMono", fontWeight: "normal" }}
 								tw="relative flex mt-10 text-xl uppercase font-bold gap-2 items-center"
 							>
-								{type === "documentation" ? (
+								{type === "documentation" ?
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
 										width="1.2em"
@@ -148,7 +148,8 @@ export async function GET(req: Request) {
 											clipRule="evenodd"
 										/>
 									</svg>
-								) : null}
+								:	null}
+
 								{type}
 							</div>
 							<div
@@ -186,7 +187,7 @@ export async function GET(req: Request) {
 									}}
 									tw="flex ml-2"
 								>
-									github.com/zayne-labs/call-api
+									github.com/zayne-labs/callapi
 								</span>
 							</div>
 						</div>
