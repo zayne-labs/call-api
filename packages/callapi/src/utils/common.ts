@@ -174,3 +174,21 @@ export const createCombinedSignal = (...signals: Array<AbortSignal | null | unde
 };
 
 export const createTimeoutSignal = (milliseconds: number) => AbortSignal.timeout(milliseconds);
+
+export const deterministicHashFn = (value: unknown): string => {
+	return JSON.stringify(value, (_, val: unknown) => {
+		if (!isPlainObject(val)) {
+			return val;
+		}
+
+		const sortedKeys = Object.keys(val).sort();
+
+		const result: Record<string, unknown> = {};
+
+		for (const key of sortedKeys) {
+			result[key] = val[key];
+		}
+
+		return result;
+	});
+};

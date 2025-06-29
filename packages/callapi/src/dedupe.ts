@@ -1,7 +1,7 @@
 import { dedupeDefaults } from "./constants/default-options";
 import type { RequestContext } from "./hooks";
 import { toStreamableRequest, toStreamableResponse } from "./stream";
-import { getFetchImpl, waitFor } from "./utils/common";
+import { deterministicHashFn, getFetchImpl, waitFor } from "./utils/common";
 
 type RequestInfo = {
 	controller: AbortController;
@@ -45,7 +45,7 @@ export const createDedupeStrategy = async (context: DedupeContext) => {
 			return null;
 		}
 
-		return `${globalOptions.fullURL}-${JSON.stringify({ options: globalOptions, request: globalRequest })}`;
+		return `${globalOptions.fullURL}-${deterministicHashFn({ options: globalOptions, request: globalRequest })}`;
 	};
 
 	const dedupeKey = globalOptions.dedupeKey ?? generateDedupeKey();
