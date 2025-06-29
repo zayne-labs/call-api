@@ -6,6 +6,10 @@
 	"author": "Ryan Zayne",
 	"license": "MIT",
 	"homepage": "https://github.com/zayne-labs/call-api#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/zayne-labs/call-api.git"
+	},
 	"sideEffects": false,
 	"exports": "./src/index.ts",
 	"files": [
