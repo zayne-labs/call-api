@@ -32,7 +32,7 @@
 		"prepare": "husky",
 		"release": "changeset publish",
 		"release:rc": "pnpm build && changeset publish --tag rc",
-		"release:test": "pnpx pkg-pr-new publish './packages/*' --compact"
+		"release:test": "pnpx pkg-pr-new publish ./packages/*"
 	},
 	"devDependencies": {
 		"@changesets/cli": "2.29.5",
