@@ -3,6 +3,10 @@
 	"type": "module",
 	"version": "0.0.0",
 	"packageManager": "pnpm@9.15.4",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/zayne-labs/call-api.git"
+	},
 	"scripts": {
 		"build": "turbo run --filter=./packages/* build",
 		"build:callapi": "turbo run --filter=./packages/callapi build",
